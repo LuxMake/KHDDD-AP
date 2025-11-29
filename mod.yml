@@ -1,0 +1,273 @@
+title: KHDDD Archipelago Companion
+originalAuthor: Lux
+description: Archipelago Companion for KHDDD
+assets:
+#Lua Script
+- name: scripts/DDDAPConnector.lua
+  method: copy
+  source:
+  - name: DDDAPConnector.lua
+- name: scripts/io_packages/socket.lua
+  method: copy
+  source:
+  - name: io_packages/socket.lua
+- name: scripts/io_packages/mime.lua
+  method: copy
+  source:
+  - name: io_packages/mime.lua
+- name: scripts/io_packages/ltn12.lua
+  method: copy
+  source:
+  - name: io_packages/ltn12.lua
+- name: scripts/io_packages/socket/core.dll
+  method: copy
+  source:
+  - name: io_packages/socket/core.dll
+- name: scripts/io_packages/socket/ftp.lua
+  method: copy
+  source:
+  - name: io_packages/socket/ftp.lua
+- name: scripts/io_packages/socket/headers.lua
+  method: copy
+  source:
+  - name: io_packages/socket/headers.lua
+- name: scripts/io_packages/socket/http.lua
+  method: copy
+  source:
+  - name: io_packages/socket/http.lua
+- name: scripts/io_packages/socket/smtp.lua
+  method: copy
+  source:
+  - name: io_packages/socket/smtp.lua
+- name: scripts/io_packages/socket/tp.lua
+  method: copy
+  source:
+  - name: io_packages/socket/tp.lua
+- name: scripts/io_packages/socket/url.lua
+  method: copy
+  source:
+  - name: io_packages/socket/url.lua
+- name: scripts/io_packages/mime/core.dll
+  method: copy
+  source:
+  - name: io_packages/mime/core.dll
+- name: scripts/io_packages/KHDDD/Items/ItemHandler.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Items/ItemHandler.lua
+- name: scripts/io_packages/KHDDD/Items/ItemDefs.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Items/ItemDefs.lua
+- name: scripts/io_packages/KHDDD/Items/Spirits.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Items/Spirits.lua
+- name: scripts/io_packages/KHDDD/Locations/LocationDefs.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/LocationDefs.lua
+- name: scripts/io_packages/KHDDD/Locations/LocationHandler.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/LocationHandler.lua
+- name: scripts/io_packages/KHDDD/Locations/StoryHandler.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/StoryHandler.lua
+- name: scripts/io_packages/KHDDD/Tasks/PromptTask.lua
+  method : copy
+  source:
+  - name: io_packages/KHDDD/Tasks/PromptTask.lua
+- name: scripts/io_packages/KHDDD/Tasks/CheatTask.lua
+  method : copy
+  source:
+  - name: io_packages/KHDDD/Tasks/CheatTask.lua
+- name: scripts/io_packages/KHDDD/Tasks/ConfigTask.lua
+  method : copy
+  source:
+  - name: io_packages/KHDDD/Tasks/ConfigTask.lua
+- name: scripts/io_packages/KHDDD/Tasks/RoomSaveTask.lua
+  method : copy
+  source:
+  - name: io_packages/KHDDD/Tasks/RoomSaveTask.lua
+- name: scripts/io_packages/KHDDD/Tasks/SoftlockTask.lua
+  method : copy
+  source:
+  - name: io_packages/KHDDD/Tasks/SoftlockTask.lua
+- name: setdata/jp/bin/di/di05set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/di/di05set.bin
+- name: setdata/jp/bin/tw/tw05set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tw/tw05set.bin
+- name: setdata/jp/bin/tw/tw02set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tw/tw02set.bin
+- name: setdata/jp/bin/tw/tw03set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tw/tw03set.bin
+- name: setdata/jp/bin/tw/tw08set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tw/tw08set.bin
+- name: setdata/jp/bin/tw/tw09set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tw/tw09set.bin
+- name: setdata/jp/bin/nd/nd01set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/nd/nd01set.bin
+- name: setdata/jp/bin/nd/nd03set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/nd/nd03set.bin
+- name: setdata/jp/bin/nd/nd04set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/nd/nd04set.bin
+- name: setdata/jp/bin/nd/nd13set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/nd/nd13set.bin
+- name: setdata/jp/bin/nd/nd14set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/nd/nd14set.bin
+- name: setdata/jp/bin/tl/tl04set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tl/tl04set.bin
+- name: setdata/jp/bin/tl/tl12set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tl/tl12set.bin
+- name: setdata/jp/bin/tl/tl08set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tl/tl08set.bin
+- name: setdata/jp/bin/tl/tl10set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tl/tl10set.bin
+- name: setdata/jp/bin/tl/tl17set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tl/tl17set.bin
+- name: setdata/jp/bin/pi/pi01set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/pi/pi01set.bin
+- name: setdata/jp/bin/pi/pi11set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/pi/pi11set.bin
+- name: setdata/jp/bin/pi/pi12set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/pi/pi12set.bin
+- name: setdata/jp/bin/pi/pi16set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/pi/pi16set.bin
+- name: setdata/jp/bin/pi/pi06set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/pi/pi06set.bin
+- name: setdata/jp/bin/pi/pi18set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/pi/pi18set.bin
+- name: setdata/jp/bin/tm/tm08set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tm/tm08set.bin
+- name: setdata/jp/bin/tm/tm14set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tm/tm14set.bin
+- name: setdata/jp/bin/tm/tm12set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/tm/tm12set.bin
+- name: setdata/jp/bin/fa/fa15set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/fa/fa15set.bin
+- name: setdata/jp/bin/fa/fa16set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/fa/fa16set.bin
+- name: setdata/jp/bin/eh/eh19set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/eh/eh19set.bin
+- name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
+  method : copy
+  source:
+  - name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
+- name: item/jp/bin/itxxxx.ctt
+  method : copy
+  source:
+  - name: item/jp/bin/itxxxx.ctt
+- name: item/jp/bin/shop.bin
+  method : copy
+  source:
+  - name: item/jp/bin/shop.bin
+- name: mission/jp/bin/mission.mis
+  method : copy
+  source:
+  - name: mission/jp/bin/mission.mis
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_gage_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_gage_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_cnt_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_cnt_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_gage_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_gage_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_cnt_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_cnt_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_gage_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_gage_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_cnt_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_cnt_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_gage_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_gage_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_cnt_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_cnt_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_gage_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_gage_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_cnt_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_cnt_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_gage_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_gage_000.png
+- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_cnt_000.png
+  method : copy
+  source:
+  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_cnt_000.png
