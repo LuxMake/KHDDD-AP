@@ -418,6 +418,7 @@ activeCharacter = 0
 
 currentReceivedIndex = 0 --Updates when a new item is obtained and is saved to the medals value on change
 lastReceivedIndex = 0 --Updates when save file is loaded
+receivedInit = false --Have we received our items after connecting to the server?
 
 local _soraUnboundSent = false
 local _rikuUnboundSent = false
@@ -1009,7 +1010,7 @@ function HandleMessage(msg)
         RoomSaveTask:StoreItem(itemID)
         updateReceived(_itemCnt)
       else
-        if lastReceivedIndex > currentReceivedIndex then
+        if _itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
           --TODO: Verify what should still be added for the sake of state containers
           updateReceived(_itemCnt)
           checkIfCanReceive(itemID, type)
@@ -1046,7 +1047,7 @@ function HandleMessage(msg)
       local _item = getItemById(_id)
       local type = _item.Type
       local itemID = _item.ID
-      if lastReceivedIndex > currentReceivedIndex then
+      if _itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
         updateReceived(_itemCnt)
         checkIfCanReceive(itemID, type)
       else
@@ -1278,11 +1279,15 @@ function updateReceived(itemCnt)
   if currentReceivedIndex < lastReceivedIndex then --Increment current received until we reach our last received
     currentReceivedIndex = currentReceivedIndex+1
   else --Fill with item index of latest received
-    currentReceivedIndex = itemCnt
+    if itemCnt > currentReceivedIndex then
+      currentReceivedIndex = itemCnt
+    end
+    receivedInit = true --We have finished receiving the intial set of items from the mod
   end
   WriteInt(MemoryAddresses.medals, currentReceivedIndex)
   ConsolePrint("Current Received Index: "..tostring(currentReceivedIndex))
   ConsolePrint("Last Received Index: "..tostring(lastReceivedIndex))
+  ConsolePrint("Item Cnt: "..tostring(itemCnt))
 end
 
 --This function is needed for room save to work
@@ -1301,7 +1306,7 @@ end
 
 function checkIfCanReceive(id, type)
   local validTypes = {"Stats [Sora]", "Stats [Riku]", "Recipe", "Flowmotion", "World", "Key"}
-  if hasValue(validTypes, type) then
+  if hasValue(validTypes, type) and not receivedInit then
     --For recipe, create a version that only adds to table and bypasses adding recipe to inventory and auto-craft
     if type ~= "Recipe" and type ~= "Key" then
       ConsolePrint("Successfully received stat/movement/world")
@@ -1381,6 +1386,8 @@ function OnGameStart()
     gameStarted = true
     initGameState()
     lastReceivedIndex = ReadInt(MemoryAddresses.medals)
+    --Request items from server
+    SendToApClient(MessageTypes.RequestAllItems, {"Requesting Items"})
     
 
     --Game Clear Flag
