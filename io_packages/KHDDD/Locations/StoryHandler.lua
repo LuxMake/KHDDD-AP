@@ -191,7 +191,7 @@ function StoryHandler:OverwriteStoryVars()
         ConsolePrint("Starting Riku TT")
       elseif ReadByte(WorldFlags.traverseTown.riku.story+0x03) > 0x00 and countValues(ItemHandler.State.World.ids, 2691014) < 2 then
         --Prevent TT2 events from starting
-        WriteByte(WorldFlagss.traverseTown.riku.story+0x03, 0x00)
+        WriteByte(WorldFlags.traverseTown.riku.story+0x03, 0x00)
         WriteByte(MemoryAddresses.map, 0x01)
         WriteByte(MemoryAddresses.btl, 0x01)
         WriteByte(MemoryAddresses.evt, 0x01)
