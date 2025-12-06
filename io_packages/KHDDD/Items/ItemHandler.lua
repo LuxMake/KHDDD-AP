@@ -356,9 +356,9 @@ function ItemHandler:GiveKeyblade(value)
     _keyAddr = MemoryAddresses.rikuKeyblades
   end
 
-  local _keybladeSlot = _keyAddr-_keyblade.Offset
-  if _keyblade.Type == "Keyblades [Sora]" then
-    _keybladeSlot = _keyAddr+_keyblade.Offset
+  local _keybladeSlot = _keyAddr+_keyblade.Offset
+  if _keyblade.Type == "Keyblades [Riku]" then
+    _keybladeSlot = _keyAddr-_keyblade.Offset
   end
 
   WriteArray(_keybladeSlot, _keyblade.Bytes)
@@ -701,6 +701,7 @@ function ItemHandler:GiveRecipe(value)
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   WriteArray(_targetSlot, _item.Bytes)
   table.insert(self.State.Recipes, value)
+  self:UpdateRecipeTotal()
   if Configs.AutoCraftSpirits then
     self:CraftSpirits(value)
   end
@@ -709,6 +710,7 @@ end
 function ItemHandler:RecipeToState(value)
   --This table only logs a recipe to the state table without adding to inventory or auto-crafting
   table.insert(self.State.Recipes, value)
+  self:UpdateRecipeTotal()
 end
 
 function ItemHandler:RecipeToInv(value)
@@ -718,6 +720,20 @@ function ItemHandler:RecipeToInv(value)
   local _targetSlot = MemoryAddresses.recipes+(_slotNo*2)
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   WriteArray(_targetSlot, _item.Bytes)
+  self:UpdateRecipeTotal()
+  if Configs.AutoCraftSpirits then
+    self:CraftSpirits(value)
+  end
+end
+
+function ItemHandler:UpdateRecipeTotal()
+  --Shows how many recipes the player owns
+  local _uniqueRecipes = removeDuplicates(self.State.Recipes)
+  local _recipeItemAddr = 0xA4C578
+  if _uniqueRecipes ~= nil then
+    WriteArray(_recipeItemAddr, {0x11, 0x08})
+    WriteShort(_recipeItemAddr+0x02, #_uniqueRecipes)
+  end
 end
 
 function ItemHandler:CheckMacguffins()

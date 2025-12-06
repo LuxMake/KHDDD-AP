@@ -5,6 +5,7 @@ CheatTask = {}
 CheatTask.LastExp = 0
 CheatTask.Mult = 0
 CheatTask.IsInit = false
+CheatTask.InMenu = false
 
 function CheatTask:Init()
 	self.LastExp = ReadInt(MemoryAddresses.soraExp)

@@ -73,6 +73,8 @@ end
 
 function ConfigTask:SetRecipeReq(msgVal)
 	Configs.RecipeReqs = tonumber(msgVal[1])
+	local _reqStr = "Required Recipes: "..msgVal[1]
+	writeTxtToGame(ItemOverwrite.recipeDescAddr, _reqStr, 1)
 	ConsolePrint("Setting required recipes to "..msgVal[1])
 end
 

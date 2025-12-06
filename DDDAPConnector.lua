@@ -31,6 +31,8 @@ local canExecute = false
 local gameStarted = false
 local connectionInitialized = false
 
+local handshake = false
+
 frameCount = 0
 connected = false
 
@@ -138,6 +140,8 @@ ItemOverwrite = {
   dummyDesc = "An item for another world.",
   dummyId = {0x13, 0x08},
   dummyName = "AP Item",
+  recipeNameAddr = 0x10944CD6,
+  recipeDescAddr = 0x109561FC,
   levelUpTxtAddr = 0x10946494,
   strIncreasedTxt = 0x10946494,
   magIncreasedTxt = 0x109464BC,
@@ -160,7 +164,9 @@ KHSCII = {
   l = 0x6C,m = 0x6D,n = 0x6E,o = 0x6F,p = 0x70,
   q = 0x71,r = 0x72,s = 0x73,t = 0x74,u = 0x75,
   v = 0x76,w = 0x77,x = 0x78,y = 0x79,z = 0x7A,
-  Period = 0x2E,Space = 0x20,Exclamation = 0x21, And = 0x26
+  One = 0x31, Two = 0x32, Three = 0x33, Four = 0x34, Five = 0x35,
+  Six = 0x36, Seven = 0x37, Eight = 0x38, Nine = 0x39, Zero = 0x30,
+  Period = 0x2E,Space = 0x20,Exclamation = 0x21, And = 0x26, Colon = 0x3A
 }
 
 --Record: A51940
@@ -367,7 +373,8 @@ MessageTypes = {
   Deathlink = 8,
   PortalChecked = 9,
   SendSlotData = 10,
-  Victory = 11
+  Victory = 11,
+  Handshake = 12
 }
 
 --Items
@@ -654,6 +661,10 @@ function makeDummyItem()
   --writeTxtToGame(ItemOverwrite.dummyDescAddr, ItemOverwrite.dummyDesc, 7)
   writeTxtToGame(ItemOverwrite.dummyDescAddr, ItemOverwrite.dummyDesc, 3)
 
+  --Write Recipe Total text to TOY 18
+  writeTxtToGame(ItemOverwrite.recipeNameAddr, "Recipes", 3)
+  --writeTxtToGame(ItemOverwrite.recipeDescAddr, "Recipes Required: "..tostring(Configs.RecipeReqs), 1)
+
   --Replace chest data with this item
   for i=0, 255 do
     WriteArray(MemoryAddresses.chestDataS+0x1A+(8*i), ItemOverwrite.dummyId)
@@ -796,7 +807,7 @@ function CheckDeathlink() --For sending deathlink
     end
   end
 
-  if _hpVal > 0x00 and _canPause == 0x00 and _canPause2 == 0x00 then --Deathlink status can be cleared
+  if _hpVal > 0x00 and _canPause == 0x00 and _canPause2 == 0x00 and _stateVal ~= 3 then --Deathlink status can be cleared
     _deathlinkSent = false
     _fromDeathlink = false
   end
@@ -926,9 +937,9 @@ function killPlayer() --For death link
     end
     ConsolePrint("Deathlink triggered")
     local _ptr = GetPointer(MemoryAddresses.deathPtr, MemoryAddresses.deathOffset)
+    _fromDeathlink = true
     WriteByte(_ptr, 3, true) --Set to 4 for instant drop
     holdDeathlink = false
-    _fromDeathlink = true
   end
 end
 
@@ -1094,6 +1105,12 @@ function HandleMessage(msg)
     end
 
     ConfigTask:ParseSlotData(_slotType, _sentVals)
+
+  elseif msg.type == MessageTypes.Handshake then
+    ConsolePrint("Received handshake; Requesting items")
+    if msg.values[1] == "True" then
+      SendToApClient(MessageTypes.RequestAllItems, {"Requesting Items"})
+    end
   end
 
 
@@ -1253,6 +1270,9 @@ function charToKHSCII(char)
     ["q"] = KHSCII.q,["r"] = KHSCII.r,["s"] = KHSCII.s,["t"] = KHSCII.t,
     ["u"] = KHSCII.u,["v"] = KHSCII.v,["w"] = KHSCII.w,["x"] = KHSCII.x,
     ["y"] = KHSCII.y,["z"] = KHSCII.z,
+    ["0"] = KHSCII.Zero,["1"] = KHSCII.One,["2"] = KHSCII.Two,["3"] = KHSCII.Three,
+    ["4"] = KHSCII.Four,["5"] = KHSCII.Five,["6"] = KHSCII.Six,["7"] = KHSCII.Seven,
+    ["8"] = KHSCII.Eight,["9"] = KHSCII.Nine, [":"] = KHSCII.Colon,
     ["."] = KHSCII.Period,[" "] = KHSCII.Space,["!"] = KHSCII.Exclamation,["&"] = KHSCII.And
   }
 
@@ -1386,8 +1406,8 @@ function OnGameStart()
     gameStarted = true
     initGameState()
     lastReceivedIndex = ReadInt(MemoryAddresses.medals)
-    --Request items from server
-    SendToApClient(MessageTypes.RequestAllItems, {"Requesting Items"})
+    --Request handshake from server
+    SendToApClient(MessageTypes.Handshake, {"Requesting Handshake"})
     
 
     --Game Clear Flag
