@@ -325,6 +325,7 @@ end
 
 function ItemHandler:RebuildWorlds()
   --Reset world lock status
+
   for i=2691001, 2691014 do
     local _world = getItemById(i)
     if ReadByte(_world.Bytes[6]) == 0x00 then --Only reset lock status if world is not selectable

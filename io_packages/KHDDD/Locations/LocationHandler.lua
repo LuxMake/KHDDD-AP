@@ -92,10 +92,26 @@ function LocationHandler:WorldAccess()
   local _currWorld = ReadByte(MemoryAddresses.world)
   local _currChar = getCharacter()
 
-  if _currWorld == 0x0B then --Additional check needed for Sora TT
+  if _currWorld == 0x0B then --Additional check needed for TT
     local _worldInvItem = getItemById(2691113)
     if ReadByte(MemoryAddresses.keyItems+_worldInvItem.Offset) == 0x00 then --No access
       WriteInt(MemoryAddresses.worldStatusS+self.StatusOffsets.Sora.tt, 0xFFFFFFFE)
+    else
+      --Verify story progression for save unlock
+      if ReadByte(WorldFlags.traverseTown.sora.story+0x02) == 0x00 then
+        --Makes visit this world prompt appear
+        WriteByte(WorldFlags.traverseTown.sora.selectable, 0x03)
+        WriteInt(MemoryAddresses.worldStatusS+self.StatusOffsets.Sora.tt, 0xFFFFFFFE)
+      else
+        --Makes save points selectable
+        WriteInt(MemoryAddresses.worldStatusS+self.StatusOffsets.Sora.tt, 0)
+      end
+    end
+
+    --Verify Riku TT is locked
+    _worldInvItem = getItemById(2691114)
+    if ReadByte(MemoryAddresses.keyItems+_worldInvItem.Offset) > 0x00 then --Should have access
+      WriteByte(WorldFlags.traverseTown.riku.selectable, 0x03)
     end
   end
 

@@ -845,6 +845,13 @@ function SkipDETutorial()
     --Prevent tutorial from showing up
     WriteByte(0xA9B2D0, 0x01)
     WriteByte(MemoryAddresses.pauseType, 0x03)
+
+    --WriteByte(0xA9B2D0, 0x00)
+    --WriteByte(0xA9B2D8, 0x00)
+    --WriteByte(0xA9B2DC, 0x06)
+    --WriteByte(0xA9B2F4, 0x0E)
+    --WriteByte(0xA9B302, 0x00)
+
     _fixPause = true
   end
 
@@ -1136,7 +1143,6 @@ function ReceiveItem(itemID, itemCnt)
   end
 
   --Distribute real item
-  updateReceived(itemCnt)
   local _item = getItemById(itemID)
   local _type = _item.Type
   if itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
@@ -1145,6 +1151,7 @@ function ReceiveItem(itemID, itemCnt)
     ItemHandler:Receive(_type, itemID)
     RoomSaveTask:StoreItem(itemID)
   end
+  updateReceived(itemCnt)
 end
 
 function toHex(str)
@@ -1380,13 +1387,13 @@ function main()
   ItemHandler:TT2Access()
   ItemHandler:RebuildWorlds()
 
+  LocationHandler:WorldAccess()
+
   killPlayer() --Check if deathlink is received
 
   removeDummyItem()
 
   checkCharacterChange()
-
-  LocationHandler:WorldAccess()
 
   if _activeRoom ~= ReadByte(MemoryAddresses.room) then
     --Room change occurred; check some stuff
