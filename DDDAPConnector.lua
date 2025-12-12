@@ -375,6 +375,7 @@ MessageTypes = {
   SendSlotData = 10,
   Victory = 11,
   Handshake = 12,
+  GetCurrentIndex = 13,
   Closed = 20
 }
 HandshakeSent = false
@@ -1068,6 +1069,9 @@ function HandleMessage(msg)
     if msg.values[1] == "True" then
       SendToApClient(MessageTypes.RequestAllItems, {"Requesting Items"})
     end
+
+  elseif msg.type == MessageTypes.GetCurrentIndex then
+    SendToApClient(MessageTypes.GetCurrentIndex, {tostring(currentReceivedIndex)})
   end
 
 
