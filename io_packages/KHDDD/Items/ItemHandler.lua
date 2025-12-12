@@ -58,15 +58,12 @@ function ItemHandler:Receive(type, value)
     self:GiveRecipe(value)
   elseif type == "Key" then
     self:GiveKeyItem(value)
+  elseif type == "Stat" or type == "Support" or type == "Spirit" then
+    self:GiveAbility(value, true)
   else
     self:GiveMiscItem(value, type)
   end
   
-end
-
-function ItemHandler:ReceiveAbility(value)
-  --TODO: Sora/Riku considerations
-  self:GiveAbility(value, true)
 end
 
 function ItemHandler:Request()

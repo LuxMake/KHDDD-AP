@@ -374,8 +374,11 @@ MessageTypes = {
   PortalChecked = 9,
   SendSlotData = 10,
   Victory = 11,
-  Handshake = 12
+  Handshake = 12,
+  Closed = 20
 }
+HandshakeSent = false
+HandshakeReceived = false
 
 --Items
 items = {}
@@ -945,16 +948,19 @@ end
 
 -- ############################################################
 -- ######################  Socket  ############################
--- #############  Special Thanks to Krujo  ####################
+-- #############  Special Thanks to Krujo & Shananas  #########
 -- ############################################################
 
 function ConnectToApClient()
-  client = socket.connect("127.0.0.1", 13713)
-  if client then
+
+  local ok, err = client:connect("127.0.0.1", 13713)
+
+  if ok or err == "already connected" then
     ConsolePrint("Connected to client!")
     return true
+  elseif err == "timeout" then
+    return false
   else
-    ConsolePrint("Failed to connect")
     return false
   end
 end
@@ -988,89 +994,21 @@ function HandleMessage(msg)
     return
   end
 
+  --Receive Multiple Items from Server
   if msg.type == MessageTypes.ReceiveAllItems then
     ConsolePrint("Receiving all items")
     ItemHandler:Reset()
     local i = 1; 
     while i <= #msg.values-1 do
       local _msg = msg.values[i]
-      if tonumber(_msg) == 2639999 then --Victory; Not a real item
-        GoalGame()
-        return
-      end
-      ConsolePrint("Msg Value: ".._msg)
-      local _item = getItemById(tonumber(_msg))
-      if _item == nil then
-        ConsolePrint("Invalid item received. Val: ".._msg)
-        return
-      end
-      local type = _item.Type
-      local itemID = _item.ID
-
-      local _itemCnt = tonumber(msg.values[#msg.values])+i
-
-      if itemID < 2630000 then --Trap received
-        if lastReceivedIndex <= currentReceivedIndex then --Prevents drop trap from triggering if we already got it
-          DropTrap()
-          return
-        end
-      end
-
-      if itemID >= 2670000 and itemID < 2680000 then --Receive ability
-        ItemHandler:ReceiveAbility(itemID)
-        RoomSaveTask:StoreItem(itemID)
-        updateReceived(_itemCnt)
-      else
-        if _itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
-          --TODO: Verify what should still be added for the sake of state containers
-          updateReceived(_itemCnt)
-          checkIfCanReceive(itemID, type)
-        else
-          ItemHandler:Receive(type, itemID)
-          RoomSaveTask:StoreItem(itemID)
-          updateReceived(_itemCnt)
-        end
-      end
+      ReceiveItem(tonumber(_msg), tonumber(msg.values[#msg.values])+i)
       i = i + 1
     end
+
+  --Receive Single Item from Server
   elseif msg.type == MessageTypes.ReceiveSingleItem then
     ConsolePrint("Receiving single item")
-    if tonumber(msg.values[1]) == 2639999 then --Victory; Not a real item
-      GoalGame()
-      return
-    end
-    local _id = tonumber(msg.values[1])
-    local _itemCnt = tonumber(msg.values[2])
-    if _id == nil then
-        ConsolePrint("Invalid item received. Val: ".._id)
-        return
-    end
-
-    if _id < 2630000 then --Trap received
-      ConsolePrint("Sending drop trap")
-      if lastReceivedIndex < currentReceivedIndex then
-        DropTrap()
-      end
-      return
-    end
-
-    if _id < 2670000 or _id > 2680000 then --Normal item received
-      local _item = getItemById(_id)
-      local type = _item.Type
-      local itemID = _item.ID
-      if _itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
-        updateReceived(_itemCnt)
-        checkIfCanReceive(itemID, type)
-      else
-        ItemHandler:Receive(type, itemID)
-        RoomSaveTask:StoreItem(_id)
-        updateReceived(_itemCnt)
-      end
-    else --Ability received
-      ItemHandler:ReceiveAbility(_id)
-      RoomSaveTask:StoreItem(_id)
-      updateReceived(_itemCnt)
-    end
+    ReceiveItem(tonumber(msg.values[1]), tonumber(msg.values[2]))
 
   elseif msg.type == MessageTypes.ClientCommand then
     local _cmdId = tonumber(msg.values[1])
@@ -1107,6 +1045,7 @@ function HandleMessage(msg)
     ConfigTask:ParseSlotData(_slotType, _sentVals)
 
   elseif msg.type == MessageTypes.Handshake then
+    HandshakeReceived = true
     ConsolePrint("Received handshake; Requesting items")
     if msg.values[1] == "True" then
       SendToApClient(MessageTypes.RequestAllItems, {"Requesting Items"})
@@ -1116,10 +1055,15 @@ function HandleMessage(msg)
 
 end
 
+local _receiveBuffer = ""
 function ReceiveFromApClient()
   if SocketHasMessages() then
-    local message, err = client:receive('*l')
+    local message, err, partial = client:receive('*l')
     if message then
+      if _receiveBuffer ~= "" then
+        message = _receiveBuffer .. message
+        receiveBuffer = ""
+      end
       ConsolePrint("Full message received: "..message)
       local parts = SplitString(message, ";")
       local type = tonumber(parts[1])
@@ -1132,18 +1076,76 @@ function ReceiveFromApClient()
         table.insert(newMessage.values, parts[i])
       end
 
+      --Check if connection is closed
+      if newMessage.type == MessageTypes.Closed then
+        ConsolePrint("Server Closed; Resetting Client")
+        CloseConnection()
+        return
+      end
+
       return newMessage
+
+    elseif partial and #partial > 0 then
+      receiveBuffer = receiveBuffer .. partial
+      ConsolePrint("Partial message received")
     elseif err then
       ConsolePrint("Error receiving message: " .. err)
+      if err == "timeout" then
+        ConsolePrint("Please relaunch the AP Client")
+        CloseConnection()
+      end
     end
   else
     return nil
   end
 end
 
+function CloseConnection()
+  --Close the socket connection and reset game state
+  connectionInitialized = false
+  gameStarted = false
+  HandshakeSent = false
+  HandshakeReceived = false
+  client:close()
+  client = socket.tcp()
+  client:settimeout(0)
+end
+
 -- ############################################################
 -- ######################  Helpers  ###########################
 -- ############################################################
+
+function ReceiveItem(itemID, itemCnt)
+
+  if itemID == 2639999 then --Victory; Not a real item
+    GoalGame()
+    return
+  end
+
+  if itemID == nil then
+    ConsolePrint("Invalid item received. Val: ".._id)
+    return
+  end
+
+  if itemID < 2630000 then --Trap received
+    ConsolePrint("Sending drop trap")
+    if lastReceivedIndex < currentReceivedIndex then
+      DropTrap()
+    end
+    return
+  end
+
+  --Distribute real item
+  updateReceived(itemCnt)
+  local _item = getItemById(itemID)
+  local _type = _item.Type
+  if itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
+    checkIfCanReceive(itemID, _type)
+  else
+    ItemHandler:Receive(_type, itemID)
+    RoomSaveTask:StoreItem(itemID)
+  end
+end
 
 function toHex(str)
   return string.format("%X", str)
@@ -1314,7 +1316,7 @@ end
 function sendToInv(itemId)
   local _item = getItemById(itemId)
   if _item.Type == "Support" or _item.Type == "Spirit" then --Ability redeemed
-    ItemHandler:ReceiveAbility(itemId)
+    ItemHandler:GiveAbility(itemId, true)
   elseif _item.Type == "World" then --Send world item
     ItemHandler:PlaceWorldItem(itemId)
   elseif _item.Type == "Recipe" then --Recipes don't need to be re-added to our state
@@ -1391,10 +1393,17 @@ function main()
     onRoomChange()
     _activeRoom = ReadByte(MemoryAddresses.room)
   end
+  
+end
 
-  local msg = ReceiveFromApClient()
-  if msg then
-    HandleMessage(msg)
+function APCommunication() --Interpret AP messages
+  while true do --Using a loop allows us to get multiple messages per frame
+    local msg = ReceiveFromApClient()
+    if msg then
+      HandleMessage(msg)
+    else
+      break
+    end
   end
 end
 
@@ -1406,8 +1415,6 @@ function OnGameStart()
     gameStarted = true
     initGameState()
     lastReceivedIndex = ReadInt(MemoryAddresses.medals)
-    --Request handshake from server
-    SendToApClient(MessageTypes.Handshake, {"Requesting Handshake"})
     
 
     --Game Clear Flag
@@ -1424,6 +1431,10 @@ end
 
 function _OnInit()
   ConsolePrint("Game ID: ".. tostring(gameID))
+
+  --Initialize Socket
+  client = socket.tcp()
+  client:settimeout(0)
 
   --Initialize items and locations
   LocationDefs:DefineChests()
@@ -1449,8 +1460,18 @@ function _OnFrame()
     end
     return
   end
+  if not HandshakeSent then
+    --Request handshake from server
+    SendToApClient(MessageTypes.Handshake, {"Requesting Handshake"})
+    HandshakeSent = true
+    return
+  end
+  if not HandshakeReceived then
+    APCommunication()
+  end
 
   if frameCount == 0 and canExecute then --Dont run main logic every frame
+    APCommunication()
     main()
   end
 
