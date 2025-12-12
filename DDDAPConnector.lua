@@ -840,6 +840,7 @@ function ManageDrop()
 end
 
 local _fixPause = false
+local _helpRiku = false
 function SkipDETutorial()
   if ReadByte(0xA9B2D0) == 0x0E then
     --Prevent tutorial from showing up
@@ -866,6 +867,8 @@ function SkipDETutorial()
         WriteByte(0xA43440, 0x01) --Evt flag for Riku 2nd District
 
         WriteByte(0xA9B2F4, 0x04) --Some kind of pause state
+
+        _helpRiku = true
       end
     end
   end
@@ -874,6 +877,14 @@ function SkipDETutorial()
     --Prevent game from allowing player to open the main menu in battle
     WriteByte(MemoryAddresses.pauseType, 0x00)
     _fixPause = false
+  end
+
+  if _helpRiku and getCharacter() == 1 and ReadByte(MemoryAddresses.room) ~= 0x02 then
+    --Continue Riku's events if he leaves the room and the event was not triggered correctly
+    if ReadByte(WorldFlags.traverseTown.riku.story+0x01) < 0x77 then --Have to make up the story
+      WriteByte(MemoryAddresses.room, 0x02)
+    end
+    _helpRiku = false
   end
 end
 
