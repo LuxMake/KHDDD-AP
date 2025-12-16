@@ -58,15 +58,12 @@ function ItemHandler:Receive(type, value)
     self:GiveRecipe(value)
   elseif type == "Key" then
     self:GiveKeyItem(value)
+  elseif type == "Stat" or type == "Support" or type == "Spirit" then
+    self:GiveAbility(value, true)
   else
     self:GiveMiscItem(value, type)
   end
   
-end
-
-function ItemHandler:ReceiveAbility(value)
-  --TODO: Sora/Riku considerations
-  self:GiveAbility(value, true)
 end
 
 function ItemHandler:Request()
@@ -328,6 +325,7 @@ end
 
 function ItemHandler:RebuildWorlds()
   --Reset world lock status
+
   for i=2691001, 2691014 do
     local _world = getItemById(i)
     if ReadByte(_world.Bytes[6]) == 0x00 then --Only reset lock status if world is not selectable
@@ -527,7 +525,7 @@ function ItemHandler:FixAirSlide()
   --To prevent this from happening, make sure it''s equipped
 
   --Last slot of deck 1 will be reserved for Air Slide
-  local _airSlideEquipped = self:FindExistingSlot(MemoryAddresses.commandStock, 1000, {0x06, 0x00}, 0x08, 0x00)
+  local _airSlideEquipped = self:FindExistingSlot(MemoryAddresses.commandStock, 2000, {0x06, 0x00}, 0x08, 0x00)
   if _airSlideEquipped ~= nil then
     ConsolePrint("Air Slide found; fixing...")
     --Air slide was obtained; check and see if either character have it equipped
