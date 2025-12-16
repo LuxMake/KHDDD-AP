@@ -40,7 +40,7 @@ function SoftlockTask:EscapePurgatory()
 	if _currWorld == 0x07 then
 		--Is player in a purgatory room?
 		local _currRoom = ReadByte(MemoryAddresses.room)
-		if _currRoom == 0x03 or _currRoom == 0x01 then
+		if _currRoom == 0x03 or _currRoom == 0x01 or _currRoom == 0x05 then
 			--See if player is actually stuck
 			if ReadByte(MemoryAddresses.cutscenePauseType == 0x00 and ReadByte(MemoryAddresses.enablePause) == 0x00) then
 				--Send the player to the world map

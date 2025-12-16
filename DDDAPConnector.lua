@@ -1065,10 +1065,11 @@ function HandleMessage(msg)
 
   elseif msg.type == MessageTypes.Handshake then
     HandshakeReceived = true
-    ConsolePrint("Received handshake; Requesting items")
+    ConsolePrint("Received handshake; Requesting items: "..msg.values[1])
     if msg.values[1] == "True" then
       SendToApClient(MessageTypes.RequestAllItems, {"Requesting Items"})
     end
+
 
   elseif msg.type == MessageTypes.GetCurrentIndex then
     SendToApClient(MessageTypes.GetCurrentIndex, {tostring(currentReceivedIndex)})

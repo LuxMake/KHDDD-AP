@@ -525,7 +525,7 @@ function ItemHandler:FixAirSlide()
   --To prevent this from happening, make sure it''s equipped
 
   --Last slot of deck 1 will be reserved for Air Slide
-  local _airSlideEquipped = self:FindExistingSlot(MemoryAddresses.commandStock, 1000, {0x06, 0x00}, 0x08, 0x00)
+  local _airSlideEquipped = self:FindExistingSlot(MemoryAddresses.commandStock, 2000, {0x06, 0x00}, 0x08, 0x00)
   if _airSlideEquipped ~= nil then
     ConsolePrint("Air Slide found; fixing...")
     --Air slide was obtained; check and see if either character have it equipped

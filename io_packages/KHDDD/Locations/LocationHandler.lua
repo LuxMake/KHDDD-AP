@@ -158,6 +158,13 @@ function LocationHandler:WorldAccess()
     if ReadByte(MemoryAddresses.keyItems+_worldInvItem.Offset) == 0x00 then --No access; hide world
       WriteArray(WorldFlags.theWorldThatNeverWas.riku.unlocked, {0x00, 0x00})
     end
+
+    --See if save point needs to be unlocked
+    if ReadByte(WorldFlags.theWorldThatNeverWas.riku.story+0x02) >= 0x03 then
+      --Ensure Memory's Skyscraper is unlocked if Ansem is defeated
+      WriteArray(0x109791AA, {0x0A, 0x0D})
+      WriteInt(MemoryAddresses.worldStatusR+0xCC, 0)
+    end
   end
 end
 
