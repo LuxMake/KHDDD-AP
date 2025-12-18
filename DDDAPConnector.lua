@@ -652,6 +652,9 @@ function onCharacterChange()
   end
 
   setSecretPortals()
+
+  --Fix an issue where forced drop events reset the battle level scaling
+  ItemHandler:ApplyScaling()
 end
 
 function onRoomChange()
@@ -1478,7 +1481,7 @@ end
 function _OnFrame()
   frameCount = (frameCount+1)%15
   if not gameStarted then
-    if ReadByte(MemoryAddresses.keyblades+0x01) == 2 and frameCount == 0 then --Save file is loaded if keyblade exists here
+    if frameCount == 0 and ReadByte(MemoryAddresses.world) ~= 0xFF then --Save file is loaded if not on title screen
       OnGameStart()
     end
     return

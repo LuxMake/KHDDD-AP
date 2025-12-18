@@ -144,6 +144,8 @@ function LocationHandler:WorldAccess()
       WriteInt(MemoryAddresses.worldStatusS+self.StatusOffsets.Sora.tg, 0)
     elseif _currChar == 1 and ReadByte(WorldFlags.theGrid.riku.story+0x03) >= 0x03 then
       WriteInt(MemoryAddresses.worldStatusR+self.StatusOffsets.Riku.tg, 0)
+      --Unlock additional save point
+      WriteByte(0xA446F0, 0x30) --Ensures Riku's entire grid can be accessed
     end
   end
 
@@ -164,56 +166,6 @@ function LocationHandler:WorldAccess()
       --Ensure Memory's Skyscraper is unlocked if Ansem is defeated
       WriteArray(0x109791AA, {0x0A, 0x0D})
       WriteInt(MemoryAddresses.worldStatusR+0xCC, 0)
-    end
-  end
-end
-
-function LocationHandler:WorldAccessLegacy() --Manages lock status of worlds
-  local _currWorld = ReadByte(MemoryAddresses.world)
-
-  if _currWorld == 0x03 and ReadInt(MemoryAddresses.worldStatusS+0x64) == 0xFFFFFFFE then --Checking TT
-    WriteInt(MemoryAddresses.worldStatusS+0x64, 0)
-  elseif _currWorld == 0x06 and ReadLong(MemoryAddresses.worldStatusS+0xB4) == 0xFFFFFFFEFFFFFFFE then --PP and LCDS [Sora]
-    WriteLong(MemoryAddresses.worldStatusS+0xB4, 0)
-  end
-
-  if _currWorld == 0x08 and ReadLong(MemoryAddresses.worldStatusS+0xB8) == 0xFFFFFFFE then
-    WriteInt(MemoryAddresses.worldStatusS+0xB8, 0)
-  end
-  if _currWorld == 0x08 and ReadInt(MemoryAddresses.worldStatusR+0xC4) == 0xFFFFFFFD then
-    WriteInt(MemoryAddresses.worldStatusR+0xC4, 0)
-  end
-
-  if _currWorld == 0x0B then
-    WriteInt(MemoryAddresses.worldStatusS+0x64, 0xFFFFFFFE) --TT Sora
-    WriteInt(MemoryAddresses.worldStatusS+0xB8, 0xFFFFFFFE) --LCdC Sora
-    WriteInt(MemoryAddresses.worldStatusR+0xC4, 0xFFFFFFFD) --LCdC Riku
-
-    --See if TG needs portal stairs unlocked
-    if ReadByte(WorldFlags.theGrid.riku.story) >= 0x11 and getCharacter() == 1 then
-      --World beaten; status can be reset
-      WriteInt(MemoryAddresses.worldStatusR+0xBC, 0)
-    end
-  end
-
-  if _currWorld == 0x09 then --Need to double-check grid status
-    --See if TG needs portal stairs unlocked
-    if ReadByte(WorldFlags.theGrid.riku.story) >= 0x11 and getCharacter() == 1 then
-      --World beaten; status can be reset
-      WriteInt(MemoryAddresses.worldStatusR+0xBC, 0)
-    end
-  end
-
-  --Ensure TWTNW stays locked if needed
-  if getCharacter() == 0 then --Check Sora TWTNW
-    local _worldInvItem = getItemById(2691106)
-    if ReadByte(MemoryAddresses.keyItems+_worldInvItem.Offset) == 0x00 then --No access; hide world
-      WriteArray(WorldFlags.theWorldThatNeverWas.sora.unlocked, {0x00, 0x00})
-    end
-  else --Check Riku TWTNW
-    local _worldInvItem = getItemById(2691112)
-    if ReadByte(MemoryAddresses.keyItems+_worldInvItem.Offset) == 0x00 then --No access; hide world
-      WriteArray(WorldFlags.theWorldThatNeverWas.riku.unlocked, {0x00, 0x00})
     end
   end
 end
@@ -447,18 +399,11 @@ function LocationHandler:CheckStory()
     end
   end
 
-  --Do special check for sora ultima weapon cuz it needs it for some reason idk
-  --if ReadByte(WorldFlags.traverseTown.sora.story+0x05) >= 0x0F and not _soraUltima then
-  --  table.insert(_storiesFound, "2670292")
-  --  _soraUltima = true
-  --end
-
   if #_storiesFound > 0 then
     SendToApClient(MessageTypes.StoryChecked, _storiesFound)
   end
 
 end
-local _soraUltima = false
 
 ---------------------------------------------------------------
 -------------------Secret Portals------------------------------
