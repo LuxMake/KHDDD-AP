@@ -134,7 +134,7 @@ function LocationHandler:WorldAccess()
       WriteInt(MemoryAddresses.worldStatusS+self.StatusOffsets.Sora.pp, 0)
     end
   elseif _currWorld == 0x08 then --Disable LCdC status lock
-    if _currChar == 0 and ReadByte(WorldFlags.laCiteDesCloches.sora.story) >= 0x11 then --Sora
+    if _currChar == 0 and ReadByte(WorldFlags.laCiteDesCloches.sora.story) >= 0x11 or _currChar == 0 and ReadByte(MemoryAddresses.room) <= 0x02  then --Sora
       WriteInt(MemoryAddresses.worldStatusS+self.StatusOffsets.Sora.lcdc, 0)
     elseif _currChar == 1 and ReadByte(WorldFlags.laCiteDesCloches.riku.story) >= 0x11 then --Riku
       WriteInt(MemoryAddresses.worldStatusR+self.StatusOffsets.Riku.lcdc, 0)
