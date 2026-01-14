@@ -817,7 +817,7 @@ function ItemHandler:CraftSpirits(value)
   WriteInt(_spiritAddr+_colorOffset+0x02, math.random(0x00, 0xFF)) --B
   --WriteArray(_spiritAddr+_colorOffset, {0xFF, 0xFF, 0xFF}) --White Dream Eater
   local _expOffset = 0x24
-  WriteInt(_spiritAddr+_expOffset, ReadInt(Stats.sora.exp))
+  WriteInt(_spiritAddr+_expOffset, ReadInt(Stats.sora.exp[gameVer]))
 
   local _maxHpOffset = 0x30
   local _statOffset = 0x3D

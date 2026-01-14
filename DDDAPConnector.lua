@@ -172,7 +172,8 @@ KHSCII = {
   v = 0x76,w = 0x77,x = 0x78,y = 0x79,z = 0x7A,
   One = 0x31, Two = 0x32, Three = 0x33, Four = 0x34, Five = 0x35,
   Six = 0x36, Seven = 0x37, Eight = 0x38, Nine = 0x39, Zero = 0x30,
-  Period = 0x2E,Space = 0x20,Exclamation = 0x21, And = 0x26, Colon = 0x3A
+  Period = 0x2E,Space = 0x20,Exclamation = 0x21, And = 0x26, Colon = 0x3A,
+  LeftParen = 0x28, --Used as escape code for colors
 }
 
 --Record: A51940
@@ -206,7 +207,8 @@ WorldFlags = {
   destinyIslands = {
     worldNo = 0x01,
     sora = {
-      story = {0xA41D94, 0xA41614}
+      story = {0xA41D94, 0xA41614},
+      info = {0xA41E50, 0xA416D0}
     }
   },
   traverseTown = {
@@ -217,15 +219,17 @@ WorldFlags = {
       battle = {0xA41DFF, 0xA4167F},
       selectable = {0x10978F18, 0x10978798},
       startRoom = 0x01,
-      secretPortal = {0x64, 0x01, 0x05}
+      secretPortal = {0x64, 0x01, 0x05},
+      info = {0xA41E54, 0xA416D4},
     },
     riku = {
       story = {0xA445BC, 0xA43E3C},
       unlocked = {0xA4471C, 0xA43F9C},
       battle = {0xA44617, 0xA43E97},
-      selectable = {0x10978FD0, 10978850},
+      selectable = {0x10978FD0, 0x10978850},
       startRoom = 0x01,
-      secretPortal = {0x65, 0x01, 0x06}
+      secretPortal = {0x65, 0x01, 0x06},
+      info = {0xA4466A, 0xA43EEA}, --EGS
     },
 
     secretPortalAddr = {0xA515C0, 0xA50E40}
@@ -238,7 +242,8 @@ WorldFlags = {
       story = {0xA41DCC, 0xA4164C},
       startRoom = 0x0A,
       battle = {0xA41E04, 0xA41684},
-      secretPortal = {0x66, 0x01, 0x01}
+      secretPortal = {0x66, 0x01, 0x01},
+      info = {0xA41E5C, 0xA416DC},
     },
     riku = {
       unlocked = {0xA44730, 0xA43FB0},
@@ -246,7 +251,9 @@ WorldFlags = {
       story = {0xA445E4, 0xA43E64},
       startRoom = 0x0A,
       battle = {0xA4461C, 0xA43E9C},
-      secretPortal = {0x67, 0x01, 0x01}
+      secretPortal = {0x67, 0x01, 0x01},
+      savePointOffset = 0x00,
+      info = {0xA44674, 0xA43EF4}, --EGS
     },
 
     secretPortalAddr = {0xA515C4, 0xA50E44}
@@ -259,7 +266,10 @@ WorldFlags = {
       story = {0xA41DD4, 0xA41654},
       startRoom = 0x08,
       battle = {0xA41E05, 0xA41685},
-      secretPortal = {0x6A, 0x01, 0x04}
+      secretPortal = {0x6A, 0x01, 0x04},
+      savePointOffset = 0x00,
+      info = {0xA41E5E, 0xA416DE},
+
     },
     riku = {
       unlocked = {0xA44734, 0xA43FB4},
@@ -267,7 +277,8 @@ WorldFlags = {
       selectable = {0x10979000, 0x10978880},
       startRoom = 0x08,
       battle = {0xA4461D, 0xA43E9D},
-      secretPortal = {0x6B, 0x01, 0x01}
+      secretPortal = {0x6B, 0x01, 0x01},
+      info = {0xA44676, 0xA43EF6},
     },
 
     secretPortalAddr = {0xA515CC, 0xA50E4C}
@@ -280,7 +291,8 @@ WorldFlags = {
       story = {0xA41DBC, 0xA4163C},
       startRoom = 0x01,
       battle = {0xA41E02, 0xA41682},
-      secretPortal = {0x68, 0x01, 0x04}
+      secretPortal = {0x68, 0x01, 0x04},
+      info = {0xA41E5A, 0xA416DA},
     },
     riku = {
       unlocked = {0xA44728, 0xA43FA8},
@@ -288,7 +300,10 @@ WorldFlags = {
       selectable = {0x10978FF0, 0x10978870},
       startRoom = 0x06,
       battle = {0xA4461A, 0xA43E9A},
-      secretPortal = {0x69, 0x01, 0x0A}
+      secretPortal = {0x69, 0x01, 0x0A},
+      savePointOffset = 0x01, --Offset from World Status R
+      savePointVals = {0xE0},
+      info = {0xA44670, 0xA43EF0},
     },
 
     secretPortalAddr = {0xA515C8, 0xA50E48}
@@ -301,7 +316,10 @@ WorldFlags = {
       story = {0xA41DAC, 0xA4162C},
       startRoom = 0x0F,
       battle = {0xA41E00, 0xA41680},
-      secretPortal = {0x6C, 0x01, 0x03}
+      secretPortal = {0x6C, 0x01, 0x03},
+      savePointOffset = 0x01, --EGS (Literally World Status S; uses bitflags)
+      savePointVals = {0x01, 0x12},
+      info = {0xA41E56, 0xA416D6},
     },
     riku = {
       unlocked = {0xA44720, 0xA43FA0},
@@ -309,7 +327,8 @@ WorldFlags = {
       selectable = {0x10979020, 0x109788A0},
       startRoom = 0x02,
       battle = {0xA44618, 0xA43E98},
-      secretPortal = {0x6D, 0x01, 0x0C}
+      secretPortal = {0x6D, 0x01, 0x0C},
+      info = {0xA4466C, 0xA43EEC} --EGS
     },
 
     secretPortalAddr = {0xA515D0, 0xA50E50}
@@ -323,14 +342,16 @@ WorldFlags = {
       startRoom = 0x0F,
       dockPoint = {0x10979106, 0x10978986},
       battle = {0xA41E01, 0xA41681},
-      secretPortal = {0x6E, 0x01, 0x01}
+      secretPortal = {0x6E, 0x01, 0x01},
+      info = {0xA41E58, 0xA416D8},
     },
     riku = {
       unlocked = {0xA44724, 0xA43FA4},
       story = {0xA445CC, 0xA43E4C},
       selectable = {0x10979030, 0x109788B0},
       startRoom = 0x0F,
-      battle = {0xA44619, 0xA43E99}
+      battle = {0xA44619, 0xA43E99},
+      info = {0xA4466C, 0xA43EEC},
     },
 
     secretPortalAddr = {0xA515D4, 0xA50E54}
@@ -343,7 +364,8 @@ WorldFlags = {
       story = {0xA41DDC, 0xA4165C},
       startRoom = 0x01,
       dockPoint = {0x1097913A, 0x109789BA},
-      battle = {0xA41E06, 0xA41686}
+      battle = {0xA41E06, 0xA41686},
+      info = {0xA41E60, 0xA416E0},
     },
     riku = {
       unlocked = {0xA44738, 0xA43FB8},
@@ -352,7 +374,8 @@ WorldFlags = {
       startRoom = 0x04,
       battle = {0xA4461E, 0xA43E9E},
       dockPoint = {0x1097919E, 0x10978A1E},
-      GOPoint = {0x109791AA, 0x10978A2A} --For Memory's Skyscraper; unlocks for GO mode
+      GOPoint = {0x109791AA, 0x10978A2A}, --For Memory's Skyscraper; unlocks for GO mode
+      info = {0xA44678, 0xA43EF8},
     },
   }
 }
