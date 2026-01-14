@@ -8,15 +8,15 @@ CheatTask.IsInit = false
 CheatTask.InMenu = false
 
 function CheatTask:Init()
-	self.LastExp = ReadInt(MemoryAddresses.soraExp)
+	self.LastExp = ReadInt(MemoryAddresses.soraExp[gameVer])
 end
 
 function CheatTask:ExpMult()
 	--local nextAddr = 0xA9801C
 
-	local _currExp = ReadInt(MemoryAddresses.soraExp)
+	local _currExp = ReadInt(MemoryAddresses.soraExp[gameVer])
 
-	if ReadByte(MemoryAddresses.enablePause) ~= 0x00 then --Player should not be able to receive xp
+	if ReadByte(MemoryAddresses.enablePause[gameVer]) ~= 0x00 then --Player should not be able to receive xp
 		self.LastExp = _currExp
 		return
 	end
@@ -38,7 +38,7 @@ function CheatTask:ExpMult()
 	if _currExp > self.LastExp then
 		local _diff = _currExp - self.LastExp
 		local _newExp = self.LastExp+_diff*Configs.ExpMult
-		WriteInt(MemoryAddresses.soraExp, _newExp)
+		WriteInt(MemoryAddresses.soraExp[gameVer], _newExp)
 		self.LastExp = _newExp
 	end
 end

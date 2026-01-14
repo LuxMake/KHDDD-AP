@@ -12,13 +12,13 @@ RoomSaveTask.ValidTypes = {"Command", "Recipe", "Consumable", "Support", "Spirit
 RoomSaveTask.PrepareLoad = false
 
 function RoomSaveTask:Init()
-	self.State.Room = ReadByte(MemoryAddresses.room)
-	self.State.Evt = ReadByte(MemoryAddresses.evt)
+	self.State.Room = ReadByte(MemoryAddresses.room[gameVer])
+	self.State.Evt = ReadByte(MemoryAddresses.evt[gameVer])
 end
 
 function RoomSaveTask:GetRoomChange() --Determine if the room has changed
-	local _currRoom = ReadByte(MemoryAddresses.room)
-	local _currEvt = ReadByte(MemoryAddresses.evt)
+	local _currRoom = ReadByte(MemoryAddresses.room[gameVer])
+	local _currEvt = ReadByte(MemoryAddresses.evt[gameVer])
 	if self.State.Room ~= _currRoom or self.State.Evt ~= _currEvt then
 		ConsolePrint("Room changed")
 		self:OnRoomChange()
@@ -43,7 +43,7 @@ function RoomSaveTask:StoreItem(id) --Store items to prepare for potential room 
 end
 
 function RoomSaveTask:CheckPlayerState() --See if player has died
-	local _ptr = GetPointer(MemoryAddresses.deathPtr, MemoryAddresses.deathOffset)
+	local _ptr = GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset)
 	if not self.PrepareLoad then
 		if ReadByte(_ptr, true) == 3 then --Player died
 			ConsolePrint("Player died; preparing load from room save")

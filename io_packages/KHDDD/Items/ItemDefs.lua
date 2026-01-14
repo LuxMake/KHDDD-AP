@@ -30,122 +30,122 @@ function ItemDefs:DefineItems()
 
     --Full World Data
     { ID = 2691001, Name = "La Cite des Cloches [Sora]", Type="World", Bytes={
-      WorldFlags.laCiteDesCloches.sora.unlocked,
-      WorldFlags.laCiteDesCloches.sora.story,
+      WorldFlags.laCiteDesCloches.sora.unlocked[gameVer],
+      WorldFlags.laCiteDesCloches.sora.story[gameVer],
       WorldFlags.laCiteDesCloches.worldNo,
       WorldFlags.laCiteDesCloches.sora.startRoom,
-      WorldFlags.laCiteDesCloches.sora.battle,
-      WorldFlags.laCiteDesCloches.sora.selectable
+      WorldFlags.laCiteDesCloches.sora.battle[gameVer],
+      WorldFlags.laCiteDesCloches.sora.selectable[gameVer]
       }},
     { ID = 2691002, Name = "The Grid [Sora]", Type="World", Bytes={
-      WorldFlags.theGrid.sora.unlocked,
-      WorldFlags.theGrid.sora.story,
+      WorldFlags.theGrid.sora.unlocked[gameVer],
+      WorldFlags.theGrid.sora.story[gameVer],
       WorldFlags.theGrid.worldNo,
       WorldFlags.theGrid.sora.startRoom,
-      WorldFlags.theGrid.sora.battle,
-      WorldFlags.theGrid.sora.selectable
+      WorldFlags.theGrid.sora.battle[gameVer],
+      WorldFlags.theGrid.sora.selectable[gameVer]
       }},
     { ID = 2691003, Name = "Prankster's Paradise [Sora]", Type="World", Bytes={
-      WorldFlags.prankstersParadise.sora.unlocked,
-      WorldFlags.prankstersParadise.sora.story,
+      WorldFlags.prankstersParadise.sora.unlocked[gameVer],
+      WorldFlags.prankstersParadise.sora.story[gameVer],
       WorldFlags.prankstersParadise.worldNo,
       WorldFlags.prankstersParadise.sora.startRoom,
-      WorldFlags.prankstersParadise.sora.battle,
-      WorldFlags.prankstersParadise.sora.selectable
+      WorldFlags.prankstersParadise.sora.battle[gameVer],
+      WorldFlags.prankstersParadise.sora.selectable[gameVer]
       
     }},
     { ID = 2691004, Name = "Country of Musketeers [Sora]", Type="World", Bytes={
-      WorldFlags.countryOfMusketeers.sora.unlocked,
-    WorldFlags.countryOfMusketeers.sora.story,
+      WorldFlags.countryOfMusketeers.sora.unlocked[gameVer],
+    WorldFlags.countryOfMusketeers.sora.story[gameVer],
     WorldFlags.countryOfMusketeers.worldNo,
     WorldFlags.countryOfMusketeers.sora.startRoom,
-    WorldFlags.countryOfMusketeers.sora.battle,
-    WorldFlags.countryOfMusketeers.sora.selectable
+    WorldFlags.countryOfMusketeers.sora.battle[gameVer],
+    WorldFlags.countryOfMusketeers.sora.selectable[gameVer]
     }},
     { ID = 2691005, Name = "Symphony of Sorcery [Sora]", Type="World", Bytes={
-      WorldFlags.symphonyOfSorcery.sora.unlocked,
-    WorldFlags.symphonyOfSorcery.sora.story,
+      WorldFlags.symphonyOfSorcery.sora.unlocked[gameVer],
+    WorldFlags.symphonyOfSorcery.sora.story[gameVer],
     WorldFlags.symphonyOfSorcery.worldNo,
     WorldFlags.symphonyOfSorcery.sora.startRoom,
-    WorldFlags.symphonyOfSorcery.sora.battle,
-    WorldFlags.symphonyOfSorcery.sora.selectable,
-    WorldFlags.symphonyOfSorcery.sora.dockPoint
+    WorldFlags.symphonyOfSorcery.sora.battle[gameVer],
+    WorldFlags.symphonyOfSorcery.sora.selectable[gameVer],
+    WorldFlags.symphonyOfSorcery.sora.dockPoint[gameVer]
     }},
     { ID = 2691006, Name = "The World That Never Was [Sora]", Type="World", Bytes={
-      WorldFlags.theWorldThatNeverWas.sora.unlocked,
-    WorldFlags.theWorldThatNeverWas.sora.story,
+      WorldFlags.theWorldThatNeverWas.sora.unlocked[gameVer],
+    WorldFlags.theWorldThatNeverWas.sora.story[gameVer],
     WorldFlags.theWorldThatNeverWas.worldNo,
     WorldFlags.theWorldThatNeverWas.sora.startRoom,
-    WorldFlags.theWorldThatNeverWas.sora.battle,
-    WorldFlags.theWorldThatNeverWas.sora.selectable,
-    WorldFlags.theWorldThatNeverWas.sora.dockPoint
+    WorldFlags.theWorldThatNeverWas.sora.battle[gameVer],
+    WorldFlags.theWorldThatNeverWas.sora.selectable[gameVer],
+    WorldFlags.theWorldThatNeverWas.sora.dockPoint[gameVer]
     }},
     { ID = 2691007, Name = "La Cite des Cloches [Riku]", Type="World", Bytes={
-      WorldFlags.laCiteDesCloches.riku.unlocked,
-      WorldFlags.laCiteDesCloches.riku.story,
+      WorldFlags.laCiteDesCloches.riku.unlocked[gameVer],
+      WorldFlags.laCiteDesCloches.riku.story[gameVer],
       WorldFlags.laCiteDesCloches.worldNo,
       WorldFlags.laCiteDesCloches.riku.startRoom,
-      WorldFlags.laCiteDesCloches.riku.battle,
-      WorldFlags.laCiteDesCloches.riku.selectable
+      WorldFlags.laCiteDesCloches.riku.battle[gameVer],
+      WorldFlags.laCiteDesCloches.riku.selectable[gameVer]
       }},
       { ID = 2691008, Name = "The Grid [Riku]", Type="World", Bytes={
-      WorldFlags.theGrid.riku.unlocked,
-      WorldFlags.theGrid.riku.story,
+      WorldFlags.theGrid.riku.unlocked[gameVer],
+      WorldFlags.theGrid.riku.story[gameVer],
       WorldFlags.theGrid.worldNo,
       WorldFlags.theGrid.riku.startRoom,
-      WorldFlags.theGrid.riku.battle,
-      WorldFlags.theGrid.riku.selectable
+      WorldFlags.theGrid.riku.battle[gameVer],
+      WorldFlags.theGrid.riku.selectable[gameVer]
       }},
       { ID = 2691009, Name = "Prankster's Paradise [Riku]", Type="World", Bytes={
-      WorldFlags.prankstersParadise.riku.unlocked,
-      WorldFlags.prankstersParadise.riku.story,
+      WorldFlags.prankstersParadise.riku.unlocked[gameVer],
+      WorldFlags.prankstersParadise.riku.story[gameVer],
       WorldFlags.prankstersParadise.worldNo,
       WorldFlags.prankstersParadise.riku.startRoom,
-      WorldFlags.prankstersParadise.riku.battle,
-      WorldFlags.prankstersParadise.riku.selectable
+      WorldFlags.prankstersParadise.riku.battle[gameVer],
+      WorldFlags.prankstersParadise.riku.selectable[gameVer]
     }},
     { ID = 2691010, Name = "Country of Musketeers [Riku]", Type="World", Bytes={
-      WorldFlags.countryOfMusketeers.riku.unlocked,
-    WorldFlags.countryOfMusketeers.riku.story,
+      WorldFlags.countryOfMusketeers.riku.unlocked[gameVer],
+    WorldFlags.countryOfMusketeers.riku.story[gameVer],
     WorldFlags.countryOfMusketeers.worldNo,
     WorldFlags.countryOfMusketeers.riku.startRoom,
-    WorldFlags.countryOfMusketeers.riku.battle,
-    WorldFlags.countryOfMusketeers.riku.selectable
+    WorldFlags.countryOfMusketeers.riku.battle[gameVer],
+    WorldFlags.countryOfMusketeers.riku.selectable[gameVer]
     }},
     { ID = 2691011, Name = "Symphony of Sorcery [Riku]", Type="World", Bytes={
-      WorldFlags.symphonyOfSorcery.riku.unlocked,
-    WorldFlags.symphonyOfSorcery.riku.story,
+      WorldFlags.symphonyOfSorcery.riku.unlocked[gameVer],
+    WorldFlags.symphonyOfSorcery.riku.story[gameVer],
     WorldFlags.symphonyOfSorcery.worldNo,
     WorldFlags.symphonyOfSorcery.riku.startRoom,
-    WorldFlags.symphonyOfSorcery.riku.battle,
-    WorldFlags.symphonyOfSorcery.riku.selectable
+    WorldFlags.symphonyOfSorcery.riku.battle[gameVer],
+    WorldFlags.symphonyOfSorcery.riku.selectable[gameVer]
     }},
     { ID = 2691012, Name = "The World That Never Was [Riku]", Type="World", Bytes={
-      WorldFlags.theWorldThatNeverWas.riku.unlocked,
-    WorldFlags.theWorldThatNeverWas.riku.story,
+      WorldFlags.theWorldThatNeverWas.riku.unlocked[gameVer],
+    WorldFlags.theWorldThatNeverWas.riku.story[gameVer],
     WorldFlags.theWorldThatNeverWas.worldNo,
     WorldFlags.theWorldThatNeverWas.riku.startRoom,
-    WorldFlags.theWorldThatNeverWas.riku.battle,
-    WorldFlags.theWorldThatNeverWas.riku.selectable,
-    WorldFlags.theWorldThatNeverWas.riku.dockPoint
+    WorldFlags.theWorldThatNeverWas.riku.battle[gameVer],
+    WorldFlags.theWorldThatNeverWas.riku.selectable[gameVer],
+    WorldFlags.theWorldThatNeverWas.riku.dockPoint[gameVer]
     }},
 
     --Traverse Towns
     { ID = 2691013, Name = "Traverse Town [Sora]", Type="World", Bytes={
-      WorldFlags.traverseTown.sora.unlocked,
-      WorldFlags.traverseTown.sora.story,
+      WorldFlags.traverseTown.sora.unlocked[gameVer],
+      WorldFlags.traverseTown.sora.story[gameVer],
       WorldFlags.traverseTown.worldNo,
       WorldFlags.traverseTown.sora.startRoom,
-      WorldFlags.traverseTown.sora.battle,
-      WorldFlags.traverseTown.sora.selectable
+      WorldFlags.traverseTown.sora.battle[gameVer],
+      WorldFlags.traverseTown.sora.selectable[gameVer]
       }},
     { ID = 2691014, Name = "Traverse Town [Riku]", Type="World", Bytes={
-      WorldFlags.traverseTown.riku.unlocked,
-      WorldFlags.traverseTown.riku.story,
+      WorldFlags.traverseTown.riku.unlocked[gameVer],
+      WorldFlags.traverseTown.riku.story[gameVer],
       WorldFlags.traverseTown.worldNo,
       WorldFlags.traverseTown.riku.startRoom,
-      WorldFlags.traverseTown.riku.battle,
-      WorldFlags.traverseTown.riku.selectable
+      WorldFlags.traverseTown.riku.battle[gameVer],
+      WorldFlags.traverseTown.riku.selectable[gameVer]
       }},
 
 

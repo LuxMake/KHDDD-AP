@@ -130,7 +130,7 @@ end
 -- ############################################################
 function ItemHandler:GiveKeyItem(value)
   local _key = getItemById(value)
-  WriteArray(MemoryAddresses.keyItems+_key.Offset, _key.Bytes)
+  WriteArray(MemoryAddresses.keyItems[gameVer]+_key.Offset, _key.Bytes)
   self.State.Recusant = true --Only key item is the recusant sigil
 end
 
@@ -169,9 +169,9 @@ function ItemHandler:GiveWorld(value, addToTable)
   if value == 2691006 or value == 2691012 then --TWTNW needs docking point unlocked
     WriteByte(_world.Bytes[7], _no)
     if value == 2691006 then --Set unlocked flags for TWTNW [Sora]
-      WriteArray(WorldFlags.theWorldThatNeverWas.sora.unlocked, {0x02, 0x01})
+      WriteArray(WorldFlags.theWorldThatNeverWas.sora.unlocked[gameVer], {0x02, 0x01})
     elseif value == 2691012 then --Set unlocked flags for TWTNW [Riku]
-      WriteArray(WorldFlags.theWorldThatNeverWas.riku.unlocked, {0x02, 0x01})
+      WriteArray(WorldFlags.theWorldThatNeverWas.riku.unlocked[gameVer], {0x02, 0x01})
     end
   end
 
@@ -200,7 +200,7 @@ end
 
 function ItemHandler:PlaceWorldItem(value) --Places world items in designated inventory spot
   local _worldInvItem = getItemById(value+100)
-  WriteArray(MemoryAddresses.keyItems+_worldInvItem.Offset, _worldInvItem.Bytes)
+  WriteArray(MemoryAddresses.keyItems[gameVer]+_worldInvItem.Offset, _worldInvItem.Bytes)
 end
 
 function ItemHandler:ApplyScaling()
@@ -228,7 +228,7 @@ function ItemHandler:ApplyScaling()
 end
 
 function ItemHandler:TT2Access()
-  local _currWorld = ReadByte(MemoryAddresses.world)
+  local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
   local _currChar = getCharacter()
 
   local _ttId = 0
@@ -247,15 +247,15 @@ function ItemHandler:TT2Access()
 
   if _currWorld == 0x03 and countValues(self.State.World.ids, _ttId) < 2 then --In Traverse Town
     if _currChar == 0 then --Check for sora
-      local _ttSoraProg = ReadByte(WorldFlags.traverseTown.sora.story+0x03)
+      local _ttSoraProg = ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03)
       if _ttSoraProg >= 0x40 then
         --Get rid of premature TT2 unlock
-          WriteByte(WorldFlags.traverseTown.sora.story+0x03, _ttSoraProg-0x40)
+          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, _ttSoraProg-0x40)
       end
     else --Check for Riku
-      local _ttRikuProg = ReadByte(WorldFlags.traverseTown.riku.story+0x03)
+      local _ttRikuProg = ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03)
       if _ttRikuProg >= 0x01 then --Get rid of premature TT2 unlock
-        WriteByte(WorldFlags.traverseTown.riku.story+0x03, 0x00)
+        WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
       end
     end
   end
@@ -265,58 +265,58 @@ function ItemHandler:TT2Access()
     if countValues(self.State.World.ids, _ttId) > 1 then --TT2 unlocked
       --Ensure world is cleared
       if _currChar == 0 then
-        if ReadByte(WorldFlags.traverseTown.sora.story+0x03) >= 0x02 then
+        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) >= 0x02 then
           _tt2Ready = true
         end
 
         --Fix world if it's already started
-        if ReadByte(WorldFlags.traverseTown.sora.story) == 0x31 and ReadByte(WorldFlags.traverseTown.sora.story+0x03) < 0x91 then
-          WriteByte(WorldFlags.traverseTown.sora.story+0x03, 0x91)
+        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) == 0x31 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) < 0x91 then
+          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x91)
         end
       else
-        if ReadByte(WorldFlags.traverseTown.riku.story+0x02) >= 0x7F then
+        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x02) >= 0x7F then
           _tt2Ready = true
         end
 
         --Fix the world if it's already started
-        if ReadByte(WorldFlags.traverseTown.riku.story+0x04) > 0x00 then --World was already beaten
-          WriteByte(WorldFlags.traverseTown.riku.story+0x03, 0xFF)
+        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) > 0x00 then --World was already beaten
+          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0xFF)
         end
       end
 
     else --TT2 not unlocked
       if _currChar == 0 then --Check for Sora
-        local _ttSoraProg = ReadByte(WorldFlags.traverseTown.sora.story+0x03)
+        local _ttSoraProg = ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03)
         if _ttSoraProg >= 0x40 then
           --Get rid of premature TT2 unlock
-          WriteByte(WorldFlags.traverseTown.sora.story+0x03, _ttSoraProg-0x40)
+          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, _ttSoraProg-0x40)
         end
       else
-        local _ttRikuProg = ReadByte(WorldFlags.traverseTown.riku.story+0x03)
+        local _ttRikuProg = ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03)
         if _ttRikuProg >= 0x01 then --Get rid of premature TT2 unlock
-          WriteByte(WorldFlags.traverseTown.riku.story+0x03, 0x00)
+          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
         end
       end
     end
 
     if _tt2Ready then
       if _currChar == 0 then --Prepare for Sora
-        if ReadByte(WorldFlags.traverseTown.sora.story+0x03) < 0x72 then
-          WriteByte(WorldFlags.traverseTown.sora.story+0x03, 0x72)
+        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) < 0x72 then
+          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x72)
         end
       else --Prepare for Riku
-        if ReadByte(WorldFlags.traverseTown.riku.story+0x03) < 0x01 then
-          WriteByte(WorldFlags.traverseTown.riku.story+0x03, 0x01)
+        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03) < 0x01 then
+          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x01)
         end
       end
     else --Ensure neither character can access tt2
       if _currChar == 0 then --Block for Sora
-        if ReadByte(WorldFlags.traverseTown.sora.story+0x03) == 0x72 then
-          WriteByte(WorldFlags.traverseTown.sora.story+0x03, 0x12)
+        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) == 0x72 then
+          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x12)
         end
       else --Block for Riku
-        if ReadByte(WorldFlags.traverseTown.riku.story+0x03) == 0x01 then
-          WriteByte(WorldFlags.traverseTown.riku.story+0x03, 0x00)
+        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03) == 0x01 then
+          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
         end
       end
     end
@@ -347,11 +347,11 @@ end
 -- ############################################################
 
 function ItemHandler:GiveKeyblade(value)
-  local _keyAddr = MemoryAddresses.keyblades
+  local _keyAddr = MemoryAddresses.keyblades[gameVer]
   local _keyblade = getItemById(value)
 
   if _keyblade.Type == "Keyblades [Riku]" then
-    _keyAddr = MemoryAddresses.rikuKeyblades
+    _keyAddr = MemoryAddresses.rikuKeyblades[gameVer]
   end
 
   local _keybladeSlot = _keyAddr+_keyblade.Offset
@@ -413,11 +413,11 @@ end
 
 function ItemHandler:RebuildStats()
   --local _hpAddr = Stats.sora.maxHp
-  local _hpAddr = Stats.riku.maxHp
-  local _deckAddr = Stats.sora.deckSize
-  local _strAddrs = Stats.sora.strength
-  local _magAddrs = Stats.sora.magic
-  local _defAddrs = Stats.sora.defense
+  local _hpAddr = Stats.riku.maxHp[gameVer]
+  local _deckAddr = Stats.sora.deckSize[gameVer]
+  local _strAddrs = Stats.sora.strength[gameVer]
+  local _magAddrs = Stats.sora.magic[gameVer]
+  local _defAddrs = Stats.sora.defense[gameVer]
 
   --Initialize intended stat values
   local _hpVal = 0x00
@@ -496,12 +496,12 @@ end
 -- ######################  Commands  ##########################
 -- ############################################################
 function ItemHandler:GiveCommand(value)
-  local _cmdAddr = MemoryAddresses.commandStock
+  local _cmdAddr = MemoryAddresses.commandStock[gameVer]
   local _cmd = getItemById(value)
 
   if _cmd.Type == "Consumable" then
     --Scan to see if consumable exists
-    local _hasItem = self:FindExistingSlot(MemoryAddresses.consumableStart, 500, _cmd.Bytes, 0x08, 0x00)
+    local _hasItem = self:FindExistingSlot(MemoryAddresses.consumableStart[gameVer], 500, _cmd.Bytes, 0x08, 0x00)
     if _hasItem == 0x00 then
       local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 500, 0x08, 0x00)
       WriteByte(_emptySlotAddr, _cmd.Bytes[1])
@@ -525,14 +525,14 @@ function ItemHandler:FixAirSlide()
   --To prevent this from happening, make sure it''s equipped
 
   --Last slot of deck 1 will be reserved for Air Slide
-  local _airSlideEquipped = self:FindExistingSlot(MemoryAddresses.commandStock, 2000, {0x06, 0x00}, 0x08, 0x00)
+  local _airSlideEquipped = self:FindExistingSlot(MemoryAddresses.commandStock[gameVer], 2000, {0x06, 0x00}, 0x08, 0x00)
   if _airSlideEquipped ~= nil then
     ConsolePrint("Air Slide found; fixing...")
     --Air slide was obtained; check and see if either character have it equipped
 
     --Get index of air slide in inventory
-    local _cmdStart = 0xA4C6D4
-    local _airSlideIndex = (_airSlideEquipped-_cmdStart)/0x08
+    local _cmdStart = {0xA4C6D4, 0xA4BF54}
+    local _airSlideIndex = (_airSlideEquipped-_cmdStart[gameVer])/0x08
 
     --TODO: Might need to account for command index greater than 255
 
@@ -540,13 +540,16 @@ function ItemHandler:FixAirSlide()
       ConsolePrint("Fixing Air Slide for Sora")
       local _equipBits = toBits(ReadByte(_airSlideEquipped+0x02))
       if _equipBits[1] == 0x01 then --Equipped in Deck 1
-        WriteArray(0xA4DA14, {_airSlideIndex, 0x00})
+        local _soraDeck1 = {0xA4DA14, 0xA4D294}
+        WriteArray(_soraDeck1[gameVer], {_airSlideIndex, 0x00})
       end
       if _equipBits[2] == 0x01 then --Equipped in Deck 2
-        WriteArray(0xA4DB52, {_airSlideIndex, 0x00})
+        local _soraDeck2 = {0xA4DB52, 0xA4D3D2}
+        WriteArray(_soraDeck2[gameVer], {_airSlideIndex, 0x00})
       end
       if _equipBits[3] == 0x01 then --Equipped in Deck 3
-        WriteArray(0xA4DC90, {_airSlideIndex, 0x00})
+        local _soraDeck3 = {0xA4DC90, 0xA4D510}
+        WriteArray(_soraDeck3[gameVer], {_airSlideIndex, 0x00})
       end
     end
 
@@ -554,13 +557,16 @@ function ItemHandler:FixAirSlide()
       ConsolePrint("Fixing Air Slide for Riku")
       local _equipBits = toBits(ReadByte(_airSlideEquipped+0x03))
       if _equipBits[1] == 0x01 then --Equipped in Deck 1
-        WriteArray(0xA4DDCE, {_airSlideIndex, 0x00})
+        local _rikuDeck1 = {0xA4DDCE, 0xA4D64E}
+        WriteArray(_rikuDeck1[gameVer], {_airSlideIndex, 0x00})
       end
       if _equipBits[2] == 0x01 then --Equipped in Deck 2
-        WriteArray(0xA4DF0C, {_airSlideIndex, 0x00})
+        local _rikuDeck2 = {0xA4DF0C, 0xA4D78C}
+        WriteArray(_rikuDeck2[gameVer], {_airSlideIndex, 0x00})
       end
       if _equipBits[3] == 0x01 then --Equipped in Deck 3
-        WriteArray(0xA4E04A, {_airSlideIndex, 0x00})
+        local _rikuDeck3 = {0xA4E04A, 0xA4D8CA}
+        WriteArray(_rikuDeck3[gameVer], {_airSlideIndex, 0x00})
       end
     end
 
@@ -602,7 +608,7 @@ function ItemHandler:GiveFlowmotion(value)
 end
 
 function ItemHandler:RebuildFlowmotion()
-  local _flowAddr = MemoryAddresses.actionFlags
+  local _flowAddr = MemoryAddresses.actionFlags[gameVer]
   local intendedValue = 0
 
   local _flowTable = removeDuplicates(self.State.Flowmotion)
@@ -632,7 +638,7 @@ end
 
 function ItemHandler:GiveAbility(value, addToTable)
   local _ability = getAbilityById(value)
-  local _addr = MemoryAddresses.supportAbilities+_ability.Offset
+  local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
 
   local _equipBytes = {0x08, 0x10, 0x20, 0x40, 0x80}
   
@@ -673,7 +679,7 @@ function ItemHandler:RebuildAbilities()
   --Reset status of all Stat abilities
   for i=1, #self.State.Abilities.Shared do
     local _ability = getAbilityById(self.State.Abilities.Shared[i])
-    local _addr = MemoryAddresses.supportAbilities+_ability.Offset
+    local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
     if _ability.Type == "Stat" then --Stat ups need to be re-equipped
       WriteByte(_addr, 0x00)
     end
@@ -682,7 +688,7 @@ function ItemHandler:RebuildAbilities()
   --Re-equip all Stat abilities
   for i=1, #self.State.Abilities.Shared do
     local _ability = getAbilityById(self.State.Abilities.Shared[i])
-    local _addr = MemoryAddresses.supportAbilities+_ability.Offset
+    local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
     if _ability.Type == "Stat" then --Stat ups need to be re-equipped
       self:GiveAbility(_ability.ID, false)
     end
@@ -695,7 +701,7 @@ end
 function ItemHandler:GiveRecipe(value)
   local _item = getItemById(value)
   local _slotNo = value-2701001 --Base address for meow wow; recipes need to go in proper slot
-  local _targetSlot = MemoryAddresses.recipes+(_slotNo*2)
+  local _targetSlot = MemoryAddresses.recipes[gameVer]+(_slotNo*2)
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   WriteArray(_targetSlot, _item.Bytes)
   table.insert(self.State.Recipes, value)
@@ -715,7 +721,7 @@ function ItemHandler:RecipeToInv(value)
   --This only adds the recipe to inventory; does not add to state
   local _item = getItemById(value)
   local _slotNo = value-2701001 --Base address for meow wow; recipes need to go in proper slot
-  local _targetSlot = MemoryAddresses.recipes+(_slotNo*2)
+  local _targetSlot = MemoryAddresses.recipes[gameVer]+(_slotNo*2)
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   WriteArray(_targetSlot, _item.Bytes)
   self:UpdateRecipeTotal()
@@ -727,10 +733,10 @@ end
 function ItemHandler:UpdateRecipeTotal()
   --Shows how many recipes the player owns
   local _uniqueRecipes = removeDuplicates(self.State.Recipes)
-  local _recipeItemAddr = 0xA4C578
+  local _recipeItemAddr = {0xA4C578, 0xA4BDF8}
   if _uniqueRecipes ~= nil then
-    WriteArray(_recipeItemAddr, {0x11, 0x08})
-    WriteShort(_recipeItemAddr+0x02, #_uniqueRecipes)
+    WriteArray(_recipeItemAddr[gameVer], {0x11, 0x08})
+    WriteShort(_recipeItemAddr[gameVer]+0x02, #_uniqueRecipes)
   end
 end
 
@@ -749,11 +755,13 @@ function ItemHandler:CheckMacguffins()
     if Configs.FastGoMode then
       --TODO: Might need to update story flags
       --Unlock for Sora
-      WriteArray(0x1097913E, {0x0A, 0x03, 0x57})
+      local _fastGoSora = {0x1097913E, 0x109789BE}
+      WriteArray(_fastGoSora[gameVer], {0x0A, 0x03, 0x57})
 
       --Unlock for Riku
-      WriteArray(0x109791AA, {0x0A, 0x0D})
-      WriteInt(MemoryAddresses.worldStatusR+0xCC, 0)
+      local _fastGoRiku = {0x109791AA, 0x10978A2A}
+      WriteArray(_fastGoRiku[gameVer], {0x0A, 0x0D})
+      WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
     end
   end
 
@@ -772,11 +780,11 @@ function ItemHandler:CraftSpirits(value)
 
   local _spiritId = (value - 2701001)+1 --Get int value representing spirit
 
-  local _spiritInv = 0xA45A70
+  local _spiritInv = {0xA45A70, 0xA452F0}
   local _spiritOffset = 0x100 --Add this to base address for each spirit in inventory
 
   --TODO: Make this account for local spirit crafting
-  local _spiritAddr = _spiritInv + (_spiritOffset * #self.State.Recipes)
+  local _spiritAddr = _spiritInv[gameVer] + (_spiritOffset * #self.State.Recipes)
 
   --Write Spirit Type to inventory
   WriteInt(_spiritAddr, _spiritId)
@@ -844,13 +852,13 @@ function ItemHandler:GiveMiscItem(value, type)
   local _invList
 
   if type == "Toy" then
-    _itemAddr = MemoryAddresses.toys
+    _itemAddr = MemoryAddresses.toys[gameVer]
     _invList = self.State.MiscItems.Toys
   elseif type == "Food" then
-    _itemAddr = MemoryAddresses.food
+    _itemAddr = MemoryAddresses.food[gameVer]
     _invList = self.State.MiscItems.Food
   elseif type == "DreamPieces" then
-    _itemAddr = MemoryAddresses.dreamPieces
+    _itemAddr = MemoryAddresses.dreamPieces[gameVer]
     _invList = self.State.MiscItems.DreamPieces
   end
   local _item = getItemById(value)

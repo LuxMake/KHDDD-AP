@@ -210,13 +210,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x0A,
       evt = 0x3F,
       portalId = 2680201,
-      saveAddr = WorldFlags.traverseTown.sora.story+0x07
+      saveAddr = WorldFlags.traverseTown.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0B,
       evt = 0x48,
       portalId = 2680202,
-      saveAddr = WorldFlags.traverseTown.riku.story+0x07
+      saveAddr = WorldFlags.traverseTown.riku.story[gameVer]+0x07
     }
   },
   laCiteDesCloches = {
@@ -225,13 +225,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x13,
       evt = 0x37,
       portalId = 2680203,
-      saveAddr = WorldFlags.laCiteDesCloches.sora.story+0x07
+      saveAddr = WorldFlags.laCiteDesCloches.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0E,
       evt = 0x3C,
       portalId = 2680204,
-      saveAddr = WorldFlags.laCiteDesCloches.riku.story+0x07
+      saveAddr = WorldFlags.laCiteDesCloches.riku.story[gameVer]+0x07
     }
   },
   theGrid = {
@@ -240,13 +240,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x0C,
       evt = 0x35,
       portalId = 2680205,
-      saveAddr = WorldFlags.theGrid.sora.story+0x07
+      saveAddr = WorldFlags.theGrid.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x01,
       evt = 0x3D,
       portalId = 2680206,
-      saveAddr = WorldFlags.theGrid.riku.story+0x07
+      saveAddr = WorldFlags.theGrid.riku.story[gameVer]+0x07
     }
   },
   prankstersParadise = {
@@ -255,13 +255,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x05,
       evt = 0x38,
       portalId = 2680207,
-      saveAddr = WorldFlags.prankstersParadise.sora.story+0x07
+      saveAddr = WorldFlags.prankstersParadise.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0A,
       evt = 0x3C,
       portalId = 2680208,
-      saveAddr = WorldFlags.prankstersParadise.riku.story+0x07
+      saveAddr = WorldFlags.prankstersParadise.riku.story[gameVer]+0x07
     }
   },
   countryOfMusketeers = {
@@ -270,13 +270,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x03,
       evt = 0x39,
       portalId = 2680209,
-      saveAddr = WorldFlags.countryOfMusketeers.sora.story+0x07
+      saveAddr = WorldFlags.countryOfMusketeers.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0C,
       evt = 0x3C,
       portalId = 2680210,
-      saveAddr = WorldFlags.countryOfMusketeers.riku.story+0x07
+      saveAddr = WorldFlags.countryOfMusketeers.riku.story[gameVer]+0x07
     }
   },
   symphonyOfSorcery = {
@@ -284,7 +284,7 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x0B,
       evt = 0x35,
       portalId = 2680211,
-      saveAddr = WorldFlags.symphonyOfSorcery.sora.story+0x07
+      saveAddr = WorldFlags.symphonyOfSorcery.sora.story[gameVer]+0x07
     }
   }
 }

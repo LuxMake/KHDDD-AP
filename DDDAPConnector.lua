@@ -22,6 +22,12 @@ LUAGUI_NAME = "DDD AP Connector [Socket]"
 LUAGUI_AUTH = "Lux"
 LUAGUI_DESC = "Kingdom Hearts DDD AP Integration using Socket"
 
+--Game Version
+local _isEpic = 0x7F7109
+local _isSteam = 0x7F7041
+
+gameVer = 0 --1 for Steam; 2 for Epic
+
 
 --Define Globals
 local gameID = GAME_ID
@@ -45,74 +51,74 @@ local client
 -- ############################################################
 --  --rikuKeyblades = 0xA4C288,
 MemoryAddresses = { --Primary memory addresses to reference
-  keyblades = 0xA4C264,
-  rikuKeyblades = 0xA4C2A2,
-  commandStock = 0xA4C77C,
-  commandDeckPopup = 0xA4C404,
-  equippedCommands = 0xA4D9D8,
-  dodgeRollStock = 0xA4C70C,
-  airSlideStock = 0xA4C714,
-  blockStock = 0xA4C71C,
-  consumableStart = 0xA4C6FC,
-  actionFlags = 0xA98088,
-  soraChests = 0x00A42DC0,
-  rikuChests = 0x00A455D8,
-  toys = 0xA4C535,
-  food = 0xA4C4E8,
-  dreamPieces = 0xA4C468,
-  keyItems = 0xA4C2A4,
-  malleableFantasy = 0xA4C498,
-  recipes = 0xA4C2F4, --Drak Quack: 0xA4C34A
-  soraExp = 0xA98010, --Actual xp
-  supportAbilities = 0xA4D85C,
-  world = 0x9CF730,
-  room = 0x9CF731,
-  map = 0x9CF734,
-  btl = 0x9CF736,
-  evt = 0x9CF738,
-  entr = 0x9CF732,
-  save = 0xA40760,
-  shop = 0x10AD8A20,
-  worldStatusS = 0xA41ED8,
-  worldStatusR = 0xA446F0,
-  chestDataS = 0x1097AE00,
-  chestDataR = 0x1097CEC0,
-  dropEnabler = 0xA45A6C, --C004 disables drop to Sora
-  dropPtr = 0xA97FC0,
+  keyblades = {0xA4C264, 0xA4BAE4},
+  rikuKeyblades = {0xA4C2A2, 0xA4BB22},
+  commandStock = {0xA4C77C, 0xA4BFEC},
+  commandDeckPopup = {0xA4C404, 0xA4BC84},
+  equippedCommands = {0xA4D9D8, 0xA4D258},
+  dodgeRollStock = {0xA4C70C, 0xA4BF8C},
+  airSlideStock = {0xA4C714, 0xA4BF94},
+  blockStock = {0xA4C71C, 0xA4BF9C},
+  consumableStart = {0xA4C6FC, 0xA4BF7C},
+  actionFlags = {0xA98088, 0xA97908},
+  commandActions = {0xA9806C, 0xA978EC},
+  soraChests = {0x00A42DC0, 0xA42640},
+  rikuChests = {0x00A455D8, 0xA44E58},
+  toys = {0xA4C535, 0xA4BDB5},
+  food = {0xA4C4E8, 0xA4BD68},
+  dreamPieces = {0xA4C468, 0xA4BCE8},
+  keyItems = {0xA4C2A4, 0xA4BB24},
+  malleableFantasy = {0xA4C498, 0xA4BD18},
+  recipes = {0xA4C2F4, 0xA4BB74}, --Drak Quack: 0xA4C34A
+  soraExp = {0xA98010, 0xA97890}, --Actual xp
+  supportAbilities = {0xA4D85C, 0xA4D0DC},
+  world = {0x9CF730, 0x9CF720},
+  room = {0x9CF731, 0x9CF721},
+  map = {0x9CF734, 0x9CF724},
+  btl = {0x9CF736, 0x9CF726},
+  evt = {0x9CF738, 0x9CF728},
+  entr = {0x9CF732, 0x9CF722},
+  save = {0xA40760, 0xA3FFE0},
+  shop = {0x10AD8A20, 0x10AD82A0},
+  worldStatusS = {0xA41ED8, 0xA41758},
+  worldStatusR = {0xA446F0, 0xA43F70}, --Verify EGS address
+  chestDataS = {0x1097AE00, 0x1097A680},
+  chestDataR = {0x1097CEC0, 0x1097C740},
+  dropEnabler = {0xA45A6C, 0xA452EC}, --C004 disables drop to Sora
+  dropPtr = {0xA97FC0, 0xA97840}, --Likely around A977E0 for EGS
   dropOffset = 0x1B0,
-  pauseType = 0xA9B2D8, --03 is normal pause
-  character = 0xA40760,
-  deathPtr = 0xA97FC0,
+  pauseType = {0xA9B2D8, 0xA9AB58}, --03 is normal pause
+  character = {0xA40760, 0xA3FFE0},
+  deathPtr = {0xA97FC0, 0xA97840},
   deathOffset = 0x1A0,
-  enablePause = 0xA9B31C,
-  --cutscenePauseType = 0xA3D050, --Accidentally was using auto-skip byte; this might break things later
-  cutscenePauseType = 0xA3D06C,
-  medals = 0xA51768,
+  enablePause = {0xA9B31C, 0xA9AB9C},
+  cutscenePauseType = {0xA3D06C, 0xA3C8EC},
+  medals = {0xA51768, 0xA50FE8}
 }
 
 EquippedCommands = {
-  0xA4D9D8, --Sora Deck 1
-  0xA4DB16, --Sora Deck 2
-  0xA4DC54, --Sora Deck 3
-  0xA4DD92, --Riku Deck 1
-  0xA4DED0, --Riku Deck 2
-  0xA4E00E  --Riku Deck 3
+  {0xA4D9D8, 0xA4D258}, --Sora Deck 1
+  {0xA4DB16, 0xA4D396}, --Sora Deck 2
+  {0xA4DC54, 0xA4D4D4}, --Sora Deck 3
+  {0xA4DD92, 0xA4D612}, --Riku Deck 1
+  {0xA4DED0, 0xA4D750}, --Riku Deck 2
+  {0xA4E00E, 0xA4D88E},  --Riku Deck 3
 }
 
 DropAddresses = {
   sora = {
-    world = 0xA41D10,
-    room = 0xA41D11,
-    map = 0xA41D14,
-    btl = 0xA41D16,
-    evt = 0xA41D18
+    world = {0xA41D10, 0xA41590},
+    room = {0xA41D11, 0xA41591},
+    map = {0xA41D14, 0xA41594},
+    btl = {0xA41D16, 0xA41596},
+    evt = {0xA41D18, 0xA41598},
   },
   riku = {
-    world = 0xA44528,
-    room = 0xA44529,
-    map = 0xA4452C,
-    btl = 0xA4452E,
-    evt = 0xA44530
+    world = {0xA44528, 0xA43DA8},
+    room = {0xA44529, 0xA43DA9},
+    map = {0xA4452C, 0xA43DAC},
+    btl = {0xA4452E, 0xA43DAE},
+    evt = {0xA44530, 0xA43DB0},
   }
 }
 
@@ -134,23 +140,23 @@ Configs = {
 }
 
 ItemOverwrite = {
-  dummyNameAddr = 0x10944CF2,
-  dummyDescAddr = 0x1095622C,
+  dummyNameAddr = {0x10944CF2, 0x10944572},
+  dummyDescAddr = {0x1095622C, 0x10955AAC},
   --dummyDesc = "An AP Item.",
   dummyDesc = "An item for another world.",
   dummyId = {0x13, 0x08},
   dummyName = "AP Item",
-  recipeNameAddr = 0x10944CD6,
-  recipeDescAddr = 0x109561FC,
-  levelUpTxtAddr = 0x10946494,
-  strIncreasedTxt = 0x10946494,
-  magIncreasedTxt = 0x109464BC,
-  defIncreasedTxt = 0x109464DE,
-  hpIncreasedTxt = 0x10946504,
-  deckCapIncreasedTxt = 0x10946530,
-  dropBonusTxt = 0x10946562,
-  keyItemNames = 0x10943EEC,
-  keyItemDescs = 0x10952ACA
+  recipeNameAddr = {0x10944CD6, 0x10944556},
+  recipeDescAddr = {0x109561FC, 0x10955A7C},
+  levelUpTxtAddr = {0x10946494, 0x10945D14},
+  strIncreasedTxt = {0x10946494, 0x10945D14},
+  magIncreasedTxt = {0x109464BC, 0x10945D3C},
+  defIncreasedTxt = {0x109464DE, 0x10945D5E},
+  hpIncreasedTxt = {0x10946504, 0x10945D84},
+  deckCapIncreasedTxt = {0x10946530, 0x10945DB0},
+  dropBonusTxt = {0x10946562, 0x10945DE2},
+  keyItemNames = {0x10943EEC, 0x1094376C},
+  keyItemDescs = {0x10952ACA, 0x1095234A}
 }
 
 KHSCII = {
@@ -172,26 +178,27 @@ KHSCII = {
 --Record: A51940
 
 Stats = { --Stats for sora and riku
-  currHpPtr = 0xA37DB8,
+  currHpPtr = {0xA37DB8, 0xA37638},
   currHpOffset = 0x71C,
   sora = {
-    maxHp = 0xA4D8D0, --HP Bonus is +20 --Also potentially 0xA98022
-    currHp = 0xA4D8D2,
-    strength = {0xA4D8E5, 0xA98035}, --Also potentially 0xA98035
-    magic = {0xA4D8E6, 0xA98036}, --Also potentially 0xA98036
-    defense = {0xA4D8E7, 0xA98037}, --Also potentially 0xA98037
-    exp = 0xA98010,
-    nextLevel = 0xA4D8CC,
-    deckSize = 0xA98039
+    maxHp = {0xA4D8D0, 0xA4D150}, --HP Bonus is +20 --Also potentially 0xA98022
+    currHp = {0xA4D8D2, 0xA4D152},
+
+    strength = {{0xA4D8E5, 0xA98035}, {0xA4D165, 0xA978B5}}, --Also potentially 0xA98035
+    magic = {{0xA4D8E6, 0xA98036}, {0xA4D166, 0xA978B6}}, --Also potentially 0xA98036
+    defense = {{0xA4D8E7, 0xA98037}, {0xA4D167, 0xA978B7}}, --Also potentially 0xA98037
+    exp = {0xA98010, 0xA97890},
+    nextLevel = {0xA4D8CC, 0xA4D14C},
+    deckSize = {0xA98039, 0xA978B9},
   },
   riku = {
-    maxHp = 0xA98020
+    maxHp = {0xA98020, 0xA978A0}
   }
 }
 
 KeybladeStats = {
-  soraBase = 0x9D6F9C, --+0 is strength, +1 is magic
-  rikuBase = 0x9D6FA8, --15 kbs
+  soraBase = {0x9D6F9C, 0x9D6F8C}, --+0 is strength, +1 is magic
+  rikuBase = {0x9D6FA8, 0x9D6F98}, --15 kbs
   offset = 0x18 --# of bytes between each keyblade entry
 }
 
@@ -199,153 +206,153 @@ WorldFlags = {
   destinyIslands = {
     worldNo = 0x01,
     sora = {
-      story = 0xA41D94,
+      story = {0xA41D94, 0xA41614}
     }
   },
   traverseTown = {
     worldNo = 0x03,
     sora = {
-      story = 0xA41DA4,
-      unlocked = 0xA41F04, 
-      battle = 0xA41DFF,
-      selectable = 0x10978F18,
+      story = {0xA41DA4, 0xA41624},
+      unlocked = {0xA41F04, 0xA41784},
+      battle = {0xA41DFF, 0xA4167F},
+      selectable = {0x10978F18, 0x10978798},
       startRoom = 0x01,
       secretPortal = {0x64, 0x01, 0x05}
     },
     riku = {
-      story = 0xA445BC,
-      unlocked = 0xA4471C,
-      battle = 0xA44617,
-      selectable = 0x10978FD0,
+      story = {0xA445BC, 0xA43E3C},
+      unlocked = {0xA4471C, 0xA43F9C},
+      battle = {0xA44617, 0xA43E97},
+      selectable = {0x10978FD0, 10978850},
       startRoom = 0x01,
       secretPortal = {0x65, 0x01, 0x06}
     },
 
-    secretPortalAddr = 0xA515C0
+    secretPortalAddr = {0xA515C0, 0xA50E40}
   },
   laCiteDesCloches = {
     worldNo = 0x08,
     sora = {
-      unlocked = 0xA41F18,
-      selectable = 0x10978F28,
-      story = 0xA41DCC,
+      unlocked = {0xA41F18, 0xA41798},
+      selectable = {0x10978F28, 0x109787A8},
+      story = {0xA41DCC, 0xA4164C},
       startRoom = 0x0A,
-      battle = 0xA41E04,
+      battle = {0xA41E04, 0xA41684},
       secretPortal = {0x66, 0x01, 0x01}
     },
     riku = {
-      unlocked = 0xA44730,
-      selectable = 0x10978FE0,
-      story = 0xA445E4,
+      unlocked = {0xA44730, 0xA43FB0},
+      selectable = {0x10978FE0, 0x10978860},
+      story = {0xA445E4, 0xA43E64},
       startRoom = 0x0A,
-      battle = 0xA4461C,
+      battle = {0xA4461C, 0xA43E9C},
       secretPortal = {0x67, 0x01, 0x01}
     },
 
-    secretPortalAddr = 0xA515C4
+    secretPortalAddr = {0xA515C4, 0xA50E44}
   },
   theGrid = {
     worldNo = 0x09,
     sora = {
-      unlocked = 0xA41F1C,
-      selectable = 0x10978F48,
-      story = 0xA41DD4,
+      unlocked = {0xA41F1C, 0xA4179C},
+      selectable = {0x10978F48, 0x109787C8},
+      story = {0xA41DD4, 0xA41654},
       startRoom = 0x08,
-      battle = 0xA41E05,
+      battle = {0xA41E05, 0xA41685},
       secretPortal = {0x6A, 0x01, 0x04}
     },
     riku = {
-      unlocked = 0xA44734,
-      story = 0xA445EC,
-      selectable = 0x10979000,
+      unlocked = {0xA44734, 0xA43FB4},
+      story = {0xA445EC, 0xA43E6C},
+      selectable = {0x10979000, 0x10978880},
       startRoom = 0x08,
-      battle = 0xA4461D,
+      battle = {0xA4461D, 0xA43E9D},
       secretPortal = {0x6B, 0x01, 0x01}
     },
 
-    secretPortalAddr = 0xA515CC
+    secretPortalAddr = {0xA515CC, 0xA50E4C}
   },
   prankstersParadise = {
     worldNo = 0x06,
     sora = {
-      unlocked = 0xA41F10,
-      selectable = 0x10978F38,
-      story = 0xA41DBC,
+      unlocked = {0xA41F10, 0xA41790},
+      selectable = {0x10978F38, 0x109787B8},
+      story = {0xA41DBC, 0xA4163C},
       startRoom = 0x01,
-      battle = 0xA41E02,
+      battle = {0xA41E02, 0xA41682},
       secretPortal = {0x68, 0x01, 0x04}
     },
     riku = {
-      unlocked = 0xA44728,
-      story = 0xA445D4,
-      selectable = 0x10978FF0,
+      unlocked = {0xA44728, 0xA43FA8},
+      story = {0xA445D4, 0xA43E54},
+      selectable = {0x10978FF0, 0x10978870},
       startRoom = 0x06,
-      battle = 0xA4461A,
+      battle = {0xA4461A, 0xA43E9A},
       secretPortal = {0x69, 0x01, 0x0A}
     },
 
-    secretPortalAddr = 0xA515C8
+    secretPortalAddr = {0xA515C8, 0xA50E48}
   },
   countryOfMusketeers = {
     worldNo = 0x04,
     sora = {
-      unlocked = 0xA41F08,
-      selectable = 0x10978F68,
-      story = 0xA41DAC,
+      unlocked = {0xA41F08, 0xA41788},
+      selectable = {0x10978F68, 0x109787E8},
+      story = {0xA41DAC, 0xA4162C},
       startRoom = 0x0F,
-      battle = 0xA41E00,
+      battle = {0xA41E00, 0xA41680},
       secretPortal = {0x6C, 0x01, 0x03}
     },
     riku = {
-      unlocked = 0xA44720,
-      story = 0xA445C4,
-      selectable = 0x10979020,
+      unlocked = {0xA44720, 0xA43FA0},
+      story = {0xA445C4, 0xA43E44},
+      selectable = {0x10979020, 0x109788A0},
       startRoom = 0x02,
-      battle = 0xA44618,
+      battle = {0xA44618, 0xA43E98},
       secretPortal = {0x6D, 0x01, 0x0C}
     },
 
-    secretPortalAddr = 0xA515D0
+    secretPortalAddr = {0xA515D0, 0xA50E50}
   },
   symphonyOfSorcery = {
     worldNo = 0x05,
     sora = {
-      unlocked = 0xA41F0C,
-      selectable = 0x10978F78,
-      story = 0xA41DB4,
+      unlocked = {0xA41F0C, 0xA4178C},
+      selectable = {0x10978F78, 0x109787F8},
+      story = {0xA41DB4, 0xA41634},
       startRoom = 0x0F,
-      dockPoint = 0x10979106,
-      battle = 0xA41E01,
+      dockPoint = {0x10979106, 0x10978986},
+      battle = {0xA41E01, 0xA41681},
       secretPortal = {0x6E, 0x01, 0x01}
     },
     riku = {
-      unlocked = 0xA44724,
-      story = 0xA445CC,
-      selectable = 0x10979030,
+      unlocked = {0xA44724, 0xA43FA4},
+      story = {0xA445CC, 0xA43E4C},
+      selectable = {0x10979030, 0x109788B0},
       startRoom = 0x0F,
-      battle = 0xA44619
+      battle = {0xA44619, 0xA43E99}
     },
 
-    secretPortalAddr = 0xA515D4
+    secretPortalAddr = {0xA515D4, 0xA50E54}
   },
   theWorldThatNeverWas = {
     worldNo = 0x0A,
     sora = {
-      unlocked = 0xA41F20,
-      selectable = 0x10978F88,
-      story = 0xA41DDC,
+      unlocked = {0xA41F20, 0xA417A0},
+      selectable = {0x10978F88, 0x10978808},
+      story = {0xA41DDC, 0xA4165C},
       startRoom = 0x01,
-      dockPoint = 0x1097913A,
-      battle = 0xA41E06
+      dockPoint = {0x1097913A, 0x109789BA},
+      battle = {0xA41E06, 0xA41686}
     },
     riku = {
-      unlocked = 0xA44738,
-      story = 0xA445F4,
-      selectable = 0x10979040,
+      unlocked = {0xA44738, 0xA43FB8},
+      story = {0xA445F4, 0xA43E74},
+      selectable = {0x10979040, 0x109788C0},
       startRoom = 0x04,
-      battle = 0xA4461E,
-      dockPoint = 0x1097919E,
-      GOPoint = 0x109791AA --For the real TWTNW; unlocks for GO mode
+      battle = {0xA4461E, 0xA43E9E},
+      dockPoint = {0x1097919E, 0x10978A1E},
+      GOPoint = {0x109791AA, 0x10978A2A} --For Memory's Skyscraper; unlocks for GO mode
     },
   }
 }
@@ -441,8 +448,8 @@ local _activeRoom = 0x00
 -- ############################################################
 function initGameState() --Updates various world/event flags to an intial state after connecting
   --Write Traverse Town story flag to immediately unlock World Map
-  if ReadByte(WorldFlags.traverseTown.sora.story) < 0x11 then
-    WriteByte(WorldFlags.traverseTown.sora.story, 0x11)
+  if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) < 0x11 then
+    WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
   end
   makeDummyItem()
 
@@ -463,19 +470,19 @@ function allPortalsWon()
   local _rikuPortalsWon = true
 
   local _soraPortals = {}
-  table.insert(_soraPortals, ReadByte(WorldFlags.traverseTown.sora.story+0x07))
-  table.insert(_soraPortals, ReadByte(WorldFlags.laCiteDesCloches.sora.story+0x07))
-  table.insert(_soraPortals, ReadByte(WorldFlags.theGrid.sora.story+0x07))
-  table.insert(_soraPortals, ReadByte(WorldFlags.prankstersParadise.sora.story+0x07))
-  table.insert(_soraPortals, ReadByte(WorldFlags.countryOfMusketeers.sora.story+0x07))
-  table.insert(_soraPortals, ReadByte(WorldFlags.symphonyOfSorcery.sora.story+0x07))
+  table.insert(_soraPortals, ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x07))
+  table.insert(_soraPortals, ReadByte(WorldFlags.laCiteDesCloches.sora.story[gameVer]+0x07))
+  table.insert(_soraPortals, ReadByte(WorldFlags.theGrid.sora.story[gameVer]+0x07))
+  table.insert(_soraPortals, ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x07))
+  table.insert(_soraPortals, ReadByte(WorldFlags.countryOfMusketeers.sora.story[gameVer]+0x07))
+  table.insert(_soraPortals, ReadByte(WorldFlags.symphonyOfSorcery.sora.story[gameVer]+0x07))
 
   local _rikuPortals = {}
-  table.insert(_rikuPortals, ReadByte(WorldFlags.traverseTown.riku.story+0x07))
-  table.insert(_rikuPortals, ReadByte(WorldFlags.laCiteDesCloches.riku.story+0x07))
-  table.insert(_rikuPortals, ReadByte(WorldFlags.theGrid.riku.story+0x07))
-  table.insert(_rikuPortals, ReadByte(WorldFlags.prankstersParadise.riku.story+0x07))
-  table.insert(_rikuPortals, ReadByte(WorldFlags.countryOfMusketeers.riku.story+0x07))
+  table.insert(_rikuPortals, ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x07))
+  table.insert(_rikuPortals, ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]+0x07))
+  table.insert(_rikuPortals, ReadByte(WorldFlags.theGrid.riku.story[gameVer]+0x07))
+  table.insert(_rikuPortals, ReadByte(WorldFlags.prankstersParadise.riku.story[gameVer]+0x07))
+  table.insert(_rikuPortals, ReadByte(WorldFlags.countryOfMusketeers.riku.story[gameVer]+0x07))
 
   if Configs.Character < 2 then --Check Sora's worlds
     for x=1, #_soraPortals do
@@ -539,47 +546,51 @@ function setSecretPortals()
       _tgSecret = WorldFlags.theGrid.riku.secretPortal
       _cotmSecret = WorldFlags.countryOfMusketeers.riku.secretPortal
 
-      if ReadByte(WorldFlags.traverseTown.riku.story+0x04) >= 0x01 and allPortalsWon() >= 2 then --Riku beat TT2; Enable Julius
+      if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) >= 0x01 and allPortalsWon() >= 2 then --Riku beat TT2; Enable Julius
         --Advance story to allow manhole to spawn
         if ItemHandler:CheckMacguffins() then
-          if ReadByte(WorldFlags.traverseTown.riku.story+0x04) < 0x4F then
-            WriteByte(WorldFlags.traverseTown.riku.story+0x04, 0x4F)
+          if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) < 0x4F then
+            WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04, 0x4F)
           end
           --Write Fountain Plaza Room Flags
-          WriteByte(0xA43466, 0x04)
-          WriteByte(0xA43468, 0x01)
-          WriteByte(0xA4346A, 0x05)
+          local fntMap = {0xA43466, 0xA42CE6}
+
+          WriteByte(fntMap[gameVer], 0x04)
+          WriteByte(fntMap[gameVer]+0x02, 0x01)
+          WriteByte(fntMap[gameVer]+0x04, 0x05)
         end
       end
 
     else
-      if ReadByte(WorldFlags.traverseTown.sora.story+0x04) >= 0x3F then --Sora beat TT2; Enable Julius
+      if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04) >= 0x3F then --Sora beat TT2; Enable Julius
         if allPortalsWon() == 1 or allPortalsWon() == 3 then
           if ItemHandler:CheckMacguffins() then
             --Advance story to allow manhole to spawn
-            if ReadByte(WorldFlags.traverseTown.sora.story+0x04) < 0x8F then
-              WriteByte(WorldFlags.traverseTown.sora.story+0x04, 0x8F)
+            if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04) < 0x8F then
+              WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04, 0x8F)
             end
             --Write Fountain Plaza Room Flags
-            WriteByte(0xA40C4E, 0x04)
-            WriteByte(0xA40C50, 0x01)
-            WriteByte(0xA40C52, 0x05)
+            local fntMap = {0xA40C4E, 0xA404CE}
+
+            WriteByte(fntMap[gameVer], 0x04)
+            WriteByte(fntMap[gameVer]+0x02, 0x01)
+            WriteByte(fntMap[gameVer]+0x04, 0x05)
           end
         end
       end
     end
 
-    WriteArray(WorldFlags.traverseTown.secretPortalAddr, _ttSecret)
-    WriteArray(WorldFlags.laCiteDesCloches.secretPortalAddr, _lcdsSecret)
-    WriteArray(WorldFlags.theGrid.secretPortalAddr, _tgSecret)
-    WriteArray(WorldFlags.prankstersParadise.secretPortalAddr, _ppSecret)
-    WriteArray(WorldFlags.countryOfMusketeers.secretPortalAddr, _cotmSecret)
-    WriteArray(WorldFlags.symphonyOfSorcery.secretPortalAddr, _sosSecret)
+    WriteArray(WorldFlags.traverseTown.secretPortalAddr[gameVer], _ttSecret)
+    WriteArray(WorldFlags.laCiteDesCloches.secretPortalAddr[gameVer], _lcdsSecret)
+    WriteArray(WorldFlags.theGrid.secretPortalAddr[gameVer], _tgSecret)
+    WriteArray(WorldFlags.prankstersParadise.secretPortalAddr[gameVer], _ppSecret)
+    WriteArray(WorldFlags.countryOfMusketeers.secretPortalAddr[gameVer], _cotmSecret)
+    WriteArray(WorldFlags.symphonyOfSorcery.secretPortalAddr[gameVer], _sosSecret)
 
 end
 
 function removeInitialMovement()
-  if ReadByte(MemoryAddresses.dodgeRollStock) ~= 0x00 and lastReceivedIndex == 0 then --Get rid of initial movement
+  if ReadByte(MemoryAddresses.dodgeRollStock[gameVer]) ~= 0x00 and lastReceivedIndex == 0 then --Get rid of initial movement
     local _removeBytes = {0x00, 0x00, 0x00, 0x00}
     local _unequipArr = {0xFF, 0xFF}
 
@@ -589,8 +600,8 @@ function removeInitialMovement()
       --WriteByte(EquippedCommands[i]+0xBE, 0xFF)
 
       --Unequip Air Slide
-      WriteArray(EquippedCommands[i]+0x3C, _unequipArr)
-      WriteByte(EquippedCommands[i]+0xC0, 0xFF)
+      WriteArray(EquippedCommands[i][gameVer]+0x3C, _unequipArr)
+      WriteByte(EquippedCommands[i][gameVer]+0xC0, 0xFF)
 
       --Unequip Block
       --WriteArray(EquippedCommands[i]+0x54, _unequipArr)
@@ -599,23 +610,24 @@ function removeInitialMovement()
 
     --Remove commands from inventory
     --WriteArray(MemoryAddresses.blockStock, _removeBytes)
-    WriteArray(MemoryAddresses.airSlideStock, _removeBytes)
+    WriteArray(MemoryAddresses.airSlideStock[gameVer], _removeBytes)
     --WriteArray(MemoryAddresses.dodgeRollStock, _removeBytes)
   end
 end
 
 function fixMenuOptions()
   --Reveal Commmand Deck and Spirit menu options at the start of the playthrough
-  local _soraProg = ReadArray(WorldFlags.traverseTown.sora.story, 0x08)
-  local _rikuProg = ReadArray(WorldFlags.traverseTown.riku.story, 0x08)
+  local _soraProg = ReadArray(WorldFlags.traverseTown.sora.story[gameVer], 0x08)
+  local _rikuProg = ReadArray(WorldFlags.traverseTown.riku.story[gameVer], 0x08)
 
   --Prevent tutorial message from popping up for the command deck
-  WriteArray(MemoryAddresses.commandDeckPopup, {0x10, 0x0A})
+  WriteArray(MemoryAddresses.commandDeckPopup[gameVer], {0x10, 0x0A})
   --Remove tutorial messsages for world map and drop
-  WriteArray(0xA4C3F2, {0x07, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x0A})
+  local mapDropTutorial = {0xA4C3F2, 0xA4BC72}
+  WriteArray(mapDropTutorial[gameVer], {0x07, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x0A})
 
   if _soraProg[3] <= 0x01 then --Player has not advanced far enough into TT
-    WriteByte(WorldFlags.traverseTown.sora.story+0x01, 0xF1) --Unveils spirit and command options
+    WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01, 0xF1) --Unveils spirit and command options
     menuFixApplied = 1
   else --Player has progressed far enough to keep this disabled
     menuFixApplied = 0
@@ -623,7 +635,7 @@ function fixMenuOptions()
 
   if _rikuProg[2] < 0x1F and rikuSpiritFix == 0 then
     ConsolePrint("Fixing riku menu")
-    WriteByte(WorldFlags.traverseTown.riku.story+0x01, 0x1F) --Unveils spirit option for riku
+    WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01, 0x1F) --Unveils spirit option for riku
     rikuSpiritFix = 1
   end
   if _rikuProg[2] == 0x1F and rikuSpiritFix == 0 then
@@ -646,9 +658,9 @@ function onCharacterChange()
   ConsolePrint("Character changed")
 
   --Fix Sora getting stuck after Xemnas
-  if ReadByte(DropAddresses.sora.world) < 0x03 or ReadByte(DropAddresses.sora.world) == 0x0A and ReadByte(DropAddresses.sora.room) == 0x13 then --Sora is in an invalid world
-    WriteByte(DropAddresses.sora.world, 0x0B)
-    WriteByte(DropAddresses.sora.room, 0x01)
+  if ReadByte(DropAddresses.sora.world[gameVer]) < 0x03 or ReadByte(DropAddresses.sora.world[gameVer]) == 0x0A and ReadByte(DropAddresses.sora.room[gameVer]) == 0x13 then --Sora is in an invalid world
+    WriteByte(DropAddresses.sora.world[gameVer], 0x0B)
+    WriteByte(DropAddresses.sora.room[gameVer], 0x01)
   end
 
   setSecretPortals()
@@ -664,18 +676,18 @@ end
 function makeDummyItem()
   --TOY 20 is unused, so we will make it our dummy item
   --Overwrite the item details
-  writeTxtToGame(ItemOverwrite.dummyNameAddr, ItemOverwrite.dummyName, 0)
+  writeTxtToGame(ItemOverwrite.dummyNameAddr[gameVer], ItemOverwrite.dummyName, 0)
   --writeTxtToGame(ItemOverwrite.dummyDescAddr, ItemOverwrite.dummyDesc, 7)
-  writeTxtToGame(ItemOverwrite.dummyDescAddr, ItemOverwrite.dummyDesc, 3)
+  writeTxtToGame(ItemOverwrite.dummyDescAddr[gameVer], ItemOverwrite.dummyDesc, 3)
 
   --Write Recipe Total text to TOY 18
-  writeTxtToGame(ItemOverwrite.recipeNameAddr, "Recipes", 3)
+  writeTxtToGame(ItemOverwrite.recipeNameAddr[gameVer], "Recipes", 3)
   --writeTxtToGame(ItemOverwrite.recipeDescAddr, "Recipes Required: "..tostring(Configs.RecipeReqs), 1)
 
   --Replace chest data with this item
   for i=0, 255 do
-    WriteArray(MemoryAddresses.chestDataS+0x1A+(8*i), ItemOverwrite.dummyId)
-    WriteArray(MemoryAddresses.chestDataR+0x1A+(8*i), ItemOverwrite.dummyId)
+    WriteArray(MemoryAddresses.chestDataS[gameVer]+0x1A+(8*i), ItemOverwrite.dummyId)
+    WriteArray(MemoryAddresses.chestDataR[gameVer]+0x1A+(8*i), ItemOverwrite.dummyId)
   end
 
   --Overwrite unused Key Items for AP specific items
@@ -683,68 +695,68 @@ function makeDummyItem()
   local _descSize = 15 --Number of characters per desc
 
   --Write replacement key items
-  writeTxtToGame(ItemOverwrite.keyItemNames, "TWTNW Sora", 0) --Key Item 2 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs, "The World That Never Was for Sora", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer], "TWTNW Sora", 0) --Key Item 2 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer], "The World That Never Was for Sora", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+(22*2), "TWTNW Riku", 0) --Key Item 4 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+(38*2), "World That Never Was for Riku", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*2), "TWTNW Riku", 0) --Key Item 4 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+(38*2), "World That Never Was for Riku", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+(22*4), "TT Sora", 2) --Key Item 6 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+140, "Traverse Town for Sora", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*4), "TT Sora", 2) --Key Item 6 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+140, "Traverse Town for Sora", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+(22*6), "TT Riku", 2) --Key Item 8 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+204, "Traverse Town for Riku", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*6), "TT Riku", 2) --Key Item 8 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+204, "Traverse Town for Riku", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+(22*8), "LCdC Sora", 2) --Key Item 10 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+268, "La Cite des Cloches for Sora", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*8), "LCdC Sora", 2) --Key Item 10 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+268, "La Cite des Cloches for Sora", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+224, "LCdC Riku", 2) --Key Item 12 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+336, "La Cite des Cloches for Riku", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+224, "LCdC Riku", 2) --Key Item 12 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+336, "La Cite des Cloches for Riku", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+272, "TG Sora", 2) --Key Item 14 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+404, "The Grid for Sora", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+272, "TG Sora", 2) --Key Item 14 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+404, "The Grid for Sora", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+320, "TG Riku", 2) --Key Item 16 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+472, "The Grid for Riku", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+320, "TG Riku", 2) --Key Item 16 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+472, "The Grid for Riku", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+368, "PP Sora", 2) --Key Item 18 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+540, "Pranksters Paradise for Sora", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+368, "PP Sora", 2) --Key Item 18 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+540, "Pranksters Paradise for Sora", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+416, "PP Riku", 2) --Key Item 20 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+608, "Pranksters Paradise for Riku", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+416, "PP Riku", 2) --Key Item 20 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+608, "Pranksters Paradise for Riku", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+464, "CotM Sora", 2) --Key Item 22 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+676, "Country of Musketeers for Sora", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+464, "CotM Sora", 2) --Key Item 22 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+676, "Country of Musketeers for Sora", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+512, "CotM Riku", 2) --Key Item 24 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+744, "Country of Musketeers for Riku", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+512, "CotM Riku", 2) --Key Item 24 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+744, "Country of Musketeers for Riku", 3)
 
 --add 10 if wrong
-  writeTxtToGame(ItemOverwrite.keyItemNames+560, "SoS Sora", 2) --Key Item 26 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+812, "Symphony of Sorcery for Sora", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+560, "SoS Sora", 2) --Key Item 26 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+812, "Symphony of Sorcery for Sora", 3)
 
-  writeTxtToGame(ItemOverwrite.keyItemNames+608, "SoS Riku", 2) --Key Item 28 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+880, "Symphony of Sorcery for Riku", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+608, "SoS Riku", 2) --Key Item 28 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+880, "Symphony of Sorcery for Riku", 3)
 
   --Recusant's Sigil for additional ending condition
-  writeTxtToGame(ItemOverwrite.keyItemNames+656, "Recusant Sigil", 2) --Key Item 30 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs+948, "Sigil of the Recusant.", 3)
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+656, "Recusant Sigil", 2) --Key Item 30 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+948, "Sigil of the Recusant.", 3)
 
   --Replace reward text
-  writeTxtToGame(ItemOverwrite.hpIncreasedTxt, "Archipelago Item!", 4)
-  writeTxtToGame(ItemOverwrite.dropBonusTxt, "Archipelago Item!", 9)
-  writeTxtToGame(ItemOverwrite.deckCapIncreasedTxt, "Archipelago Item!", 7)
+  writeTxtToGame(ItemOverwrite.hpIncreasedTxt[gameVer], "Archipelago Item!", 4)
+  writeTxtToGame(ItemOverwrite.dropBonusTxt[gameVer], "Archipelago Item!", 9)
+  writeTxtToGame(ItemOverwrite.deckCapIncreasedTxt[gameVer], "Archipelago Item!", 7)
 
-  writeTxtToGame(ItemOverwrite.strIncreasedTxt, "Archipelago Item", 2)
-  writeTxtToGame(ItemOverwrite.magIncreasedTxt, "Archipelago Item", 0)
-  writeTxtToGame(ItemOverwrite.defIncreasedTxt, "Archipelago Item", 1)
+  writeTxtToGame(ItemOverwrite.strIncreasedTxt[gameVer], "Archipelago Item", 2)
+  writeTxtToGame(ItemOverwrite.magIncreasedTxt[gameVer], "Archipelago Item", 0)
+  writeTxtToGame(ItemOverwrite.defIncreasedTxt[gameVer], "Archipelago Item", 1)
 
 end
 
 function removeDummyItem()
-  local _dummyInv = 0xA4C580 --This might need to be scanned for
-  if ReadByte(_dummyInv) ~= 0x00 then --We have a dummy; wipe it
-    WriteArray(_dummyInv, {0x00, 0x00, 0x00})
+  local _dummyInv = {0xA4C580, 0xA4BE00} --This might need to be scanned for
+  if ReadByte(_dummyInv[gameVer]) ~= 0x00 then --We have a dummy; wipe it
+    WriteArray(_dummyInv[gameVer], {0x00, 0x00, 0x00})
   end
 end
 
@@ -767,18 +779,18 @@ end
 function DeliverDrop()
   if holdDropTrap then
     --Make sure player can drop
-    local _currWorld = ReadByte(MemoryAddresses.world)
+    local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
 
     if _currWorld == 0x0B or _currWorld == 0x01 then
       return
     end
 
-    if ReadByte(MemoryAddresses.enablePause) == 0x00 and ReadByte(MemoryAddresses.cutscenePauseType) == 0x00 then
+    if ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 and ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) == 0x00 then
       forceDrop()
     end
 
     --See if drop has succeeded
-    local _ptr = GetPointer(MemoryAddresses.deathPtr, MemoryAddresses.deathOffset)
+    local _ptr = GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset)
     if ReadByte(_ptr, true) == 4 then --Drop happened
       ConsolePrint("Drop happened")
       holdDropTrap = false
@@ -791,19 +803,19 @@ local _deathlinkSent = false
 local _fromDeathlink = false
 function CheckDeathlink() --For sending deathlink
   --Get current hp
-  local _currWorld = ReadByte(MemoryAddresses.world)
+  local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
 
   if _currWorld == 0x0B or _currWorld == 0x01 or _activeRoom >= 0x3C then
     return
   end
 
-  local _hpPtr = GetPointer(Stats.currHpPtr, Stats.currHpOffset)
+  local _hpPtr = GetPointer(Stats.currHpPtr[gameVer], Stats.currHpOffset)
   local _hpVal = ReadByte(_hpPtr, true)
-  local _statePtr = GetPointer(MemoryAddresses.deathPtr, MemoryAddresses.deathOffset)
+  local _statePtr = GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset)
   local _stateVal = ReadByte(_statePtr, true)
 
-  local _canPause = ReadByte(MemoryAddresses.enablePause)
-  local _canPause2 = ReadByte(MemoryAddresses.cutscenePauseType)
+  local _canPause = ReadByte(MemoryAddresses.enablePause[gameVer])
+  local _canPause2 = ReadByte(MemoryAddresses.cutscenePauseType[gameVer])
 
   if _stateVal == 3 and not _deathlinkSent and not _fromDeathlink then --Player is dead
     if _hpVal == 0x00 then --Make sure death wasn't caused by some other source
@@ -831,12 +843,12 @@ function ManageDrop()
   end
 
   --Trying an alternate method to manage drop meter
-  local _dropVal = ReadByte(MemoryAddresses.dropEnabler)
+  local _dropVal = ReadByte(MemoryAddresses.dropEnabler[gameVer])
   if _dropVal ~= 0x00 then
-    WriteArray(MemoryAddresses.dropEnabler, {0x00, 0x00})
+    WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x00, 0x00})
   end
 
-  local _dropGaugeAddr = GetPointer(MemoryAddresses.dropPtr, MemoryAddresses.dropOffset)
+  local _dropGaugeAddr = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
   --Keep gauge full
   WriteByte(_dropGaugeAddr+0x01, 0xFF, true)
   WriteByte(_dropGaugeAddr+0x02, 0x47, true)
@@ -846,10 +858,15 @@ end
 local _fixPause = false
 local _helpRiku = false
 function SkipDETutorial()
-  if ReadByte(0xA9B2D0) == 0x0E then
+  local tutorialInMenu = {0xA9B2D0, 0xA9AB50}
+  local menuOpen = {0xA43440, 0xA42CC0}
+  local pauseState = {0xA9B2F4, 0xA9AB74}
+  local isPaused = {0xA9B302, 0xA9AB82}
+
+  if ReadByte(tutorialInMenu[gameVer]) == 0x0E then
     --Prevent tutorial from showing up
-    WriteByte(0xA9B2D0, 0x01)
-    WriteByte(MemoryAddresses.pauseType, 0x03)
+    WriteByte(tutorialInMenu[gameVer], 0x01)
+    WriteByte(MemoryAddresses.pauseType[gameVer], 0x03)
 
     --WriteByte(0xA9B2D0, 0x00)
     --WriteByte(0xA9B2D8, 0x00)
@@ -862,31 +879,31 @@ function SkipDETutorial()
 
   --Fix Riku's 2nd District cutscene
   if getCharacter() == 1 and _activeRoom == 0x02 then
-    if ReadByte(WorldFlags.traverseTown.riku.story+0x01) == 0x07 and ReadByte(MemoryAddresses.evt) <= 0x0001 and ReadByte(MemoryAddresses.cutscenePauseType) ~= 0x03 then
-      if ReadByte(0xA43440) == 0x00 and ReadByte(0xA9B2D0) ~= 0x00 then
-        WriteByte(MemoryAddresses.evt, 0x0001)
-        WriteByte(MemoryAddresses.map, 0x0001)
-        WriteByte(MemoryAddresses.btl, 0x0001)
+    if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01) == 0x07 and ReadByte(MemoryAddresses.evt[gameVer]) <= 0x0001 and ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) ~= 0x03 then
+      if ReadByte(menuOpen[gameVer]) == 0x00 and ReadByte(tutorialInMenu[gameVer]) ~= 0x00 then
+        WriteByte(MemoryAddresses.evt[gameVer], 0x0001)
+        WriteByte(MemoryAddresses.map[gameVer], 0x0001)
+        WriteByte(MemoryAddresses.btl[gameVer], 0x0001)
         --WriteByte(MemoryAddresses.room, 0x03)
-        WriteByte(0xA43440, 0x01) --Evt flag for Riku 2nd District
+        WriteByte(menuOpen[gameVer], 0x01) --Evt flag for Riku 2nd District
 
-        WriteByte(0xA9B2F4, 0x04) --Some kind of pause state
+        WriteByte(pauseState[gameVer], 0x04) --Some kind of pause state
 
         _helpRiku = true
       end
     end
   end
 
-  if _fixPause and ReadByte(MemoryAddresses.pauseType) == 0x03 and ReadByte(0xA9B302) == 0x00 and ReadByte(0xA9B2D0) == 0x00 and ReadByte(MemoryAddresses.cutscenePauseType) == 0x00 then
+  if _fixPause and ReadByte(MemoryAddresses.pauseType[gameVer]) == 0x03 and ReadByte(isPaused[gameVer]) == 0x00 and ReadByte(tutorialInMenu[gameVer]) == 0x00 and ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) == 0x00 then
     --Prevent game from allowing player to open the main menu in battle
-    WriteByte(MemoryAddresses.pauseType, 0x00)
+    WriteByte(MemoryAddresses.pauseType[gameVer], 0x00)
     _fixPause = false
   end
 
-  if _helpRiku and getCharacter() == 1 and ReadByte(MemoryAddresses.room) ~= 0x02 then
+  if _helpRiku and getCharacter() == 1 and ReadByte(MemoryAddresses.room[gameVer]) ~= 0x02 then
     --Continue Riku's events if he leaves the room and the event was not triggered correctly
-    if ReadByte(WorldFlags.traverseTown.riku.story+0x01) < 0x77 then --Have to make up the story
-      WriteByte(MemoryAddresses.room, 0x02)
+    if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01) < 0x77 then --Have to make up the story
+      WriteByte(MemoryAddresses.room[gameVer], 0x02)
     end
     _helpRiku = false
   end
@@ -895,19 +912,22 @@ end
 
 function SetStartingLocation() --Sends player to the world map
   fixMenuOptions()
-  WriteByte(WorldFlags.traverseTown.sora.story, 0x11)
-  WriteByte(WorldFlags.traverseTown.riku.story+0x01, 0x1F) --Force enable the menu fix for riku initially
-  WriteByte(MemoryAddresses.world, 0x0B)
-  WriteByte(MemoryAddresses.room, 0x01)
-  WriteByte(DropAddresses.riku.world, 0x0B)
-  WriteByte(DropAddresses.riku.room, 0x01)
+  WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
+  WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01, 0x1F) --Force enable the menu fix for riku initially
+  WriteByte(MemoryAddresses.world[gameVer], 0x0B)
+  WriteByte(MemoryAddresses.room[gameVer], 0x01)
+  WriteByte(DropAddresses.riku.world[gameVer], 0x0B)
+  WriteByte(DropAddresses.riku.room[gameVer], 0x01)
 
   --Write some main story so it doesn't interfere during gameplay
-  WriteArray(0xA41DC4, {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Sora
-  WriteArray(0xA445DC, {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Riku
+  local _rgSora = {0xA41DC4, 0xA41644}
+  local _rgRiku = {0xA445DC, 0xA43E5C}
+  WriteArray(_rgSora[gameVer], {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Sora
+  WriteArray(_rgRiku[gameVer], {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Riku
 
   --Update save location
-  WriteArray(0xA40764, {0x0B, 0x01, 0x01})
+  local _saveLocation = {0xA40764, 0xA3FFE4}
+  WriteArray(_saveLocation[gameVer], {0x0B, 0x01, 0x01})
 end
 
 -- ############################################################
@@ -918,7 +938,7 @@ function forceDrop()
   --ConsolePrint("Received forced drop")
   
   --Where are the drop gauge values
-  ptr = GetPointer(0xA97FC0, 0x1B0)
+  ptr = GetPointer(MemoryAddresses.dropPtr[gameVer], 0x1B0)
 
   --Quickly re-enable dropping
   --WriteArray(MemoryAddresses.dropEnabler, {0x00, 0x00})
@@ -934,16 +954,16 @@ function unstuck()
   if getCharacter() == 0 then
     --Send Riku to World Map
     ConsolePrint("Sending Riku to the World Map")
-    WriteByte(DropAddresses.riku.world, 0x0B)
-    WriteByte(DropAddresses.riku.room, 0x01)
+    WriteByte(DropAddresses.riku.world[gameVer], 0x0B)
+    WriteByte(DropAddresses.riku.room[gameVer], 0x01)
     --WriteByte(DropAddresses.riku.map, 0x0001)
     --WriteByte(DropAddresses.riku.btl, 0x0001)
     --WriteByte(DropAddresses.riku.evt, 0x0001)
   else
     --Send Sora to World Map
     ConsolePrint("Sending Sora to the World Map")
-    WriteByte(DropAddresses.sora.world, 0x0B)
-    WriteByte(DropAddresses.sora.room, 0x01)
+    WriteByte(DropAddresses.sora.world[gameVer], 0x0B)
+    WriteByte(DropAddresses.sora.room[gameVer], 0x01)
     --WriteByte(DropAddresses.sora.map, 0x0001)
     --WriteByte(DropAddresses.sora.btl, 0x0001)
     --WriteByte(DropAddresses.sora.evt, 0x0001)
@@ -954,14 +974,14 @@ end
 function killPlayer() --For death link
   
   if holdDeathlink then
-    if ReadByte(MemoryAddresses.cutscenePauseType) ~= 0x00 then
+    if ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) ~= 0x00 then
       return
     end
-    if ReadByte(MemoryAddresses.pauseType) ~= 0x00 then
+    if ReadByte(MemoryAddresses.pauseType[gameVer]) ~= 0x00 then
       return
     end
     ConsolePrint("Deathlink triggered")
-    local _ptr = GetPointer(MemoryAddresses.deathPtr, MemoryAddresses.deathOffset)
+    local _ptr = GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset)
     _fromDeathlink = true
     WriteByte(_ptr, 3, true) --Set to 4 for instant drop
     holdDeathlink = false
@@ -1317,7 +1337,7 @@ function writeTxtToGame(startAddr, txt, fillerCnt)
 end
 
 function getCharacter() --Returns 0 for sora, 1 for riku
-  if ReadByte(MemoryAddresses.character) == 0x01 then
+  if ReadByte(MemoryAddresses.character[gameVer]) == 0x01 then
     return 1
   end
   return 0
@@ -1332,7 +1352,7 @@ function updateReceived(itemCnt)
     end
     receivedInit = true --We have finished receiving the intial set of items from the mod
   end
-  WriteInt(MemoryAddresses.medals, currentReceivedIndex)
+  WriteInt(MemoryAddresses.medals[gameVer], currentReceivedIndex)
   ConsolePrint("Current Received Index: "..tostring(currentReceivedIndex))
   ConsolePrint("Last Received Index: "..tostring(lastReceivedIndex))
   ConsolePrint("Item Cnt: "..tostring(itemCnt))
@@ -1414,10 +1434,10 @@ function main()
 
   checkCharacterChange()
 
-  if _activeRoom ~= ReadByte(MemoryAddresses.room) then
+  if _activeRoom ~= ReadByte(MemoryAddresses.room[gameVer]) then
     --Room change occurred; check some stuff
     onRoomChange()
-    _activeRoom = ReadByte(MemoryAddresses.room)
+    _activeRoom = ReadByte(MemoryAddresses.room[gameVer])
   end
   
 end
@@ -1440,7 +1460,7 @@ function OnGameStart()
     connectionInitialized = true
     gameStarted = true
     initGameState()
-    lastReceivedIndex = ReadInt(MemoryAddresses.medals)
+    lastReceivedIndex = ReadInt(MemoryAddresses.medals[gameVer])
     
 
     --Game Clear Flag
@@ -1455,7 +1475,22 @@ function GoalGame()
   SendToApClient(MessageTypes.Victory, {"Game Completed"})
 end
 
+function GameVersion()
+  if ReadLong(_isEpic) == 0x7265737563697065 then
+    ConsolePrint("Running KHDDD AP for EGS Version")
+    gameVer = 2
+    return true
+  elseif ReadLong(isSteam) == 0x7265737563697065 then
+    ConsolePrint("Running KHDDD AP for Steam Version")
+    gameVer = 1
+    return true
+  end
+  return false
+end
+
 function _OnInit()
+  local _gameDetected = GameVersion()
+
   ConsolePrint("Game ID: ".. tostring(gameID))
 
   --Initialize Socket
@@ -1471,21 +1506,23 @@ function _OnInit()
   CheatTask:Init()
   Spirits:DefineSpiritStats()
 
-  if gameID == 3899271824 then
+  if gameID == 3899271824 and _gameDetected then
     canExecute = true
   else
-    ConsolePrint("You are not running Dream Drop Distance for Steam! Cannot run script.")
+    ConsolePrint("Dream Drop Distance not detected. Make sure your game is up to date.")
   end
 end
 
 function _OnFrame()
+
   frameCount = (frameCount+1)%15
   if not gameStarted then
-    if frameCount == 0 and ReadByte(MemoryAddresses.world) ~= 0xFF then --Save file is loaded if not on title screen
+    if frameCount == 0 and ReadByte(MemoryAddresses.world[gameVer]) ~= 0xFF then --Save file is loaded if not on title screen
       OnGameStart()
     end
     return
   end
+
   if not HandshakeSent then
     --Request handshake from server
     SendToApClient(MessageTypes.Handshake, {"Requesting Handshake"})

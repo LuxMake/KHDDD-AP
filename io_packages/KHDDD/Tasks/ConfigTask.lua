@@ -56,9 +56,9 @@ function ConfigTask:SaveKeybladeStats(msgVals)
 				ConsolePrint("Recording str "..tostring(_kbStr).." mag "..tostring(_kbMag).." for kb "..tostring(#self.State.SavedKbStats-1))
 
 				if #self.State.SavedKbStats-1 < 15 then --Sora keyblade
-					WriteArray(KeybladeStats.soraBase + (KeybladeStats.offset * (#self.State.SavedKbStats-1)), {_kbStr, _kbMag})
+					WriteArray(KeybladeStats.soraBase[gameVer] + (KeybladeStats.offset * (#self.State.SavedKbStats-1)), {_kbStr, _kbMag})
 				else --Riku keyblade
-					WriteArray(KeybladeStats.rikuBase + ((KeybladeStats.offset) * (#self.State.SavedKbStats-16)), {_kbStr, _kbMag})
+					WriteArray(KeybladeStats.rikuBase[gameVer] + ((KeybladeStats.offset) * (#self.State.SavedKbStats-16)), {_kbStr, _kbMag})
 				end
 			end
 		end
@@ -74,7 +74,7 @@ end
 function ConfigTask:SetRecipeReq(msgVal)
 	Configs.RecipeReqs = tonumber(msgVal[1])
 	local _reqStr = "Required Recipes: "..msgVal[1]
-	writeTxtToGame(ItemOverwrite.recipeDescAddr, _reqStr, 1)
+	writeTxtToGame(ItemOverwrite.recipeDescAddr[gameVer], _reqStr, 1)
 	ConsolePrint("Setting required recipes to "..msgVal[1])
 end
 
