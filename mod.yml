@@ -1,4 +1,4 @@
-title: KHDDD Archipelago Companion
+title: KHDDD AP Companion [DEVELOPER]
 originalAuthor: Lux
 description: Archipelago Companion for KHDDD
 assets:
@@ -59,6 +59,10 @@ assets:
   method: copy
   source:
   - name: io_packages/KHDDD/Items/ItemDefs.lua
+- name: scripts/io_packages/KHDDD/Items/MessageHandler.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Items/MessageHandler.lua
 - name: scripts/io_packages/KHDDD/Items/Spirits.lua
   method: copy
   source:
@@ -163,6 +167,10 @@ assets:
   method : copy
   source:
   - name: setdata/jp/bin/pi/pi01set.bin
+- name: setdata/jp/bin/pi/pi04set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/pi/pi04set.bin
 - name: setdata/jp/bin/pi/pi11set.bin
   method : copy
   source:
@@ -195,6 +203,10 @@ assets:
   method : copy
   source:
   - name: setdata/jp/bin/tm/tm12set.bin
+- name: setdata/jp/bin/fa/fa06set.bin
+  method : copy
+  source:
+  - name: setdata/jp/bin/fa/fa06set.bin
 - name: setdata/jp/bin/fa/fa15set.bin
   method : copy
   source:

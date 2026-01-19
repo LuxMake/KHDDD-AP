@@ -30,122 +30,122 @@ function ItemDefs:DefineItems()
 
     --Full World Data
     { ID = 2691001, Name = "La Cite des Cloches [Sora]", Type="World", Bytes={
-      WorldFlags.laCiteDesCloches.sora.unlocked,
-      WorldFlags.laCiteDesCloches.sora.story,
+      WorldFlags.laCiteDesCloches.sora.unlocked[gameVer],
+      WorldFlags.laCiteDesCloches.sora.story[gameVer],
       WorldFlags.laCiteDesCloches.worldNo,
       WorldFlags.laCiteDesCloches.sora.startRoom,
-      WorldFlags.laCiteDesCloches.sora.battle,
-      WorldFlags.laCiteDesCloches.sora.selectable
+      WorldFlags.laCiteDesCloches.sora.battle[gameVer],
+      WorldFlags.laCiteDesCloches.sora.selectable[gameVer]
       }},
     { ID = 2691002, Name = "The Grid [Sora]", Type="World", Bytes={
-      WorldFlags.theGrid.sora.unlocked,
-      WorldFlags.theGrid.sora.story,
+      WorldFlags.theGrid.sora.unlocked[gameVer],
+      WorldFlags.theGrid.sora.story[gameVer],
       WorldFlags.theGrid.worldNo,
       WorldFlags.theGrid.sora.startRoom,
-      WorldFlags.theGrid.sora.battle,
-      WorldFlags.theGrid.sora.selectable
+      WorldFlags.theGrid.sora.battle[gameVer],
+      WorldFlags.theGrid.sora.selectable[gameVer]
       }},
     { ID = 2691003, Name = "Prankster's Paradise [Sora]", Type="World", Bytes={
-      WorldFlags.prankstersParadise.sora.unlocked,
-      WorldFlags.prankstersParadise.sora.story,
+      WorldFlags.prankstersParadise.sora.unlocked[gameVer],
+      WorldFlags.prankstersParadise.sora.story[gameVer],
       WorldFlags.prankstersParadise.worldNo,
       WorldFlags.prankstersParadise.sora.startRoom,
-      WorldFlags.prankstersParadise.sora.battle,
-      WorldFlags.prankstersParadise.sora.selectable
+      WorldFlags.prankstersParadise.sora.battle[gameVer],
+      WorldFlags.prankstersParadise.sora.selectable[gameVer]
       
     }},
     { ID = 2691004, Name = "Country of Musketeers [Sora]", Type="World", Bytes={
-      WorldFlags.countryOfMusketeers.sora.unlocked,
-    WorldFlags.countryOfMusketeers.sora.story,
+      WorldFlags.countryOfMusketeers.sora.unlocked[gameVer],
+    WorldFlags.countryOfMusketeers.sora.story[gameVer],
     WorldFlags.countryOfMusketeers.worldNo,
     WorldFlags.countryOfMusketeers.sora.startRoom,
-    WorldFlags.countryOfMusketeers.sora.battle,
-    WorldFlags.countryOfMusketeers.sora.selectable
+    WorldFlags.countryOfMusketeers.sora.battle[gameVer],
+    WorldFlags.countryOfMusketeers.sora.selectable[gameVer]
     }},
     { ID = 2691005, Name = "Symphony of Sorcery [Sora]", Type="World", Bytes={
-      WorldFlags.symphonyOfSorcery.sora.unlocked,
-    WorldFlags.symphonyOfSorcery.sora.story,
+      WorldFlags.symphonyOfSorcery.sora.unlocked[gameVer],
+    WorldFlags.symphonyOfSorcery.sora.story[gameVer],
     WorldFlags.symphonyOfSorcery.worldNo,
     WorldFlags.symphonyOfSorcery.sora.startRoom,
-    WorldFlags.symphonyOfSorcery.sora.battle,
-    WorldFlags.symphonyOfSorcery.sora.selectable,
-    WorldFlags.symphonyOfSorcery.sora.dockPoint
+    WorldFlags.symphonyOfSorcery.sora.battle[gameVer],
+    WorldFlags.symphonyOfSorcery.sora.selectable[gameVer],
+    WorldFlags.symphonyOfSorcery.sora.dockPoint[gameVer]
     }},
     { ID = 2691006, Name = "The World That Never Was [Sora]", Type="World", Bytes={
-      WorldFlags.theWorldThatNeverWas.sora.unlocked,
-    WorldFlags.theWorldThatNeverWas.sora.story,
+      WorldFlags.theWorldThatNeverWas.sora.unlocked[gameVer],
+    WorldFlags.theWorldThatNeverWas.sora.story[gameVer],
     WorldFlags.theWorldThatNeverWas.worldNo,
     WorldFlags.theWorldThatNeverWas.sora.startRoom,
-    WorldFlags.theWorldThatNeverWas.sora.battle,
-    WorldFlags.theWorldThatNeverWas.sora.selectable,
-    WorldFlags.theWorldThatNeverWas.sora.dockPoint
+    WorldFlags.theWorldThatNeverWas.sora.battle[gameVer],
+    WorldFlags.theWorldThatNeverWas.sora.selectable[gameVer],
+    WorldFlags.theWorldThatNeverWas.sora.dockPoint[gameVer]
     }},
     { ID = 2691007, Name = "La Cite des Cloches [Riku]", Type="World", Bytes={
-      WorldFlags.laCiteDesCloches.riku.unlocked,
-      WorldFlags.laCiteDesCloches.riku.story,
+      WorldFlags.laCiteDesCloches.riku.unlocked[gameVer],
+      WorldFlags.laCiteDesCloches.riku.story[gameVer],
       WorldFlags.laCiteDesCloches.worldNo,
       WorldFlags.laCiteDesCloches.riku.startRoom,
-      WorldFlags.laCiteDesCloches.riku.battle,
-      WorldFlags.laCiteDesCloches.riku.selectable
+      WorldFlags.laCiteDesCloches.riku.battle[gameVer],
+      WorldFlags.laCiteDesCloches.riku.selectable[gameVer]
       }},
       { ID = 2691008, Name = "The Grid [Riku]", Type="World", Bytes={
-      WorldFlags.theGrid.riku.unlocked,
-      WorldFlags.theGrid.riku.story,
+      WorldFlags.theGrid.riku.unlocked[gameVer],
+      WorldFlags.theGrid.riku.story[gameVer],
       WorldFlags.theGrid.worldNo,
       WorldFlags.theGrid.riku.startRoom,
-      WorldFlags.theGrid.riku.battle,
-      WorldFlags.theGrid.riku.selectable
+      WorldFlags.theGrid.riku.battle[gameVer],
+      WorldFlags.theGrid.riku.selectable[gameVer]
       }},
       { ID = 2691009, Name = "Prankster's Paradise [Riku]", Type="World", Bytes={
-      WorldFlags.prankstersParadise.riku.unlocked,
-      WorldFlags.prankstersParadise.riku.story,
+      WorldFlags.prankstersParadise.riku.unlocked[gameVer],
+      WorldFlags.prankstersParadise.riku.story[gameVer],
       WorldFlags.prankstersParadise.worldNo,
       WorldFlags.prankstersParadise.riku.startRoom,
-      WorldFlags.prankstersParadise.riku.battle,
-      WorldFlags.prankstersParadise.riku.selectable
+      WorldFlags.prankstersParadise.riku.battle[gameVer],
+      WorldFlags.prankstersParadise.riku.selectable[gameVer]
     }},
     { ID = 2691010, Name = "Country of Musketeers [Riku]", Type="World", Bytes={
-      WorldFlags.countryOfMusketeers.riku.unlocked,
-    WorldFlags.countryOfMusketeers.riku.story,
+      WorldFlags.countryOfMusketeers.riku.unlocked[gameVer],
+    WorldFlags.countryOfMusketeers.riku.story[gameVer],
     WorldFlags.countryOfMusketeers.worldNo,
     WorldFlags.countryOfMusketeers.riku.startRoom,
-    WorldFlags.countryOfMusketeers.riku.battle,
-    WorldFlags.countryOfMusketeers.riku.selectable
+    WorldFlags.countryOfMusketeers.riku.battle[gameVer],
+    WorldFlags.countryOfMusketeers.riku.selectable[gameVer]
     }},
     { ID = 2691011, Name = "Symphony of Sorcery [Riku]", Type="World", Bytes={
-      WorldFlags.symphonyOfSorcery.riku.unlocked,
-    WorldFlags.symphonyOfSorcery.riku.story,
+      WorldFlags.symphonyOfSorcery.riku.unlocked[gameVer],
+    WorldFlags.symphonyOfSorcery.riku.story[gameVer],
     WorldFlags.symphonyOfSorcery.worldNo,
     WorldFlags.symphonyOfSorcery.riku.startRoom,
-    WorldFlags.symphonyOfSorcery.riku.battle,
-    WorldFlags.symphonyOfSorcery.riku.selectable
+    WorldFlags.symphonyOfSorcery.riku.battle[gameVer],
+    WorldFlags.symphonyOfSorcery.riku.selectable[gameVer]
     }},
     { ID = 2691012, Name = "The World That Never Was [Riku]", Type="World", Bytes={
-      WorldFlags.theWorldThatNeverWas.riku.unlocked,
-    WorldFlags.theWorldThatNeverWas.riku.story,
+      WorldFlags.theWorldThatNeverWas.riku.unlocked[gameVer],
+    WorldFlags.theWorldThatNeverWas.riku.story[gameVer],
     WorldFlags.theWorldThatNeverWas.worldNo,
     WorldFlags.theWorldThatNeverWas.riku.startRoom,
-    WorldFlags.theWorldThatNeverWas.riku.battle,
-    WorldFlags.theWorldThatNeverWas.riku.selectable,
-    WorldFlags.theWorldThatNeverWas.riku.dockPoint
+    WorldFlags.theWorldThatNeverWas.riku.battle[gameVer],
+    WorldFlags.theWorldThatNeverWas.riku.selectable[gameVer],
+    WorldFlags.theWorldThatNeverWas.riku.dockPoint[gameVer]
     }},
 
     --Traverse Towns
     { ID = 2691013, Name = "Traverse Town [Sora]", Type="World", Bytes={
-      WorldFlags.traverseTown.sora.unlocked,
-      WorldFlags.traverseTown.sora.story,
+      WorldFlags.traverseTown.sora.unlocked[gameVer],
+      WorldFlags.traverseTown.sora.story[gameVer],
       WorldFlags.traverseTown.worldNo,
       WorldFlags.traverseTown.sora.startRoom,
-      WorldFlags.traverseTown.sora.battle,
-      WorldFlags.traverseTown.sora.selectable
+      WorldFlags.traverseTown.sora.battle[gameVer],
+      WorldFlags.traverseTown.sora.selectable[gameVer]
       }},
     { ID = 2691014, Name = "Traverse Town [Riku]", Type="World", Bytes={
-      WorldFlags.traverseTown.riku.unlocked,
-      WorldFlags.traverseTown.riku.story,
+      WorldFlags.traverseTown.riku.unlocked[gameVer],
+      WorldFlags.traverseTown.riku.story[gameVer],
       WorldFlags.traverseTown.worldNo,
       WorldFlags.traverseTown.riku.startRoom,
-      WorldFlags.traverseTown.riku.battle,
-      WorldFlags.traverseTown.riku.selectable
+      WorldFlags.traverseTown.riku.battle[gameVer],
+      WorldFlags.traverseTown.riku.selectable[gameVer]
       }},
 
 
@@ -281,34 +281,34 @@ function ItemDefs:DefineItems()
     { ID = 2661006, Name = "Flowmotion", Type="Flowmotion", Bytes = {0xDE}},
 
     --Movement
-    { ID = 2681080, Name = "High Jump", Type="Command", Bytes={0x02}},
+    { ID = 2681080, Name = "High Jump", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x02}},
     { ID = 2681081, Name = "Dodge Roll", Type="Command", Bytes={0x03}},
-    { ID = 2681082, Name = "Slide Roll", Type="Command", Bytes={0x04}},
-    { ID = 2681083, Name = "Dark Roll", Type="Command", Bytes={0x05}},
-    { ID = 2681084, Name = "Air Slide", Type="Command", Bytes={0x06}},
-    { ID = 2681085, Name = "Sonic Impact", Type="Command", Bytes={0x07}},
-    { ID = 2681086, Name = "Double Impact", Type="Command", Bytes={0x08}},
-    { ID = 2681087, Name = "Glide", Type="Command", Bytes={0x09}},
-    { ID = 2681088, Name = "Superglide", Type="Command", Bytes={0x0A}},
-    { ID = 2681089, Name = "Shadow Slide", Type="Command", Bytes={0x0B}},
-    { ID = 2681090, Name = "Double Flight", Type="Command", Bytes={0x0C}},
+    { ID = 2681082, Name = "Slide Roll", Type="Command", Usefulness=item_usefulness.normal, Bytes={0x04}},
+    { ID = 2681083, Name = "Dark Roll", Type="Command", Usefulness=item_usefulness.normal, Bytes={0x05}},
+    { ID = 2681084, Name = "Air Slide", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x06}},
+    { ID = 2681085, Name = "Sonic Impact", Type="Command", Usefulness=item_usefulness.normal, Bytes={0x07}},
+    { ID = 2681086, Name = "Double Impact", Type="Command", Usefulness=item_usefulness.normal, Bytes={0x08}},
+    { ID = 2681087, Name = "Glide", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x09}},
+    { ID = 2681088, Name = "Superglide", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x0A}},
+    { ID = 2681089, Name = "Shadow Slide", Type="Command", Usefulness=item_usefulness.normal, Bytes={0x0B}},
+    { ID = 2681090, Name = "Double Flight", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x0C}},
 
     --Defense
     { ID = 2681091, Name = "Block", Type="Command", Bytes={0x0D}},
-    { ID = 2681092, Name = "Wake-Up Block", Type="Command", Bytes={0x0E}},
-    { ID = 2681093, Name = "Link Block", Type="Command", Bytes={0x0F}},
-    { ID = 2681094, Name = "Sliding Block", Type="Command", Bytes={0x10}},
-    { ID = 2681095, Name = "Dark Barrier", Type="Command", Bytes={0x11}},
-    { ID = 2681096, Name = "Counter Rush", Type="Command", Bytes={0x12}},
-    { ID = 2681097, Name = "Counter Aura", Type="Command", Bytes={0x13}},
-    { ID = 2681098, Name = "Shadow Strike", Type="Command", Bytes={0x14}},
-    { ID = 2681099, Name = "Payback Raid", Type="Command", Bytes={0x15}},
-    { ID = 2681100, Name = "Payback Blast", Type="Command", Bytes={0x16}},
-    { ID = 2681101, Name = "Aerial Recovery", Type="Command", Bytes={0x17}},
-    { ID = 2681102, Name = "Steep Climb", Type="Command", Bytes={0x18}},
-    { ID = 2681103, Name = "Rapid Descent", Type="Command", Bytes={0x19}},
-    { ID = 2681104, Name = "Sliding Sidewinder", Type="Command", Bytes={0x1A}},
-    { ID = 2681105, Name = "Sliding Crescent", Type="Command", Bytes={0x1B}},
+    { ID = 2681092, Name = "Wake-Up Block", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x0E}},
+    { ID = 2681093, Name = "Link Block", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x0F}},
+    { ID = 2681094, Name = "Sliding Block", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x10}},
+    { ID = 2681095, Name = "Dark Barrier", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x11}},
+    { ID = 2681096, Name = "Counter Rush", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x12}},
+    { ID = 2681097, Name = "Counter Aura", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x13}},
+    { ID = 2681098, Name = "Shadow Strike", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x14}},
+    { ID = 2681099, Name = "Payback Raid", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x15}},
+    { ID = 2681100, Name = "Payback Blast", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x16}},
+    { ID = 2681101, Name = "Aerial Recovery", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x17}},
+    { ID = 2681102, Name = "Steep Climb", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x18}},
+    { ID = 2681103, Name = "Rapid Descent", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x19}},
+    { ID = 2681104, Name = "Sliding Sidewinder", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x1A}},
+    { ID = 2681105, Name = "Sliding Crescent", Usefulness=item_usefulness.normal, Type="Command", Bytes={0x1B}},
 
 
     --Commands

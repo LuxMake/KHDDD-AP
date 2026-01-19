@@ -13,7 +13,10 @@ ConfigTask.SlotDataTypes = {
   FastGoMode = 5,
   RecipeCnt = 6,
   WinCon = 7,
-  StatBoost = 8
+  StatBoost = 8,
+  LordKyroo = 9,
+  LocalItemNotifs = 10,
+  RemoteItemNotifs = 11
 }
 
 function ConfigTask:ParseSlotData(slotType, msgVal)
@@ -35,6 +38,12 @@ function ConfigTask:ParseSlotData(slotType, msgVal)
       self:SetGoal(msgVal)
     elseif slotType == self.SlotDataTypes.StatBoost then
     	self:SetStatBoost(msgVal)
+    elseif slotType == self.SlotDataTypes.LordKyroo then
+    	self:SetLordKyroo(msgVal)
+    elseif slotType == self.SlotDataTypes.LocalItemNotifs then
+    	self:SetItemNotifs(msgVal)
+    elseif slotType == self.SlotDataTypes.RemoteItemNotifs then
+    	self:SetRemoteNotifs(msgVal)
     end
 end
 
@@ -56,9 +65,9 @@ function ConfigTask:SaveKeybladeStats(msgVals)
 				ConsolePrint("Recording str "..tostring(_kbStr).." mag "..tostring(_kbMag).." for kb "..tostring(#self.State.SavedKbStats-1))
 
 				if #self.State.SavedKbStats-1 < 15 then --Sora keyblade
-					WriteArray(KeybladeStats.soraBase + (KeybladeStats.offset * (#self.State.SavedKbStats-1)), {_kbStr, _kbMag})
+					WriteArray(KeybladeStats.soraBase[gameVer] + (KeybladeStats.offset * (#self.State.SavedKbStats-1)), {_kbStr, _kbMag})
 				else --Riku keyblade
-					WriteArray(KeybladeStats.rikuBase + ((KeybladeStats.offset) * (#self.State.SavedKbStats-16)), {_kbStr, _kbMag})
+					WriteArray(KeybladeStats.rikuBase[gameVer] + ((KeybladeStats.offset) * (#self.State.SavedKbStats-16)), {_kbStr, _kbMag})
 				end
 			end
 		end
@@ -74,7 +83,7 @@ end
 function ConfigTask:SetRecipeReq(msgVal)
 	Configs.RecipeReqs = tonumber(msgVal[1])
 	local _reqStr = "Required Recipes: "..msgVal[1]
-	writeTxtToGame(ItemOverwrite.recipeDescAddr, _reqStr, 1)
+	writeTxtToGame(ItemOverwrite.recipeDescAddr[gameVer], _reqStr, 1)
 	ConsolePrint("Setting required recipes to "..msgVal[1])
 end
 
@@ -119,6 +128,25 @@ end
 function ConfigTask:SetStatBoost(msgVal)
 	Configs.StatBonus = tonumber(msgVal[1])
 	ConsolePrint("Setting Stat Bonus to "..msgVal[1])
+end
+
+function ConfigTask:SetLordKyroo(msgVal)
+	ConsolePrint("Setting Lord Kyroo to "..msgVal[1])
+	if msgVal[1] == "1" then
+		Configs.LordKyroo = true
+	else
+		Configs.LordKyroo = false
+	end
+end
+
+function ConfigTask:SetItemNotifs(msgVal)
+	ConsolePrint("Setting Received Notifications to "..msgVal[1])
+	Configs.LocalItemNotifs = tonumber(msgVal[1])
+end
+
+function ConfigTask:SetRemoteNotifs(msgVal)
+	ConsolePrint("Setting Sent Notifications to "..msgVal[1])
+	Configs.RemoteItemNotifs = tonumber(msgVal[1])
 end
 
 return ConfigTask

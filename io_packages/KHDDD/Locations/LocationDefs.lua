@@ -58,8 +58,9 @@ function LocationDefs:DefineWorldEvents()
     {ID=2670230, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x06, char=0, sent = false}, --Glossary Org XIII
     {ID=2670231, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x06, char=0, sent = false}, --Chronicle KH2
     {ID=2670232, StoryBit = {0x01, 0xFF, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x06, char=0, sent = false}, --Flashback Monstro
-    {ID=2670233, StoryBit = {0x01, 0xFF, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x06, char=0, sent = false}, --Lobster Bonus Slot 1
-    {ID=2670234, StoryBit = {0x11, 0xFF, 0xFF, 0x3F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x06, char=0, sent = false}, --Ferris Gear
+    {ID=2670233, StoryBit = {0x11, 0xFF, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x06, char=0, sent = false}, --Lobster Bonus Slot 1
+    {ID=2670234, StoryBit = {0x11, 0xFF, 0xFF, 0x3F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x06, char=0, sent = false}, --Ferris Gear
+    --Lord Kyroo Lookat: 4
 
     --Sora CotM
     {ID=2670235, StoryBit = {0x01, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=0, sent = false}, --Flashback Overnight Musketeers
@@ -95,10 +96,11 @@ function LocationDefs:DefineWorldEvents()
     --Riku LCdC
     {ID=2670258, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x08, char=1, sent = false}, --Flashback: Dark Obsession Reward
     {ID=2670259, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x08, char=1, sent = false}, --Sonic Impact
-    {ID=2670260, StoryBit = {0x01, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 1
-    {ID=2670261, StoryBit = {0x01, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 2
-    {ID=2670262, StoryBit = {0x01, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x08, char=1, sent = false}, --Chronicle: Kingdom Hearts
-    {ID=2670263, StoryBit = {0x11, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x08, char=1, sent = false}, --Guardian Bell Reward
+    {ID=2670260, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 1
+    {ID=2670261, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 2
+    {ID=2670262, StoryBit = {0x11, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Chronicle: Kingdom Hearts
+    {ID=2670263, StoryBit = {0x11, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Guardian Bell Reward
+    --Lord Kyroo Lookat: 3
 
     --Riku TG
     {ID=2670264, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x09, char=1, sent = false}, --Light Cycle Minigame Bonus Slot
@@ -123,9 +125,10 @@ function LocationDefs:DefineWorldEvents()
 
     --Riku SoS
     {ID=2670279, StoryBit = {0x01, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x05, char=1, sent = false}, --Flashback: A Magical Mishap
-    {ID=2670280, StoryBit = {0x01, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 1
-    {ID=2670281, StoryBit = {0x01, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 2
-    {ID=2670282, StoryBit = {0x11, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=1, sent = false}, --Counterpoint Reward
+    {ID=2670280, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 1
+    {ID=2670281, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 2
+    {ID=2670282, StoryBit = {0x11, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Counterpoint Reward
+    --Lord Kyroo Lookat: 3
 
     --Riku TWTNW
     {ID=2670283, StoryBit = {0x01, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x0A, char=1, sent = false}, --Ansem Boss Gauntlet Bonus Slot
@@ -210,13 +213,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x0A,
       evt = 0x3F,
       portalId = 2680201,
-      saveAddr = WorldFlags.traverseTown.sora.story+0x07
+      saveAddr = WorldFlags.traverseTown.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0B,
       evt = 0x48,
       portalId = 2680202,
-      saveAddr = WorldFlags.traverseTown.riku.story+0x07
+      saveAddr = WorldFlags.traverseTown.riku.story[gameVer]+0x07
     }
   },
   laCiteDesCloches = {
@@ -225,13 +228,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x13,
       evt = 0x37,
       portalId = 2680203,
-      saveAddr = WorldFlags.laCiteDesCloches.sora.story+0x07
+      saveAddr = WorldFlags.laCiteDesCloches.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0E,
       evt = 0x3C,
       portalId = 2680204,
-      saveAddr = WorldFlags.laCiteDesCloches.riku.story+0x07
+      saveAddr = WorldFlags.laCiteDesCloches.riku.story[gameVer]+0x07
     }
   },
   theGrid = {
@@ -240,13 +243,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x0C,
       evt = 0x35,
       portalId = 2680205,
-      saveAddr = WorldFlags.theGrid.sora.story+0x07
+      saveAddr = WorldFlags.theGrid.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x01,
       evt = 0x3D,
       portalId = 2680206,
-      saveAddr = WorldFlags.theGrid.riku.story+0x07
+      saveAddr = WorldFlags.theGrid.riku.story[gameVer]+0x07
     }
   },
   prankstersParadise = {
@@ -255,13 +258,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x05,
       evt = 0x38,
       portalId = 2680207,
-      saveAddr = WorldFlags.prankstersParadise.sora.story+0x07
+      saveAddr = WorldFlags.prankstersParadise.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0A,
       evt = 0x3C,
       portalId = 2680208,
-      saveAddr = WorldFlags.prankstersParadise.riku.story+0x07
+      saveAddr = WorldFlags.prankstersParadise.riku.story[gameVer]+0x07
     }
   },
   countryOfMusketeers = {
@@ -270,13 +273,13 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x03,
       evt = 0x39,
       portalId = 2680209,
-      saveAddr = WorldFlags.countryOfMusketeers.sora.story+0x07
+      saveAddr = WorldFlags.countryOfMusketeers.sora.story[gameVer]+0x07
     },
     riku = {
       bossRoom = 0x0C,
       evt = 0x3C,
       portalId = 2680210,
-      saveAddr = WorldFlags.countryOfMusketeers.riku.story+0x07
+      saveAddr = WorldFlags.countryOfMusketeers.riku.story[gameVer]+0x07
     }
   },
   symphonyOfSorcery = {
@@ -284,7 +287,7 @@ function LocationDefs:DefinePortals()
       bossRoom = 0x0B,
       evt = 0x35,
       portalId = 2680211,
-      saveAddr = WorldFlags.symphonyOfSorcery.sora.story+0x07
+      saveAddr = WorldFlags.symphonyOfSorcery.sora.story[gameVer]+0x07
     }
   }
 }
