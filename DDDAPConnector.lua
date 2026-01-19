@@ -1556,7 +1556,7 @@ function GameVersion()
     ConsolePrint("Running KHDDD AP for EGS")
     gameVer = 2
     return true
-  elseif ReadLong(isSteam) == 0x7265737563697065 then
+  elseif ReadLong(_isSteam) == 0x7265737563697065 then
     ConsolePrint("Running KHDDD AP for Steam")
     gameVer = 1
     return true
