@@ -264,6 +264,7 @@ function LocationHandler:CheckChestBits()
           if _chestBits[j] == 1 and not chests.sora[i].foundChests[_chestCheck] then --Chest was found; send to AP client
             --TODO: Make sure this doesn't send repeatedly
             chests.sora[i].foundChests[_chestCheck] = true
+            RoomSaveTask:StoreChest(i, j, 0)
             SendToApClient(MessageTypes.ChestChecked,{chests.sora[i].locationIDStart+(_chestCheck-1)})
           end
         end
@@ -283,6 +284,7 @@ function LocationHandler:CheckChestBits()
           if _chestBits[j] == 1 and not chests.riku[i].foundChests[_chestCheck] then --Chest was found; send to AP client
             --TODO: Make sure this doesn't send repeatedly
             chests.riku[i].foundChests[_chestCheck] = true
+            RoomSaveTask:StoreChest(i, j, 1)
             SendToApClient(MessageTypes.ChestChecked,{chests.riku[i].locationIDStart+(_chestCheck-1)})
           end
         end
@@ -409,6 +411,110 @@ function LocationHandler:CheckStory()
 
   if #_storiesFound > 0 then
     SendToApClient(MessageTypes.StoryChecked, _storiesFound)
+  end
+
+end
+
+---------------------------------------------------------------
+-------------------Lord Kyroo----------------------------------
+---------------------------------------------------------------
+local _kyrooDefeated = false
+local _kyrooLCDC = false
+local _kyrooPP = false
+local _kyrooSOS = false
+allowKyroo = true --If false, dont retrigger the kyroo fight
+function LocationHandler:LordKyroo()
+  --Appears in LCDC Nave [Riku], PP Promontory [Sora], and SOS Moonlight Wood [Riku]
+
+  --If solo seed and all locations for that character have been visited; force trigger the battle
+  if getCharacter() == 0 then
+    if Configs.Character == 1 and ReadByte(MemoryAddresses.world[gameVer]) == 0x06 then
+      if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]) == 0x11 then --World cleared; check kyroo now
+        if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x03) == 0x47 then --Lost to Kyroo
+          --Start fight in promontory
+          if ReadByte(MemoryAddresses.room[gameVer]) == 0x04 and allowKyroo then
+            WriteByte(MemoryAddresses.map[gameVer], 0x39)
+            WriteByte(MemoryAddresses.btl[gameVer], 0x39)
+            WriteByte(MemoryAddresses.evt[gameVer], 0x39)
+            allowKyroo = false
+          end
+        end
+      end
+    end
+  end
+
+  if getCharacter() == 1 then
+    if Configs.Character == 2 then
+      if ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]) == 0x11 and ReadByte(WorldFlags.symphonyOfSorcery.riku.story[gameVer]) == 0x11 then
+        --World Cleared; See if Lord Kyroo needs to be rematched
+        if ReadByte(MemoryAddresses.world[gameVer]) == 0x08 and ReadByte(MemoryAddresses.room[gameVer]) == 0x03 and allowKyroo then -- 0x03 then
+          --Start Nave Battle
+          WriteByte(MemoryAddresses.map[gameVer], 0x3D)
+          WriteByte(MemoryAddresses.btl[gameVer], 0x3D)
+          WriteByte(MemoryAddresses.evt[gameVer], 0x3D)
+          allowKyroo = false
+        elseif ReadByte(MemoryAddresses.world[gameVer]) == 0x05 and ReadByte(MemoryAddresses.room[gameVer]) == 0x06 and allowKyroo then
+          --Start Moonlight Wood Battle
+          WriteByte(MemoryAddresses.map[gameVer], 0x37)
+          WriteByte(MemoryAddresses.btl[gameVer], 0x37)
+          WriteByte(MemoryAddresses.evt[gameVer], 0x37)
+          allowKyroo = false
+        end
+      end
+    end
+
+    
+
+  if not _kyrooDefeated then
+    --Send the check
+    local _foughtPP = toBits(ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x03))
+    local _foughtLCDC = toBits(ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]+0x02))
+    local _foughtSOS = toBits(ReadByte(WorldFlags.symphonyOfSorcery.riku.story[gameVer]+0x02))
+
+    if Configs.Character == 0 then
+      if _foughtPP[5] == 1 or _foughtLCDC[5] == 1 or _foughtSOS[5] == 1 then
+        SendToApClient(MessageTypes.StoryChecked, {"2650652"})
+        SendToApClient(MessageTypes.StoryChecked, {"2650651"})
+        SendToApClient(MessageTypes.StoryChecked, {"2650650"})
+        SendToApClient(MessageTypes.StoryChecked, {"2650649"})
+        _kyrooDefeated = true
+      end
+    elseif Configs.Character == 1 then
+      if _foughtPP[5] == 1 then
+        SendToApClient(MessageTypes.StoryChecked, {"2650652"})
+        SendToApClient(MessageTypes.StoryChecked, {"2650650"})
+        _kyrooDefeated = true
+      end
+    elseif Configs.Character == 2 then
+      if _foughtLCDC[5] == 1 or _foughtSOS[5] == 1 then
+        SendToApClient(MessageTypes.StoryChecked, {"2650652"})
+        SendToApClient(MessageTypes.StoryChecked, {"2650651"})
+        SendToApClient(MessageTypes.StoryChecked, {"2650649"})
+        _kyrooDefeated = true
+      end
+    end
+
+    --Check if he was fought in these locations
+    if not _kyrooPP and Configs.Character < 2 then
+      if _foughtPP[4] == 1 then
+        SendToApClient(MessageTypes.StoryChecked, {"2650650"})
+        _kyrooPP = true
+      end
+    end
+
+    if not _kyrooLCDC and (Configs.Character == 0 or Configs.Character == 2) then
+      if _foughtLCDC[4] == 1 then
+        SendToApClient(MessageTypes.StoryChecked, {"2650649"})
+        _kyrooLCDC = true
+      end
+    end
+    if not _kyrooSOS and (Configs.Character == 0 or Configs.Character == 2) then
+      if _foughtSOS[4] == 1 then
+        SendToApClient(MessageTypes.StoryChecked, {"2650651"})
+        _kyrooSOS = true
+      end
+    end
+  end    
   end
 
 end

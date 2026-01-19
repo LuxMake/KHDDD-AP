@@ -15,8 +15,9 @@ local StoryHandler = require("KHDDD.Locations.StoryHandler")
 local PromptTask = require("KHDDD.Tasks.PromptTask")
 local CheatTask = require("KHDDD.Tasks.CheatTask")
 local ConfigTask = require("KHDDD.Tasks.ConfigTask")
-local RoomSaveTask = require("KHDDD.Tasks.RoomSaveTask")
+RoomSaveTask = require("KHDDD.Tasks.RoomSaveTask")
 local SoftlockTask = require("KHDDD.Tasks.SoftlockTask")
+local MessageHandler = require("KHDDD.Items.MessageHandler")
 
 LUAGUI_NAME = "DDD AP Connector [Socket]"
 LUAGUI_AUTH = "Lux"
@@ -136,7 +137,10 @@ Configs = {
   Character = 0, --0 for both; 1 for Sora Only; 2 for Riku Only
   Deathlink = false,
   RecipeReqs = 0, --Additional recipes needed to win the seed (Meow Wow and Komory Bat are always required)
-  Goal = 0 --0: Final Boss; 1: Super Boss
+  Goal = 0, --0: Final Boss; 1: Super Boss
+  FightKyroo = 0,
+  LocalItemNotifs = 0,
+  RemoteItemNotifs = 0
 }
 
 ItemOverwrite = {
@@ -156,7 +160,9 @@ ItemOverwrite = {
   deckCapIncreasedTxt = {0x10946530, 0x10945DB0},
   dropBonusTxt = {0x10946562, 0x10945DE2},
   keyItemNames = {0x10943EEC, 0x1094376C},
-  keyItemDescs = {0x10952ACA, 0x1095234A}
+  keyItemDescs = {0x10952ACA, 0x1095234A},
+  linkInfo1 = {0x10957982, 0x10957202},
+  linkInfo2 = {0x10957A16, 0x10957296},
 }
 
 KHSCII = {
@@ -173,7 +179,17 @@ KHSCII = {
   One = 0x31, Two = 0x32, Three = 0x33, Four = 0x34, Five = 0x35,
   Six = 0x36, Seven = 0x37, Eight = 0x38, Nine = 0x39, Zero = 0x30,
   Period = 0x2E,Space = 0x20,Exclamation = 0x21, And = 0x26, Colon = 0x3A,
-  LeftParen = 0x28, --Used as escape code for colors
+  LeftParen = 0x28, LeftBracket = 0x5B, RightBracket = 0x5D, Apostrophe = 0x27
+}
+
+KHCOLORS = {
+  RED = {0x22, 0xE0}, --Trap
+  YELLOW = {0x26, 0xE0}, --Player
+  CYAN = {0x25, 0xE0}, --Filler
+  GREEN = {0x24, 0xE0},
+  PINK = {0x23, 0xE0}, --Progression
+  BLUE = {0x21, 0xE0}, --Useful
+  GRAY = {0x20, 0xE0},
 }
 
 --Record: A51940
@@ -292,7 +308,7 @@ WorldFlags = {
       startRoom = 0x01,
       battle = {0xA41E02, 0xA41682},
       secretPortal = {0x68, 0x01, 0x04},
-      info = {0xA41E5A, 0xA416DA},
+      info = {0xA41E58, 0xA416D8},
     },
     riku = {
       unlocked = {0xA44728, 0xA43FA8},
@@ -351,7 +367,7 @@ WorldFlags = {
       selectable = {0x10979030, 0x109788B0},
       startRoom = 0x0F,
       battle = {0xA44619, 0xA43E99},
-      info = {0xA4466C, 0xA43EEC},
+      info = {0xA4466E, 0xA43EEE},
     },
 
     secretPortalAddr = {0xA515D4, 0xA50E54}
@@ -383,11 +399,10 @@ WorldFlags = {
 --Dream Eater Address: 0xA62244
 
 item_usefulness = {
-  trap = 0,
-  useless = 1,
+  progression = 1,
   normal = 2,
-  progression = 3,
-  special = 4
+  trap = 4,
+  special = 5
 }
 
 MessageTypes = {
@@ -406,6 +421,7 @@ MessageTypes = {
   Victory = 11,
   Handshake = 12,
   GetCurrentIndex = 13,
+  ItemPrompt = 14,
   Closed = 20
 }
 HandshakeSent = false
@@ -645,7 +661,7 @@ function fixMenuOptions()
 
   --Prevent tutorial message from popping up for the command deck
   WriteArray(MemoryAddresses.commandDeckPopup[gameVer], {0x10, 0x0A})
-  --Remove tutorial messsages for world map and drop
+  --Remove tutorial messages for world map and drop
   local mapDropTutorial = {0xA4C3F2, 0xA4BC72}
   WriteArray(mapDropTutorial[gameVer], {0x07, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x0A})
 
@@ -690,9 +706,19 @@ function onCharacterChange()
 
   --Fix an issue where forced drop events reset the battle level scaling
   ItemHandler:ApplyScaling()
+
+  MessageHandler.State.restore = true
 end
 
 function onRoomChange()
+  if #MessageHandler.State.msgQueue > 0 then
+    MessageHandler.State.msgCd = 0
+  else
+    MessageHandler:restoreMissions()
+  end
+  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+    LocationHandler.allowKyroo = true
+  end
   setSecretPortals()
 end
 
@@ -1075,6 +1101,17 @@ function HandleMessage(msg)
     ConsolePrint("Receiving single item")
     ReceiveItem(tonumber(msg.values[1]), tonumber(msg.values[2]))
 
+  elseif msg.type == MessageTypes.ItemPrompt then
+    local _itemName = msg.values[1]
+    local _playerName = msg.values[2]
+    local _itemCategory = msg.values[3]
+
+    if Configs.RemoteItemNotifs == 0 or Configs.RemoteItemNotifs == tonumber(_itemCategory) then
+      MessageHandler:remoteReceived(_itemName, _playerName, tonumber(_itemCategory))
+    end
+
+    --ConsolePrint("Remote item message: Sent ".._itemName.." to ".._playerName.." | ".._itemCategory)
+
   elseif msg.type == MessageTypes.ClientCommand then
     local _cmdId = tonumber(msg.values[1])
     
@@ -1185,14 +1222,13 @@ end
 -- ############################################################
 
 function ReceiveItem(itemID, itemCnt)
-
   if itemID == 2639999 then --Victory; Not a real item
     GoalGame()
     return
   end
 
   if itemID == nil then
-    ConsolePrint("Invalid item received. Val: ".._id)
+    ConsolePrint("Invalid item received. Val: "..itemID)
     return
   end
 
@@ -1210,6 +1246,18 @@ function ReceiveItem(itemID, itemCnt)
   if itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
     checkIfCanReceive(itemID, _type)
   else
+
+    --Check if a notification should be sent for this item
+    if Configs.LocalItemNotifs == 0 then
+      MessageHandler:msgReceived(itemID, 0)
+    elseif Configs.LocalItemNotifs == 1 then
+      local _progTypes = {"World", "Recipe", "Flowmotion", "Key", "Goal"}
+      if hasValue(_progTypes, _type) or _item.Usefulness == item_usefulness.progression then
+        MessageHandler:msgReceived(itemID, 0)
+      end
+    end
+
+
     ItemHandler:Receive(_type, itemID)
     RoomSaveTask:StoreItem(itemID)
   end
@@ -1344,7 +1392,9 @@ function charToKHSCII(char)
     ["0"] = KHSCII.Zero,["1"] = KHSCII.One,["2"] = KHSCII.Two,["3"] = KHSCII.Three,
     ["4"] = KHSCII.Four,["5"] = KHSCII.Five,["6"] = KHSCII.Six,["7"] = KHSCII.Seven,
     ["8"] = KHSCII.Eight,["9"] = KHSCII.Nine, [":"] = KHSCII.Colon,
-    ["."] = KHSCII.Period,[" "] = KHSCII.Space,["!"] = KHSCII.Exclamation,["&"] = KHSCII.And
+    ["."] = KHSCII.Period,[" "] = KHSCII.Space,["!"] = KHSCII.Exclamation,["&"] = KHSCII.And,
+    ["("] = KHSCII.LeftParen, ["["] = KHSCII.LeftBracket, ["]"] = KHSCII.RightBracket,
+    ["'"] = KHSCII.Apostrophe
   }
 
   return returnChars[char]
@@ -1440,6 +1490,9 @@ end
 -- ############################################################
 
 function main()
+  MessageHandler:runItemQueue()
+  MessageHandler:clearItemQueue()
+
   LocationHandler:CheckChestBits()
   LocationHandler:CheckLevel()
   LocationHandler:PreventWorldVisit()
@@ -1500,11 +1553,11 @@ end
 
 function GameVersion()
   if ReadLong(_isEpic) == 0x7265737563697065 then
-    ConsolePrint("Running KHDDD AP for EGS Version")
+    ConsolePrint("Running KHDDD AP for EGS")
     gameVer = 2
     return true
   elseif ReadLong(isSteam) == 0x7265737563697065 then
-    ConsolePrint("Running KHDDD AP for Steam Version")
+    ConsolePrint("Running KHDDD AP for Steam")
     gameVer = 1
     return true
   end
@@ -1569,8 +1622,13 @@ function _OnFrame()
   ItemHandler:RebuildAbilities() --This too
   StoryHandler:OverwriteStoryVars() --Need to run every frame in case we need to quickly overwrite something
   LocationHandler:CheckPortal() --Needs to be checked every frame for activation/completion
+  if Configs.LordKyroo then
+    LocationHandler:LordKyroo()
+  end
   ManageDrop() --Disabled dropping
   DeliverDrop() --For sending drop traps
+
+  MessageHandler:checkForRestore()
 
   --Room Save
   RoomSaveTask:GetRoomChange()

@@ -520,6 +520,7 @@ function ItemHandler:GiveCommand(value)
   end
 end
 
+--TODO: Designate first several command stock slots to action commands prone to glitching
 function ItemHandler:FixAirSlide()
   --Sometimes when loading a save, the game thinks that Air Slide is equipped when it is not
   --To prevent this from happening, make sure it''s equipped

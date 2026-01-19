@@ -113,9 +113,9 @@ function SoftlockTask:MontSaintMichel()
 	end
 
 	--Debugging
-	if ReadByte(0x9E9E89) == 0x01 then --Check for L2 press
-		ConsolePrint("X: "..tostring(_xCord).." | Y: "..tostring(_yCord).." | Z: "..tostring(_zCord))
-	end
+	--if ReadByte(0x9E9E89) == 0x01 then --Check for L2 press
+	--	ConsolePrint("X: "..tostring(_xCord).." | Y: "..tostring(_yCord).." | Z: "..tostring(_zCord))
+	--end
 end
 
 return SoftlockTask

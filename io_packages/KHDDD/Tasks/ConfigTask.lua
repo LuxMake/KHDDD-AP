@@ -13,7 +13,10 @@ ConfigTask.SlotDataTypes = {
   FastGoMode = 5,
   RecipeCnt = 6,
   WinCon = 7,
-  StatBoost = 8
+  StatBoost = 8,
+  LordKyroo = 9,
+  LocalItemNotifs = 10,
+  RemoteItemNotifs = 11
 }
 
 function ConfigTask:ParseSlotData(slotType, msgVal)
@@ -35,6 +38,12 @@ function ConfigTask:ParseSlotData(slotType, msgVal)
       self:SetGoal(msgVal)
     elseif slotType == self.SlotDataTypes.StatBoost then
     	self:SetStatBoost(msgVal)
+    elseif slotType == self.SlotDataTypes.LordKyroo then
+    	self:SetLordKyroo(msgVal)
+    elseif slotType == self.SlotDataTypes.LocalItemNotifs then
+    	self:SetItemNotifs(msgVal)
+    elseif slotType == self.SlotDataTypes.RemoteItemNotifs then
+    	self:SetRemoteNotifs(msgVal)
     end
 end
 
@@ -119,6 +128,25 @@ end
 function ConfigTask:SetStatBoost(msgVal)
 	Configs.StatBonus = tonumber(msgVal[1])
 	ConsolePrint("Setting Stat Bonus to "..msgVal[1])
+end
+
+function ConfigTask:SetLordKyroo(msgVal)
+	ConsolePrint("Setting Lord Kyroo to "..msgVal[1])
+	if msgVal[1] == "1" then
+		Configs.LordKyroo = true
+	else
+		Configs.LordKyroo = false
+	end
+end
+
+function ConfigTask:SetItemNotifs(msgVal)
+	ConsolePrint("Setting Received Notifications to "..msgVal[1])
+	Configs.LocalItemNotifs = tonumber(msgVal[1])
+end
+
+function ConfigTask:SetRemoteNotifs(msgVal)
+	ConsolePrint("Setting Sent Notifications to "..msgVal[1])
+	Configs.RemoteItemNotifs = tonumber(msgVal[1])
 end
 
 return ConfigTask
