@@ -44,7 +44,7 @@ function SoftlockTask:EscapePurgatory()
 		local _currRoom = ReadByte(MemoryAddresses.room[gameVer])
 		if _currRoom == 0x03 or _currRoom == 0x01 or _currRoom == 0x05 then
 			--See if player is actually stuck
-			if ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) == 0x00 and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 then
+			if ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) == 0x00 then
 				--Send the player to the world map
 				WriteByte(MemoryAddresses.world[gameVer], 0x0B)
 				WriteByte(MemoryAddresses.room[gameVer], 0x01)
