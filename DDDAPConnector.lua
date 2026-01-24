@@ -967,6 +967,8 @@ function SetStartingLocation() --Sends player to the world map
   WriteByte(MemoryAddresses.room[gameVer], 0x01)
   WriteByte(DropAddresses.riku.world[gameVer], 0x0B)
   WriteByte(DropAddresses.riku.room[gameVer], 0x01)
+  WriteByte(DropAddresses.sora.world[gameVer], 0x0B)
+  WriteByte(DropAddresses.sora.room[gameVer], 0x01)
 
   --Write some main story so it doesn't interfere during gameplay
   local _rgSora = {0xA41DC4, 0xA41644}
@@ -1315,12 +1317,12 @@ end
 
 function getItemById(item_id)
   for i = 1, #items do
-    if items[i].ID == item_id then
+    if items[i].ID == tonumber(item_id) then
       return items[i]
     end
   end
   for i = 1, #abilities do
-    if abilities[i].ID == item_id then
+    if abilities[i].ID == tonumber(item_id) then
       return abilities[i]
     end
   end
@@ -1396,6 +1398,10 @@ function charToKHSCII(char)
     ["("] = KHSCII.LeftParen, ["["] = KHSCII.LeftBracket, ["]"] = KHSCII.RightBracket,
     ["'"] = KHSCII.Apostrophe
   }
+
+  if returnChars[char] == nil then
+    returnChars[char] = KHSCII.Period
+  end
 
   return returnChars[char]
 end
