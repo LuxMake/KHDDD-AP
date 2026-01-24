@@ -49,6 +49,10 @@ function MessageHandler:localItemToColor(itemId)
 
 	local _clr = KHCOLORS.CYAN
 
+	if _item == nil then
+		return _clr
+	end
+
 	local _type = _item.Type
 
 	if hasValue(_progTypes, _type) or _item.Usefulness == item_usefulness.progression then
@@ -369,28 +373,31 @@ function MessageHandler:runItemQueue()
 	if #self.State.msgQueue[#self.State.msgQueue] < 3 then --Local
 		local _itemId = self.State.msgQueue[#self.State.msgQueue][1]
 
-		local _clr = self:localItemToColor(_itemId)
-		local _item = getItemById(_itemId)
-		local _name = _item.Name
+		if getItemById(_itemId) ~= nil then
 
-		--Calculate number of characters that should be taken up
-		local _msgLimit = 72
-		if _missionOverwrite == 0x02 then
-			_msgLimit = 46
-		end
-		local _fullMsg = "Received ".._name.."!"
-		local _filler = 3
-		if #_fullMsg < _msgLimit then
-			_filler = _msgLimit-#_fullMsg
-		end
 
-		if _missionOverwrite == 0x01 then
-			self:writeColorToGame(ItemOverwrite.linkInfo1[gameVer], "Received ", _name, "", _clr, _filler)
-		else
-			self:writeColorToGame(ItemOverwrite.linkInfo2[gameVer], "Received ", _name, "", _clr, _filler)
-		end
-		WriteByte(_infoAddr, _missionOverwrite)
+			local _clr = self:localItemToColor(_itemId)
+			local _item = getItemById(_itemId)
+			local _name = _item.Name
 
+			--Calculate number of characters that should be taken up
+			local _msgLimit = 72
+			if _missionOverwrite == 0x02 then
+				_msgLimit = 46
+			end
+			local _fullMsg = "Received ".._name.."!"
+			local _filler = 3
+			if #_fullMsg < _msgLimit then
+				_filler = _msgLimit-#_fullMsg
+			end
+
+			if _missionOverwrite == 0x01 then
+				self:writeColorToGame(ItemOverwrite.linkInfo1[gameVer], "Received ", _name, "", _clr, _filler)
+			else
+				self:writeColorToGame(ItemOverwrite.linkInfo2[gameVer], "Received ", _name, "", _clr, _filler)
+			end
+			WriteByte(_infoAddr, _missionOverwrite)
+		end
 	else
 		local _queueData = self.State.msgQueue[#self.State.msgQueue]
 		local _name = _queueData[1]
