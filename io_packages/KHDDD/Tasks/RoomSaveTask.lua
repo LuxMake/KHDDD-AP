@@ -104,10 +104,10 @@ function RoomSaveTask:RestoreItems() --Put items likely lost to death back into 
 	for i=1, #self.State.ItemIds do
 		sendToInv(self.State.ItemIds[i])
 	end
-	ConsolePrint("Restoring EXP")
-	if self.State.Exp > ReadByte(MemoryAddresses.soraExp[gameVer]) then
-		WriteInt(MemoryAddresses.soraExp[gameVer], self.State.Exp)
-	end
+	--ConsolePrint("Restoring EXP")
+	--if self.State.Exp > ReadByte(MemoryAddresses.soraExp[gameVer]) then
+	--	WriteInt(MemoryAddresses.soraExp[gameVer], self.State.Exp)
+	--end
 end
 
 return RoomSaveTask
