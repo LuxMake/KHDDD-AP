@@ -430,7 +430,8 @@ function LocationHandler:LordKyroo()
   if getCharacter() == 0 then
     if Configs.Character == 1 and ReadByte(MemoryAddresses.world[gameVer]) == 0x06 then
       if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]) == 0x11 then --World cleared; check kyroo now
-        if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x03) == 0x47 then --Lost to Kyroo
+        --if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x03) == 0x47 then --Lost to Kyroo
+        if not _kyrooPP then  
           --Start fight in promontory
           if ReadByte(MemoryAddresses.room[gameVer]) == 0x04 and allowKyroo then
             WriteByte(MemoryAddresses.map[gameVer], 0x39)
@@ -462,17 +463,17 @@ function LocationHandler:LordKyroo()
         end
       end
     end
-
-    
+  end
 
   if not _kyrooDefeated then
     --Send the check
     local _foughtPP = toBits(ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x03))
+    local _wonPP = toBits(ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x04))
     local _foughtLCDC = toBits(ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]+0x02))
     local _foughtSOS = toBits(ReadByte(WorldFlags.symphonyOfSorcery.riku.story[gameVer]+0x02))
 
     if Configs.Character == 0 then
-      if _foughtPP[5] == 1 or _foughtLCDC[5] == 1 or _foughtSOS[5] == 1 then
+      if _wonPP[1] == 1 or _foughtLCDC[5] == 1 or _foughtSOS[5] == 1 then
         SendToApClient(MessageTypes.StoryChecked, {"2650652"})
         SendToApClient(MessageTypes.StoryChecked, {"2650651"})
         SendToApClient(MessageTypes.StoryChecked, {"2650650"})
@@ -496,7 +497,7 @@ function LocationHandler:LordKyroo()
 
     --Check if he was fought in these locations
     if not _kyrooPP and Configs.Character < 2 then
-      if _foughtPP[4] == 1 then
+      if _foughtPP[8] == 1 then
         SendToApClient(MessageTypes.StoryChecked, {"2650650"})
         _kyrooPP = true
       end
@@ -515,8 +516,6 @@ function LocationHandler:LordKyroo()
       end
     end
   end    
-  end
-
 end
 
 ---------------------------------------------------------------
