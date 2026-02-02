@@ -1629,7 +1629,6 @@ function _OnFrame()
   StoryHandler:OverwriteStoryVars() --Need to run every frame in case we need to quickly overwrite something
   LocationHandler:CheckPortal() --Needs to be checked every frame for activation/completion
   if Configs.LordKyroo then
-    --Pushed out a fix for lord kyroo. Comment here to get openkh to recognize the update.
     LocationHandler:LordKyroo()
   end
   ManageDrop() --Disabled dropping
