@@ -523,7 +523,7 @@ end
 --TODO: Designate first several command stock slots to action commands prone to glitching
 function ItemHandler:FixAirSlide()
   --Sometimes when loading a save, the game thinks that Air Slide is equipped when it is not
-  --To prevent this from happening, make sure it''s equipped
+  --To prevent this from happening, make sure its equipped
 
   --Last slot of deck 1 will be reserved for Air Slide
   local _airSlideEquipped = self:FindExistingSlot(MemoryAddresses.commandStock[gameVer], 2000, {0x06, 0x00}, 0x08, 0x00)
@@ -799,27 +799,6 @@ function ItemHandler:CraftSpirits(value)
   local _currHpOffset = 0x04 --This is the Hp of the spirit
   local _nameOffset = 0x06 --Spirit Name
 
-  --Write level
-  WriteByte(_spiritAddr+_levelOffset, 0x01)
-
-  --Write Spirit Name
-  local _spiritName = string.sub(_baseRecipe.Name, 1, #_baseRecipe.Name-7)
-  writeTxtToGame(_spiritAddr+_nameOffset, _spiritName, 0)
-
-  local _affinityOffset = 0x1E
-  WriteByte(_spiritAddr+_affinityOffset, 0x22) --2/2 Affinity
-  --0x1F Unknown
-
-  --Color
-  local _colorOffset = 0x20
-  --TODO: Get colors from AP side
-  WriteInt(_spiritAddr+_colorOffset, math.random(0x00, 0xFF)) --R
-  WriteInt(_spiritAddr+_colorOffset+0x01, math.random(0x00, 0xFF)) --G
-  WriteInt(_spiritAddr+_colorOffset+0x02, math.random(0x00, 0xFF)) --B
-  --WriteArray(_spiritAddr+_colorOffset, {0xFF, 0xFF, 0xFF}) --White Dream Eater
-  local _expOffset = 0x24
-  WriteInt(_spiritAddr+_expOffset, ReadInt(Stats.sora.exp[gameVer]))
-
   local _maxHpOffset = 0x30
   local _statOffset = 0x3D
 
@@ -840,6 +819,34 @@ function ItemHandler:CraftSpirits(value)
   WriteByte(_spiritAddr+_statOffset+6, _spiritStats.waterRes)
   WriteByte(_spiritAddr+_statOffset+7, _spiritStats.darkRes)
   WriteByte(_spiritAddr+_statOffset+8, _spiritStats.lightRes)
+
+  --Write level
+  local _levelToUse = levels.soraLevel-1
+  if getCharacter() == 1 then
+    _levelToUse = levels.rikuLevel-1
+  end
+  if _levelToUse < 1 then
+    _levelToUse = 1
+  end
+  WriteByte(_spiritAddr+_levelOffset, _levelToUse)
+
+  --Write Spirit Name
+  local _spiritName = string.sub(_baseRecipe.Name, 1, #_baseRecipe.Name-7)
+  writeTxtToGame(_spiritAddr+_nameOffset, _spiritName, 0)
+
+  local _affinityOffset = 0x1E
+  WriteByte(_spiritAddr+_affinityOffset, 0x22) --2/2 Affinity
+  --0x1F Unknown
+
+  --Color
+  local _colorOffset = 0x20
+  --TODO: Get colors from AP side
+  WriteInt(_spiritAddr+_colorOffset, math.random(0x00, 0xFF)) --R
+  WriteInt(_spiritAddr+_colorOffset+0x01, math.random(0x00, 0xFF)) --G
+  WriteInt(_spiritAddr+_colorOffset+0x02, math.random(0x00, 0xFF)) --B
+  --WriteArray(_spiritAddr+_colorOffset, {0xFF, 0xFF, 0xFF}) --White Dream Eater
+  local _expOffset = 0x24
+  WriteInt(_spiritAddr+_expOffset, ReadInt(Stats.sora.exp[gameVer]))
 
 
 end

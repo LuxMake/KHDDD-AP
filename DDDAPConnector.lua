@@ -82,7 +82,7 @@ MemoryAddresses = { --Primary memory addresses to reference
   save = {0xA40760, 0xA3FFE0},
   shop = {0x10AD8A20, 0x10AD82A0},
   worldStatusS = {0xA41ED8, 0xA41758},
-  worldStatusR = {0xA446F0, 0xA43F70}, --Verify EGS address
+  worldStatusR = {0xA446F0, 0xA43F70},
   chestDataS = {0x1097AE00, 0x1097A680},
   chestDataR = {0x1097CEC0, 0x1097C740},
   dropEnabler = {0xA45A6C, 0xA452EC}, --C004 disables drop to Sora
@@ -94,8 +94,15 @@ MemoryAddresses = { --Primary memory addresses to reference
   deathOffset = 0x1A0,
   enablePause = {0xA9B31C, 0xA9AB9C},
   cutscenePauseType = {0xA3D06C, 0xA3C8EC},
-  medals = {0xA51768, 0xA50FE8}
+  medals = {0xA51768, 0xA50FE8},
+  lboard = {0x11992780, 0x11992000},
+  boardRewards = {0x10986D60, 0x109865E0},
+  expTable = {0x7B2A94, 0x7B2A84}, --TODO: Verify EGS Address
 }
+
+--Link board info:
+--Meow Wow level gate type is +0x81 from lboard start. 0x16 is link gate, 0x4 is item
+--Cost applies to both gate req and redeem price
 
 EquippedCommands = {
   {0xA4D9D8, 0xA4D258}, --Sora Deck 1
@@ -163,6 +170,7 @@ ItemOverwrite = {
   keyItemDescs = {0x10952ACA, 0x1095234A},
   linkInfo1 = {0x10957982, 0x10957202},
   linkInfo2 = {0x10957A16, 0x10957296},
+  linkBoardTxt = {0x10B7D4DC, 0x10B7CD5C},
 }
 
 KHSCII = {
@@ -434,6 +442,7 @@ abilities = {}
 --Locations
 chests = {}
 levels = {
+  addr = {0xA98034, 0xA978B4},
   soraLevel = 1,
   soraLevelID = 2660008,
   rikuLevel = 1,
@@ -1650,5 +1659,5 @@ function _OnFrame()
   end
 
   --Run certain cheats every loop
-  CheatTask:ExpMult()
+  --CheatTask:ExpMult()
 end

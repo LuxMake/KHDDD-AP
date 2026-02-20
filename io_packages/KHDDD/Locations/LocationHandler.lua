@@ -296,7 +296,7 @@ end
 ---------------------------------------------------------------
 ------------------------Levels---------------------------------
 ---------------------------------------------------------------
-function LocationHandler:CheckLevel()
+function LocationHandler:OldCheckLevel()
   local _currChar = getCharacter()
 
   if levels.soraLevel >= levels.levelCap and _currChar == 0 or levels.rikuLevel >= levels.levelCap and _currChar == 1 then
@@ -316,6 +316,25 @@ function LocationHandler:CheckLevel()
       SendToApClient(MessageTypes.LevelChecked, {tostring(levels.soraLevelID+levels.soraLevel)})
       ConsolePrint("Attempting to send a check for level "..tostring(levels.soraLevel))
     else
+      levels.rikuLevel = levels.rikuLevel + 1
+      SendToApClient(MessageTypes.LevelChecked, {tostring(levels.rikuLevelID+levels.rikuLevel)})
+      ConsolePrint("Attempting to send a check for level "..tostring(levels.rikuLevel))
+    end
+  end
+end
+
+function LocationHandler:CheckLevel()
+  local _currChar = getCharacter()
+
+  local _currLevel = ReadByte(levels.addr[gameVer])
+  if _currChar == 0 then --Check sora
+    if _currLevel > levels.soraLevel then
+      levels.soraLevel = levels.soraLevel + 1
+      SendToApClient(MessageTypes.LevelChecked, {tostring(levels.soraLevelID+levels.soraLevel)})
+      ConsolePrint("Attempting to send a check for level "..tostring(levels.soraLevel))
+    end
+  else --Check riku
+    if _currLevel > levels.rikuLevel then
       levels.rikuLevel = levels.rikuLevel + 1
       SendToApClient(MessageTypes.LevelChecked, {tostring(levels.rikuLevelID+levels.rikuLevel)})
       ConsolePrint("Attempting to send a check for level "..tostring(levels.rikuLevel))
