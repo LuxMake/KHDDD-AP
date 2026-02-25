@@ -280,6 +280,14 @@ function ItemDefs:DefineItems()
     { ID = 2661004, Name = "Pole Swing", Type="Flowmotion", Bytes = {0x08}},
     { ID = 2661006, Name = "Flowmotion", Type="Flowmotion", Bytes = {0xDE}},
 
+    --Flowmotion Itemized
+    { ID = 2661007, Name = "Wall Kick", Type="Flowmotion Item", Bytes={0x1C}},
+    { ID = 2661008, Name = "Super Jump", Type="Flowmotion Item", Bytes={0x21}},
+    { ID = 2661009, Name = "Rail Slide", Type="Flowmotion Item", Bytes={0x1F}},
+    { ID = 2661010, Name = "Pole Spin", Type="Flowmotion Item", Bytes={0x1D}},
+    { ID = 2661011, Name = "Pole Swing", Type="Flowmotion Item", Bytes={0x1E}},
+
+
     --Movement
     { ID = 2681080, Name = "High Jump", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x02}},
     { ID = 2681081, Name = "Dodge Roll", Type="Command", Bytes={0x03}},

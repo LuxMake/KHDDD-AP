@@ -248,44 +248,64 @@ end
 ------------------------Chests---------------------------------
 ---------------------------------------------------------------
 
+chestBytes = {sora={}, riku={}}
+
 function LocationHandler:CheckChestBits()
   --New function for tracking which chests have been opened
   if getCharacter() == 0 then --Track Sora's chests
     for i=1, #chests.sora do
-      local _chestByte = ReadByte(MemoryAddresses.soraChests[gameVer]+chests.sora[i].offset)
-      local _chestBits = toBits(_chestByte)
+      local _addr = MemoryAddresses.soraChests[gameVer]+chests.sora[i].offset
+      local _chestByte = ReadByte(_addr)
 
-      local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
-      local _chestCheck = 0
-      for j=1, #_chestBits do
-        if hasValue(chests.sora[i].bitFlags, _validBits[j]) then
-          _chestCheck = _chestCheck+1
-          --Check if we have this found
-          if _chestBits[j] == 1 and not chests.sora[i].foundChests[_chestCheck] then --Chest was found; send to AP client
-            --TODO: Make sure this doesn't send repeatedly
-            chests.sora[i].foundChests[_chestCheck] = true
-            RoomSaveTask:StoreChest(i, j, 0)
-            SendToApClient(MessageTypes.ChestChecked,{chests.sora[i].locationIDStart+(_chestCheck-1)})
+      if chestBytes.sora[_addr] == nil then
+        chestBytes.sora[_addr] = _chestByte
+      end
+
+      if chestBytes.sora[_addr] ~= _chestByte then
+        chestBytes.sora[_addr] = _chestByte
+        local _chestBits = toBits(_chestByte)
+
+        local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
+        local _chestCheck = 0
+        for j=1, #_chestBits do
+          if hasValue(chests.sora[i].bitFlags, _validBits[j]) then
+            _chestCheck = _chestCheck+1
+            --Check if we have this found
+            if _chestBits[j] == 1 and not chests.sora[i].foundChests[_chestCheck] then --Chest was found; send to AP client
+              --TODO: Make sure this doesn't send repeatedly
+              chests.sora[i].foundChests[_chestCheck] = true
+              RoomSaveTask:StoreChest(i, j, 0)
+              SendToApClient(MessageTypes.ChestChecked,{chests.sora[i].locationIDStart+(_chestCheck-1)})
+            end
           end
         end
       end
     end
   else --Track Riku's chests
     for i=1, #chests.riku do
-      local _chestByte = ReadByte(MemoryAddresses.rikuChests[gameVer]+chests.riku[i].offset)
-      local _chestBits = toBits(_chestByte)
+      local _addr = MemoryAddresses.rikuChests[gameVer]+chests.riku[i].offset
+      local _chestByte = ReadByte(_addr)
 
-      local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
-      local _chestCheck = 0
-      for j=1, #_chestBits do
-        if hasValue(chests.riku[i].bitFlags, _validBits[j]) then
-          _chestCheck = _chestCheck+1
-          --Check if we have this found
-          if _chestBits[j] == 1 and not chests.riku[i].foundChests[_chestCheck] then --Chest was found; send to AP client
-            --TODO: Make sure this doesn't send repeatedly
-            chests.riku[i].foundChests[_chestCheck] = true
-            RoomSaveTask:StoreChest(i, j, 1)
-            SendToApClient(MessageTypes.ChestChecked,{chests.riku[i].locationIDStart+(_chestCheck-1)})
+      if chestBytes.riku[_addr] == nil then
+        chestBytes.riku[_addr] = _chestByte
+      end
+
+      if chestBytes.riku[_addr] ~= _chestByte then
+        chestBytes.riku[_addr] = _chestByte
+        local _chestBits = toBits(_chestByte)
+
+        local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
+        local _chestCheck = 0
+        for j=1, #_chestBits do
+          if hasValue(chests.riku[i].bitFlags, _validBits[j]) then
+            _chestCheck = _chestCheck+1
+            --Check if we have this found
+            if _chestBits[j] == 1 and not chests.riku[i].foundChests[_chestCheck] then --Chest was found; send to AP client
+              --TODO: Make sure this doesn't send repeatedly
+              chests.riku[i].foundChests[_chestCheck] = true
+              RoomSaveTask:StoreChest(i, j, 1)
+              SendToApClient(MessageTypes.ChestChecked,{chests.riku[i].locationIDStart+(_chestCheck-1)})
+            end
           end
         end
       end

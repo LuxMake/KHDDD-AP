@@ -494,7 +494,7 @@ local _activeRoom = 0x00
 -- ############################################################
 -- ######################  Game State  ########################
 -- ############################################################
-function initGameState() --Updates various world/event flags to an intial state after connecting
+function initGameState() --Updates various world/event flags to an initial state after connecting
   --Write Traverse Town story flag to immediately unlock World Map
   if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) < 0x11 then
     WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
@@ -507,7 +507,9 @@ function initGameState() --Updates various world/event flags to an intial state 
   LocationHandler:ShowAllWorlds() --Allows full navigation of world map
   LocationHandler:LockSavePoints() --Prevents docking
 
-  ItemHandler:FixAirSlide() --Prevents air slide from being inaccessible
+  --TODO: Make sure air slide is not incorrectly triggering
+  --ItemHandler:FixAirSlide() --Prevents air slide from being inaccessible
+  ItemHandler:RemoveFlowmotionItems()
 
   RoomSaveTask:Init() --Initialize room saves
 
@@ -638,7 +640,7 @@ function setSecretPortals()
 end
 
 function removeInitialMovement()
-  if ReadByte(MemoryAddresses.dodgeRollStock[gameVer]) ~= 0x00 and lastReceivedIndex == 0 then --Get rid of initial movement
+  if ReadByte(MemoryAddresses.airSlideStock[gameVer]) == 0x06 and lastReceivedIndex == 0 then --Get rid of initial movement
     local _removeBytes = {0x00, 0x00, 0x00, 0x00}
     local _unequipArr = {0xFF, 0xFF}
 
@@ -658,7 +660,7 @@ function removeInitialMovement()
 
     --Remove commands from inventory
     --WriteArray(MemoryAddresses.blockStock, _removeBytes)
-    WriteArray(MemoryAddresses.airSlideStock[gameVer], _removeBytes)
+      WriteArray(MemoryAddresses.airSlideStock[gameVer], _removeBytes)
     --WriteArray(MemoryAddresses.dodgeRollStock, _removeBytes)
   end
 end
