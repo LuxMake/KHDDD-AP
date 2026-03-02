@@ -754,6 +754,10 @@ function onRoomChange()
     LocationHandler.allowKyroo = true
   end
   setSecretPortals()
+
+  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+    WriteByte(MemoryAddresses.pauseType[gameVer], 0x03) --Prevent flick rush from being accessible
+  end
 end
 
 function makeDummyItem()
