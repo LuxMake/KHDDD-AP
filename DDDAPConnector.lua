@@ -658,6 +658,9 @@ function removeInitialMovement()
       --WriteByte(EquippedCommands[i]+0xC6, 0xFF)
     end
 
+    --Disable Command's Action Flag
+    WriteByte(MemoryAddresses.actionFlags[gameVer]-20, 0x00)
+
     --Remove commands from inventory
     --WriteArray(MemoryAddresses.blockStock, _removeBytes)
       WriteArray(MemoryAddresses.airSlideStock[gameVer], _removeBytes)
@@ -719,6 +722,26 @@ function onCharacterChange()
   ItemHandler:ApplyScaling()
 
   MessageHandler.State.restore = true
+end
+
+local _isPaused = false
+function checkPause()
+  if not _isPaused then
+    if ReadByte(MemoryAddresses.pauseType[gameVer]) > 0x00 or ReadByte(MemoryAddresses.enablePause[gameVer]) > 0x00 then
+      _isPaused = true
+    end
+  else
+    if ReadByte(MemoryAddresses.pauseType[gameVer]) == 0x00 and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 then
+      onUnpause()
+      _isPaused = false
+    end
+  end
+end
+
+function onUnpause()
+  ItemHandler:RebuildFlowmotion()
+  ItemHandler:RebuildStats()
+  ItemHandler:RebuildAbilities()
 end
 
 function onRoomChange()
@@ -1527,6 +1550,8 @@ function main()
 
   checkCharacterChange()
 
+  ManageDrop() --Disabled dropping
+
   if _activeRoom ~= ReadByte(MemoryAddresses.room[gameVer]) then
     --Room change occurred; check some stuff
     onRoomChange()
@@ -1634,15 +1659,15 @@ function _OnFrame()
   --Skip Dream Eater Tutorial
   SkipDETutorial()
 
-  ItemHandler:RebuildFlowmotion() --This needs to be checked every frame in case of pause
-  ItemHandler:RebuildStats() --This tends to reset every so often
-  ItemHandler:RebuildAbilities() --This too
+  
+
+  checkPause()
+
   StoryHandler:OverwriteStoryVars() --Need to run every frame in case we need to quickly overwrite something
   LocationHandler:CheckPortal() --Needs to be checked every frame for activation/completion
   if Configs.LordKyroo then
     LocationHandler:LordKyroo()
   end
-  ManageDrop() --Disabled dropping
   DeliverDrop() --For sending drop traps
 
   MessageHandler:checkForRestore()
