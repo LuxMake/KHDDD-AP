@@ -1,4 +1,4 @@
-title: KHDDD AP Companion [DEVELOPER]
+title: KHDDD AP Companion
 originalAuthor: Lux
 description: Archipelago Companion for KHDDD
 assets:
@@ -7,6 +7,10 @@ assets:
   method: copy
   source:
   - name: DDDAPConnector.lua
+- name: scripts/diveskip.lua
+  method: copy
+  source:
+  - name: diveskip.lua
 - name: scripts/io_packages/socket.lua
   method: copy
   source:
@@ -79,6 +83,10 @@ assets:
   method: copy
   source:
   - name: io_packages/KHDDD/Locations/StoryHandler.lua
+- name: scripts/io_packages/KHDDD/Locations/WorldHandler.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/WorldHandler.lua
 - name: scripts/io_packages/KHDDD/Tasks/PromptTask.lua
   method : copy
   source:
@@ -283,3 +291,11 @@ assets:
   method : copy
   source:
   - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_cnt_000.png
+- name: remastered/menu/en/camp/ablink/bin/numeric.ctt/US_numeric.dds
+  method : copy
+  source:
+  - name: remastered/menu/en/camp/ablink/bin/numeric.ctt/US_numeric.dds
+- name: remastered/menu/en/camp/ablink/bin/numeric.ctt/JP_numeric.dds
+  method : copy
+  source:
+  - name: remastered/menu/en/camp/ablink/bin/numeric.ctt/JP_numeric.dds

@@ -28,6 +28,10 @@ function ItemDefs:DefineItems()
     { ID = 2691105, Name = "SoS Sora", Type="World Item", Bytes={0x19, 0x04}, Offset=24},
     { ID = 2691111, Name = "SoS Riku", Type="World Item", Bytes={0x1B, 0x04}, Offset=26},
 
+    --Traverse Town 2; Only exists itemized
+    --{ ID = 2691112, Name = "TT2 Sora", Type="World Item", Bytes={0x1F, 0x04}, Offset=30},
+    --{ ID = 2691113, Name = "TT2 Riku", Type="World Item", Bytes={0x21, 0x04}, Offset=32},
+
     --Full World Data
     { ID = 2691001, Name = "La Cite des Cloches [Sora]", Type="World", Bytes={
       WorldFlags.laCiteDesCloches.sora.unlocked[gameVer],

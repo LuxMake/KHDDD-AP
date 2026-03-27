@@ -27,10 +27,10 @@ ItemHandler.State = {
   Flowmotion = {},
 
   World = {sora={},riku={},ids={}},
-  Recusant = false
+  Recusant = false,
+  HasCat = false,
+  HasBat = false
 }
-
-ItemHandler.BattleLevels = {0x01, 0x03, 0x08, 0x0E, 0x12, 0x1A, 0x22, 0x26}
 
 function ItemHandler:Reset()
   --self:ResetKeyblades()
@@ -53,7 +53,8 @@ function ItemHandler:Receive(type, value)
   elseif type == "Command" or type == "Consumable" then
     self:GiveCommand(value)
   elseif type == "World" then
-    self:GiveWorld(value, true)
+    --self:GiveWorld(value, true)
+    self:GiveWorld(value)
   elseif type == "Stats [Sora]" or type == "Stats [Riku]" then
     self:GiveStatBonus(value)
   elseif type == "Recipe" then
@@ -143,7 +144,12 @@ end
   --_world.Bytes[7] = starting dock point address (optional)
 --------------------------------------------------------- 
 
-function ItemHandler:GiveWorld(value, addToTable)
+function ItemHandler:GiveWorld(value)
+  WorldHandler:ObtainWorld(value)
+  self:PlaceWorldItem(value)
+end
+
+function ItemHandler:GiveWorldOld(value, addToTable)
   local _world = getItemById(value)
   local _unlocked = _world.Bytes[1]
   local _story = _world.Bytes[2]
@@ -193,128 +199,19 @@ function ItemHandler:GiveWorld(value, addToTable)
 end
 
 function ItemHandler:PlaceWorldItem(value) --Places world items in designated inventory spot
+  if value == 2691013 then --Check for TT2 Sora
+    if WorldHandler.WorldsUnlocked.Sora[WorldHandler.Worlds.TT2] > 0 then
+      WriteArray(MemoryAddresses.keyItems[gameVer]+30, {0x1F, 0x04})
+      return
+    end
+  elseif value == 2691014 then --Check for TT2 Riku
+    if WorldHandler.WorldsUnlocked.Riku[WorldHandler.Worlds.TT2] > 0 then
+      WriteArray(MemoryAddresses.keyItems[gameVer]+32, {0x21, 0x04})
+      return
+    end
+  end
   local _worldInvItem = getItemById(value+100)
   WriteArray(MemoryAddresses.keyItems[gameVer]+_worldInvItem.Offset, _worldInvItem.Bytes)
-end
-
-function ItemHandler:ApplyScaling()
-  if getCharacter() == 0 then
-    for i=1, #self.State.World.sora do
-      local _world = self.State.World.sora[i]
-      local _battle = _world.Bytes[5]
-      if i < #self.BattleLevels then
-        WriteByte(_battle, self.BattleLevels[i])
-      else
-        WriteByte(_battle, self.BattleLevels[#self.BattleLevels-1])
-      end
-    end
-  else
-    for i=1, #self.State.World.riku do
-      local _world = self.State.World.riku[i]
-      local _battle = _world.Bytes[5]
-      if i < #self.BattleLevels then
-        WriteByte(_battle, self.BattleLevels[i])
-      else
-        WriteByte(_battle, self.BattleLevels[#self.BattleLevels-1])
-      end
-    end
-  end
-end
-
-function ItemHandler:TT2Access()
-  local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
-  local _currChar = getCharacter()
-
-  local _ttId = 0
-
-  if _currChar == 0 then
-    _ttId = 2691013
-  else
-    _ttId = 2691014
-  end
-
-  if ttId == 0 then
-    return
-  end
-
-  local _tt2Ready = false
-
-  if _currWorld == 0x03 and countValues(self.State.World.ids, _ttId) < 2 then --In Traverse Town
-    if _currChar == 0 then --Check for sora
-      local _ttSoraProg = ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03)
-      if _ttSoraProg >= 0x40 then
-        --Get rid of premature TT2 unlock
-          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, _ttSoraProg-0x40)
-      end
-    else --Check for Riku
-      local _ttRikuProg = ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03)
-      if _ttRikuProg >= 0x01 then --Get rid of premature TT2 unlock
-        WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
-      end
-    end
-  end
-
-  if _currWorld == 0x0B then
-    --Should the player have TT2
-    if countValues(self.State.World.ids, _ttId) > 1 then --TT2 unlocked
-      --Ensure world is cleared
-      if _currChar == 0 then
-        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) >= 0x02 then
-          _tt2Ready = true
-        end
-
-        --Fix world if it's already started
-        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) == 0x31 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) < 0x91 then
-          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x91)
-        end
-      else
-        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x02) >= 0x7F then
-          _tt2Ready = true
-        end
-
-        --Fix the world if it's already started
-        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) > 0x00 then --World was already beaten
-          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0xFF)
-        end
-      end
-
-    else --TT2 not unlocked
-      if _currChar == 0 then --Check for Sora
-        local _ttSoraProg = ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03)
-        if _ttSoraProg >= 0x40 then
-          --Get rid of premature TT2 unlock
-          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, _ttSoraProg-0x40)
-        end
-      else
-        local _ttRikuProg = ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03)
-        if _ttRikuProg >= 0x01 then --Get rid of premature TT2 unlock
-          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
-        end
-      end
-    end
-
-    if _tt2Ready then
-      if _currChar == 0 then --Prepare for Sora
-        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) < 0x72 then
-          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x72)
-        end
-      else --Prepare for Riku
-        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03) < 0x01 then
-          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x01)
-        end
-      end
-    else --Ensure neither character can access tt2
-      if _currChar == 0 then --Block for Sora
-        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03) == 0x72 then
-          WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x12)
-        end
-      else --Block for Riku
-        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03) == 0x01 then
-          WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
-        end
-      end
-    end
-  end
 end
 
 function ItemHandler:RebuildWorlds()
@@ -496,7 +393,7 @@ function ItemHandler:GiveCommand(value)
   if _cmd.Type == "Consumable" then
     --Scan to see if consumable exists
     local _hasItem = self:FindExistingSlot(MemoryAddresses.consumableStart[gameVer], 500, _cmd.Bytes, 0x08, 0x00)
-    if _hasItem == 0x00 then
+    if _hasItem == 0x00 or _hasItem == nil then
       local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 500, 0x08, 0x00)
       WriteByte(_emptySlotAddr, _cmd.Bytes[1])
       WriteByte(_emptySlotAddr+0x05, 0x01)
@@ -701,9 +598,11 @@ function ItemHandler:GiveFlowmotion(value)
   self:FlowmotionItem(value, false) --Add it to inventory
   ConsolePrint("Granting flowmotion ".._flow.Name.." inserting "..tostring(_flow.Bytes[1]))
   table.insert(self.State.Flowmotion, _flow.Bytes[1])
-  if value == 2661003 then --Need to grant shock dive with super jump
-    table.insert(self.State.Flowmotion, 0x80)
-  end
+  --if value == 2661003 then --Need to grant shock dive with super jump
+  --  table.insert(self.State.Flowmotion, 0x80)
+  --end
+  self.State.Flowmotion = removeDuplicates(self.State.Flowmotion)
+
   --table.insert(self.State.Flowmotion, 0x00)
 end
 
@@ -711,18 +610,18 @@ function ItemHandler:RebuildFlowmotion()
   local _flowAddr = MemoryAddresses.actionFlags[gameVer]
   local intendedValue = 0
 
-  local _flowTable = removeDuplicates(self.State.Flowmotion)
-
-  for i=1, #_flowTable do
-    intendedValue = intendedValue + _flowTable[i]
+  for i=1, #self.State.Flowmotion do
+    intendedValue = intendedValue + self.State.Flowmotion[i]
   end
+  intendedValue = intendedValue + 0x80 --Include Shock Dive by default
 
   if intendedValue > 0xDE then
     intendedValue = 0xDE
   end
 
-  if ReadShort(_flowAddr) ~= intendedValue then --Player has too much flowmotion; rebuild
+  if ReadByte(_flowAddr) ~= intendedValue then --Player has too much flowmotion; rebuild
     WriteByte(_flowAddr, intendedValue)
+    WriteByte(_flowAddr+0x01, 0xFF) -- Always have access to attacks
   end
 
 
@@ -805,6 +704,7 @@ function ItemHandler:GiveRecipe(value)
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   WriteArray(_targetSlot, _item.Bytes)
   table.insert(self.State.Recipes, value)
+  self.State.Recipes = removeDuplicates(self.State.Recipes)
   self:UpdateRecipeTotal()
   if Configs.AutoCraftSpirits then
     self:CraftSpirits(value)
@@ -832,40 +732,65 @@ end
 
 function ItemHandler:UpdateRecipeTotal()
   --Shows how many recipes the player owns
-  local _uniqueRecipes = removeDuplicates(self.State.Recipes)
   local _recipeItemAddr = {0xA4C578, 0xA4BDF8}
   if _uniqueRecipes ~= nil then
     WriteArray(_recipeItemAddr[gameVer], {0x11, 0x08})
-    WriteShort(_recipeItemAddr[gameVer]+0x02, #_uniqueRecipes)
+    WriteShort(_recipeItemAddr[gameVer]+0x02, #self.State.Recipes)
   end
 end
 
 function ItemHandler:CheckMacguffins()
+
+  --TODO: READ KEY ITEMS FROM INDEXES
+
   local _hasMacguffin = false
 
-  local _uniqueRecipes = removeDuplicates(self.State.Recipes)
+  local _hasCat = false
+  local _hasBat = false
+  local _hasRecusant = false
 
   --Standard Goal
 
   --Check for required items on standard run
-  if Configs.Goal == 0 and hasValue(self.State.Recipes, 2701001) and hasValue(self.State.Recipes, 2701004) and #_uniqueRecipes >= Configs.RecipeReqs and self.State.Recusant then
-    _hasMacguffin = true
+  if Configs.Goal == 0 then
+    if ReadByte(MemoryAddresses.recipes[gameVer]+0x01) > 0x00 then --Has cat
+      _hasCat = true
+    end
+    if ReadByte(MemoryAddresses.recipes[gameVer]+0x06) > 0x00 then --Has bat
+      _hasBat = true
+    end
+    if ReadByte(MemoryAddresses.keyItems[gameVer]+28) > 0x00 then --Has recusant sigil
+      _hasRecusant = true
+    end
 
-    --Unlock save points if fast go mode
-    if Configs.FastGoMode then
-      --TODO: Might need to update story flags
-      --Unlock for Sora
+    if _hasCat and _hasBat and _hasRecusant and #self.State.Recipes >= Configs.RecipeReqs then
+      _hasMacguffin = true
+
+      --Unlock fast go save points
       local _fastGoSora = {0x1097913E, 0x109789BE}
       WriteArray(_fastGoSora[gameVer], {0x0A, 0x03, 0x57})
 
       --Unlock for Riku
       local _fastGoRiku = {0x109791AA, 0x10978A2A}
       WriteArray(_fastGoRiku[gameVer], {0x0A, 0x0D})
-      WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
+
+      --Set world status to reveal points
+      local _statusS = ReadByte(MemoryAddresses.worldStatusS[gameVer]+0x02)
+      if _statusS < 0x80 then
+        WriteByte(MemoryAddresses.worldStatusS[gameVer]+0x02, _statusS+0x80)
+      end
+      if ReadByte(MemoryAddresses.worldStatusR[gameVer]+0x03) == 0x00 then
+        WriteByte(MemoryAddresses.worldStatusR[gameVer]+0x03, 0x01)
+        --WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
+      end
     end
+
+    self.State.HasCat = _hasCat
+    self.State.HasBat = _hasBat
+    self.State.Recusant = _hasRecusant
   end
 
-  if Configs.Goal == 1 and #_uniqueRecipes >= Configs.RecipeReqs then --Simplified goal for superbosses
+  if Configs.Goal == 1 and #self.State.Recipes >= Configs.RecipeReqs then --Simplified goal for superbosses
     _hasMacguffin = true
   end
 
@@ -889,10 +814,11 @@ function ItemHandler:CraftSpirits(value)
   --Write Spirit Type to inventory
   WriteInt(_spiritAddr, _spiritId)
 
-  --Assign a random disposition
+  --Assign a random disposition & rank
   local _dispositionOffset = 0x02
   local _dispositions = {0x00, 0x10, 0x20, 0x30}
-  WriteByte(_spiritAddr+_dispositionOffset, _dispositions[math.random(1, 4)])
+  local _rank = math.random(0, 6) --Add these amounts to dispositions to adjust rank
+  WriteByte(_spiritAddr+_dispositionOffset, _dispositions[math.random(1, 4)]+_rank)
 
   local _levelOffset = 0x03 --Add this to spirit addr to change spirit level
   local _currHpOffset = 0x04 --This is the Hp of the spirit
@@ -945,7 +871,7 @@ function ItemHandler:CraftSpirits(value)
   WriteInt(_spiritAddr+_colorOffset+0x02, math.random(0x00, 0xFF)) --B
   --WriteArray(_spiritAddr+_colorOffset, {0xFF, 0xFF, 0xFF}) --White Dream Eater
   local _expOffset = 0x24
-  WriteInt(_spiritAddr+_expOffset, ReadInt(Stats.sora.exp[gameVer]))
+  WriteInt(_spiritAddr+_expOffset, ReadInt(MemoryAddresses.soraExp[gameVer]))
 
 
 end

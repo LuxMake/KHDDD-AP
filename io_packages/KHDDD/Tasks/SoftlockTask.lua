@@ -4,8 +4,8 @@ local SoftlockTask = {}
 
 function SoftlockTask:PreventSoftlocks()
 	self:BeagleBoys()
-	self:LeaveMT()
-	self:EscapePurgatory()
+	--self:LeaveMT()
+	--self:EscapePurgatory()
 	self:MontSaintMichel()
 end
 

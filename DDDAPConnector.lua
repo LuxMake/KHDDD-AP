@@ -18,6 +18,7 @@ local ConfigTask = require("KHDDD.Tasks.ConfigTask")
 RoomSaveTask = require("KHDDD.Tasks.RoomSaveTask")
 local SoftlockTask = require("KHDDD.Tasks.SoftlockTask")
 local MessageHandler = require("KHDDD.Items.MessageHandler")
+WorldHandler = require("KHDDD.Locations.WorldHandler")
 
 LUAGUI_NAME = "DDD AP Connector [Socket]"
 LUAGUI_AUTH = "Lux"
@@ -97,7 +98,8 @@ MemoryAddresses = { --Primary memory addresses to reference
   medals = {0xA51768, 0xA50FE8},
   lboard = {0x11992780, 0x11992000},
   boardRewards = {0x10986D60, 0x109865E0},
-  expTable = {0x7B2A94, 0x7B2A84}, --TODO: Verify EGS Address
+  expTable = {0x7B2A94, 0x7B2C34},
+  subMenu = {0xA9B2F4, 0xA9AB74}
 }
 
 --Link board info:
@@ -171,6 +173,9 @@ ItemOverwrite = {
   linkInfo1 = {0x10957982, 0x10957202},
   linkInfo2 = {0x10957A16, 0x10957296},
   linkBoardTxt = {0x10B7D4DC, 0x10B7CD5C},
+  glossaryAddr = {0xA52049, 0xA518C9},
+  glossaryName = {0x109443FA, 0x10943C7A},
+  glossaryDesc = {0xF8FF05C, 0xF8FE8DC}
 }
 
 KHSCII = {
@@ -187,7 +192,8 @@ KHSCII = {
   One = 0x31, Two = 0x32, Three = 0x33, Four = 0x34, Five = 0x35,
   Six = 0x36, Seven = 0x37, Eight = 0x38, Nine = 0x39, Zero = 0x30,
   Period = 0x2E,Space = 0x20,Exclamation = 0x21, And = 0x26, Colon = 0x3A,
-  LeftParen = 0x28, LeftBracket = 0x5B, RightBracket = 0x5D, Apostrophe = 0x27
+  LeftParen = 0x28, LeftBracket = 0x5B, RightBracket = 0x5D, Apostrophe = 0x27,
+  Enter = 0x0A, ForwardSlash = 0x2F, BackSlash = 0x5C
 }
 
 KHCOLORS = {
@@ -276,7 +282,6 @@ WorldFlags = {
       startRoom = 0x0A,
       battle = {0xA4461C, 0xA43E9C},
       secretPortal = {0x67, 0x01, 0x01},
-      savePointOffset = 0x00,
       info = {0xA44674, 0xA43EF4}, --EGS
     },
 
@@ -291,7 +296,6 @@ WorldFlags = {
       startRoom = 0x08,
       battle = {0xA41E05, 0xA41685},
       secretPortal = {0x6A, 0x01, 0x04},
-      savePointOffset = 0x00,
       info = {0xA41E5E, 0xA416DE},
 
     },
@@ -325,8 +329,6 @@ WorldFlags = {
       startRoom = 0x06,
       battle = {0xA4461A, 0xA43E9A},
       secretPortal = {0x69, 0x01, 0x0A},
-      savePointOffset = 0x01, --Offset from World Status R
-      savePointVals = {0xE0},
       info = {0xA44670, 0xA43EF0},
     },
 
@@ -341,8 +343,6 @@ WorldFlags = {
       startRoom = 0x0F,
       battle = {0xA41E00, 0xA41680},
       secretPortal = {0x6C, 0x01, 0x03},
-      savePointOffset = 0x01, --EGS (Literally World Status S; uses bitflags)
-      savePointVals = {0x01, 0x12},
       info = {0xA41E56, 0xA416D6},
     },
     riku = {
@@ -505,14 +505,143 @@ function initGameState() --Updates various world/event flags to an initial state
   removeInitialMovement()
 
   LocationHandler:ShowAllWorlds() --Allows full navigation of world map
-  LocationHandler:LockSavePoints() --Prevents docking
 
-  --TODO: Make sure air slide is not incorrectly triggering
-  --ItemHandler:FixAirSlide() --Prevents air slide from being inaccessible
   ItemHandler:RemoveFlowmotionItems()
 
   RoomSaveTask:Init() --Initialize room saves
 
+end
+
+function RunReports()
+  if ReadByte(ItemOverwrite.glossaryAddr[gameVer]) == 0x00 then --Show glossary
+    WriteByte(ItemOverwrite.glossaryAddr[gameVer], 0x01)
+  end
+  if ReadByte(ItemOverwrite.glossaryDesc[gameVer] == 0x53) then --Update glossary txt
+    
+    ItemHandler:CheckMacguffins() --Gets recent key item results
+    local _recipeCnt = #ItemHandler.State.Recipes
+
+    if Configs.Goal == 0 then --Final boss goal
+      local _conditionsMet = 0
+      local _goalTxt = "GOAL: Defeat the final boss. ||Requirements: |"
+      local _meowTxt = "Meow Wow: NOT FOUND |"
+      local _batTxt = "Komory Bat: NOT FOUND |"
+      local _sigilTxt = "Recusant Sigil: NOT FOUND |"
+      local _reqTxt = "Required Recipes: "..tostring(_recipeCnt).."/"..tostring(Configs.RecipeReqs)
+      local _goTxt = ""
+      if _recipeCnt >= Configs.RecipeReqs then
+        _reqTxt = _reqTxt.." [COMPLETE]"
+        _conditionsMet = _conditionsMet + 1
+      end
+      if ItemHandler.State.HasCat then
+        _meowTxt = "Meow Wow: OBTAINED |"
+        _conditionsMet = _conditionsMet + 1
+      end
+      if ItemHandler.State.HasBat then
+        _batTxt = "Komory Bat: OBTAINED |"
+        _conditionsMet = _conditionsMet + 1
+      end
+      if ItemHandler.State.Recusant then
+        _sigilTxt = "Recusant Sigil: OBTAINED |"
+        _conditionsMet = _conditionsMet + 1
+      end
+
+      if _conditionsMet == 4 then --Go mode available
+        --Verify twtnw access
+        local _hasTwtnw = true
+        if ReadByte(WorldFlags.theWorldThatNeverWas.sora.unlocked[gameVer]) == 0x00 then
+          if Configs.Character < 2 then
+            _goTxt = _goTxt.." |Need to find TWTNW for Sora!"
+            _hasTwtnw = false
+          end
+        end
+        if ReadByte(WorldFlags.theWorldThatNeverWas.riku.unlocked[gameVer]) == 0x00 then
+          if Configs.Character == 0 or Configs.Character == 2 then
+            _goTxt = _goTxt.." |Need to find TWTNW for Riku!"
+            _hasTwtnw = false
+          end
+        end
+        if _hasTwtnw then
+          _goTxt = " |YOU ARE IN GO MODE!"
+        end
+      end
+
+       writeTxtToGame(ItemOverwrite.glossaryDesc[gameVer], _goalTxt.._meowTxt.._batTxt.._sigilTxt.._reqTxt.._goTxt, 3)
+
+    elseif Configs.Goal == 1 then --Superboss goal
+      local _conditionsMet = 0
+      local _portalsNeeded = false
+      local _goalTxt = "GOAL: Defeat Julius. ||Requirements: |"
+      local _reqTxt = "Required Recipes: "..tostring(_recipeCnt).."/"..tostring(Configs.RecipeReqs)
+      local _portalTxt = "||Secret Portals to Complete: |"
+      local _goTxt = ""
+      if _recipeCnt >= Configs.RecipeReqs then
+        _reqTxt = _reqTxt.." [COMPLETE]"
+        _conditionsMet = _conditionsMet + 1
+      end
+      if Configs.Character < 2 then --Sora portals
+        _portalTxt = _portalTxt.."|SORA|"
+        if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."Traverse Town |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.laCiteDesCloches.sora.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."La Cite des Cloches |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.theGrid.sora.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."The Grid |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."Pranksters Paradise |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.countryOfMusketeers.sora.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."Country of the Musketeers |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.symphonyOfSorcery.sora.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."Symphony of Sorcery |"
+          _portalsNeeded = true
+        end
+      end
+      if Configs.Character == 0 or Configs.Character == 2 then --Riku portals
+        _portalTxt = _portalTxt.."|RIKU|"
+        if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."Traverse Town |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."La Cite des Cloches |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.theGrid.riku.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."The Grid |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.prankstersParadise.riku.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."Pranksters Paradise |"
+          _portalsNeeded = true
+        end
+        if ReadByte(WorldFlags.countryOfMusketeers.riku.story[gameVer]+0x07) == 0x00 then
+          _portalTxt = _portalTxt.."Country of the Musketeers |"
+          _portalsNeeded = true
+        end
+
+      end
+      if not _portalsNeeded then
+        _conditionsMet = _conditionsMet + 1
+      end
+
+      if _conditionsMet == 2 then --Can fight Julius
+        _goTxt = "| Julius can found in the manhole after |clearing TT2."
+      end
+      writeTxtToGame(ItemOverwrite.glossaryDesc[gameVer], _goalTxt.._reqTxt.._portalTxt.._goTxt, 3)
+    end
+
+   
+  end
 end
 
 function allPortalsWon()
@@ -699,13 +828,6 @@ function fixMenuOptions()
 
 end
 
-function checkCharacterChange()
-  if getCharacter() ~= activeCharacter then
-    activeCharacter = getCharacter()
-    onCharacterChange()
-  end
-end
-
 function onCharacterChange()
   --TODO: Fix stat abilities getting disabled
   ConsolePrint("Character changed")
@@ -719,7 +841,10 @@ function onCharacterChange()
   setSecretPortals()
 
   --Fix an issue where forced drop events reset the battle level scaling
-  ItemHandler:ApplyScaling()
+  WorldHandler:ApplyScaling()
+  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+    WorldHandler:MapLoaded()
+  end
 
   MessageHandler.State.restore = true
 end
@@ -727,18 +852,19 @@ end
 local _isPaused = false
 function checkPause()
   if not _isPaused then
-    if ReadByte(MemoryAddresses.pauseType[gameVer]) > 0x00 or ReadByte(MemoryAddresses.enablePause[gameVer]) > 0x00 then
+    if ReadByte(MemoryAddresses.pauseType[gameVer]) > 0x00 then
+      onPauseChange()
       _isPaused = true
     end
   else
-    if ReadByte(MemoryAddresses.pauseType[gameVer]) == 0x00 and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 then
-      onUnpause()
+    if ReadByte(MemoryAddresses.pauseType[gameVer]) == 0x00 then
+      onPauseChange()
       _isPaused = false
     end
   end
 end
 
-function onUnpause()
+function onPauseChange()
   ItemHandler:RebuildFlowmotion()
   ItemHandler:RebuildStats()
   ItemHandler:RebuildAbilities()
@@ -752,11 +878,23 @@ function onRoomChange()
   end
   if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
     LocationHandler.allowKyroo = true
+
+    WorldHandler:MapLoaded()
   end
+  ItemHandler:RebuildStats()
+  ItemHandler:RebuildAbilities()
+  ItemHandler:RebuildFlowmotion()
   setSecretPortals()
 
-  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
-    WriteByte(MemoryAddresses.pauseType[gameVer], 0x03) --Prevent flick rush from being accessible
+  if ReadByte(MemoryAddresses.world[gameVer]) == 0x03 then
+    if ReadByte(MemoryAddresses.room[gameVer]) == 0x04 then
+      if ReadShort(MemoryAddresses.world[gameVer]+0x10) == 0x010B then
+        --Entered 4th district via flick rush menu; dont actually visit
+        if getCharacter() == 0 and WorldHandler.WorldsUnlocked.Sora[1] == 0 or getCharacter() == 1 and WorldHandler.WorldsUnlocked.Riku[1] == 0 then
+          WriteShort(MemoryAddresses.world[gameVer], 0x010C)
+        end
+      end
+    end
   end
 end
 
@@ -818,7 +956,7 @@ function makeDummyItem()
   writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+512, "CotM Riku", 2) --Key Item 24 replacement
   writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+744, "Country of Musketeers for Riku", 3)
 
---add 10 if wrong
+  --add 10 if wrong
   writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+560, "SoS Sora", 2) --Key Item 26 replacement
   writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+812, "Symphony of Sorcery for Sora", 3)
 
@@ -829,6 +967,13 @@ function makeDummyItem()
   writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+656, "Recusant Sigil", 2) --Key Item 30 replacement
   writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+948, "Sigil of the Recusant.", 3)
 
+  --Traverse Town 2
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+704, "TT2 Sora", 2) --Key Item 32 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1016, "Traverse Town 2nd Visit for Sora", 2)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+752, "TT2 Riku", 2) --Key Item 34 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1084, "Traverse Town 2nd Visit for Riku", 2)
+
   --Replace reward text
   writeTxtToGame(ItemOverwrite.hpIncreasedTxt[gameVer], "Archipelago Item!", 4)
   writeTxtToGame(ItemOverwrite.dropBonusTxt[gameVer], "Archipelago Item!", 9)
@@ -837,6 +982,11 @@ function makeDummyItem()
   writeTxtToGame(ItemOverwrite.strIncreasedTxt[gameVer], "Archipelago Item", 2)
   writeTxtToGame(ItemOverwrite.magIncreasedTxt[gameVer], "Archipelago Item", 0)
   writeTxtToGame(ItemOverwrite.defIncreasedTxt[gameVer], "Archipelago Item", 1)
+
+  --GO Mode Report
+  --glossaryAddr, glossaryName, glossaryDesc
+  writeTxtToGame(ItemOverwrite.glossaryName[gameVer], "GO Mode Report", 3)
+  writeTxtToGame(ItemOverwrite.glossaryDesc[gameVer], "Meow Wow, Komory Bat, Recusant Sigil", 3)
 
 end
 
@@ -1000,6 +1150,7 @@ end
 function SetStartingLocation() --Sends player to the world map
   fixMenuOptions()
   WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
+  WriteByte(WorldFlags.traverseTown.riku.story[gameVer], 0x31)
   WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01, 0x1F) --Force enable the menu fix for riku initially
   WriteByte(MemoryAddresses.world[gameVer], 0x0B)
   WriteByte(MemoryAddresses.room[gameVer], 0x01)
@@ -1009,10 +1160,10 @@ function SetStartingLocation() --Sends player to the world map
   WriteByte(DropAddresses.sora.room[gameVer], 0x01)
 
   --Write some main story so it doesn't interfere during gameplay
-  local _rgSora = {0xA41DC4, 0xA41644}
-  local _rgRiku = {0xA445DC, 0xA43E5C}
-  WriteArray(_rgSora[gameVer], {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Sora
-  WriteArray(_rgRiku[gameVer], {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Riku
+  --local _rgSora = {0xA41DC4, 0xA41644}
+  --local _rgRiku = {0xA445DC, 0xA43E5C}
+  --WriteArray(_rgSora[gameVer], {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Sora
+  --WriteArray(_rgRiku[gameVer], {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Riku
 
   --Update save location
   local _saveLocation = {0xA40764, 0xA3FFE4}
@@ -1338,6 +1489,14 @@ function countValues(arr, val)
   return _cnt
 end
 
+function findValue(arr, val)
+  for index, value in ipairs(arr) do
+    if value == val then
+      return index
+    end
+  end
+end
+
 function removeDuplicates(arr)
   local _uniqueArr = {}
   local _seen = {}
@@ -1434,7 +1593,8 @@ function charToKHSCII(char)
     ["8"] = KHSCII.Eight,["9"] = KHSCII.Nine, [":"] = KHSCII.Colon,
     ["."] = KHSCII.Period,[" "] = KHSCII.Space,["!"] = KHSCII.Exclamation,["&"] = KHSCII.And,
     ["("] = KHSCII.LeftParen, ["["] = KHSCII.LeftBracket, ["]"] = KHSCII.RightBracket,
-    ["'"] = KHSCII.Apostrophe
+    ["'"] = KHSCII.Apostrophe, ["|"] = KHSCII.Enter, ["/"] = KHSCII.ForwardSlash, 
+    ["\\"] = KHSCII.BackSlash
   }
 
   if returnChars[char] == nil then
@@ -1454,10 +1614,14 @@ function writeTxtToGame(startAddr, txt, fillerCnt)
 end
 
 function getCharacter() --Returns 0 for sora, 1 for riku
-  if ReadByte(MemoryAddresses.character[gameVer]) == 0x01 then
-    return 1
+  return activeCharacter
+end
+
+function updateCharacter()
+  if ReadByte(MemoryAddresses.character[gameVer]) ~= activeCharacter then
+    activeCharacter = ReadByte(MemoryAddresses.character[gameVer])
+    onCharacterChange()
   end
-  return 0
 end
 
 function updateReceived(itemCnt)
@@ -1490,14 +1654,14 @@ function sendToInv(itemId)
 end
 
 function checkIfCanReceive(id, type)
-  local validTypes = {"Stats [Sora]", "Stats [Riku]", "Recipe", "Flowmotion", "World", "Key"}
+  local validTypes = {"Stats [Sora]", "Stats [Riku]", "Recipe", "Flowmotion", "World", "Key", "Stat"}
   if hasValue(validTypes, type) and not receivedInit then
     --For recipe, create a version that only adds to table and bypasses adding recipe to inventory and auto-craft
-    if type ~= "Recipe" and type ~= "Key" then
+    if type ~= "Recipe" and type ~= "Key" and type ~= "Stat" then
       ConsolePrint("Successfully received stat/movement/world")
       ItemHandler:Receive(type, id)
       RoomSaveTask:StoreItem(id)
-    elseif type == "Key" then
+    elseif type == "Key" or type == "Stat" then
       ItemHandler:Receive(type, id) --Don't store this in room save
     else
       ConsolePrint("Successfully received recipe")
@@ -1539,22 +1703,21 @@ function main()
 
   LocationHandler:CheckChestBits()
   LocationHandler:CheckLevel()
-  LocationHandler:PreventWorldVisit()
   LocationHandler:CheckStory()
   LocationHandler:JuliusDefeated()
-
-  ItemHandler:TT2Access()
-  ItemHandler:RebuildWorlds()
-
-  LocationHandler:WorldAccess()
 
   killPlayer() --Check if deathlink is received
 
   removeDummyItem()
 
-  checkCharacterChange()
+  updateCharacter()
 
   ManageDrop() --Disabled dropping
+
+  RoomSaveTask:StoreExp()
+
+  ItemHandler:RebuildFlowmotion()
+  --ItemHandler:RebuildAbilities()
 
   if _activeRoom ~= ReadByte(MemoryAddresses.room[gameVer]) then
     --Room change occurred; check some stuff
@@ -1637,7 +1800,7 @@ end
 
 function _OnFrame()
 
-  frameCount = (frameCount+1)%15
+  frameCount = (frameCount+1)%30
   if not gameStarted then
     if frameCount == 0 and ReadByte(MemoryAddresses.world[gameVer]) ~= 0xFF then --Save file is loaded if not on title screen
       OnGameStart()
@@ -1663,11 +1826,10 @@ function _OnFrame()
   --Skip Dream Eater Tutorial
   SkipDETutorial()
 
-  
+  StoryHandler:OverwriteStoryVars()
 
   checkPause()
 
-  StoryHandler:OverwriteStoryVars() --Need to run every frame in case we need to quickly overwrite something
   LocationHandler:CheckPortal() --Needs to be checked every frame for activation/completion
   if Configs.LordKyroo then
     LocationHandler:LordKyroo()
@@ -1684,6 +1846,10 @@ function _OnFrame()
   SoftlockTask:PreventSoftlocks()
 
 
+  --Is player in report?
+  if ReadByte(MemoryAddresses.subMenu[gameVer]) == 0x07 then --Reports are open
+    RunReports()
+  end
 
   if Configs.Deathlink then
     CheckDeathlink()
