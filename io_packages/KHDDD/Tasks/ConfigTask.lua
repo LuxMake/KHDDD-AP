@@ -1,7 +1,8 @@
 local ConfigTask = {}
 
 ConfigTask.State = {
-	SavedKbStats = {}
+	SavedKbStats = {},
+	ExpSet = false
 }
 
 ConfigTask.SlotDataTypes = {
@@ -122,6 +123,7 @@ end
 
 function ConfigTask:SetExpMult(msgVal)
 	Configs.ExpMult = tonumber(msgVal[1])
+	self:WriteExpTable()
 	ConsolePrint("Setting Exp Mult to "..msgVal[1])
 end
 
@@ -147,6 +149,19 @@ end
 function ConfigTask:SetRemoteNotifs(msgVal)
 	ConsolePrint("Setting Sent Notifications to "..msgVal[1])
 	Configs.RemoteItemNotifs = tonumber(msgVal[1])
+end
+
+function ConfigTask:WriteExpTable()
+	if self.State.ExpSet then
+		return
+	end
+	local _realExpMult = 1/Configs.ExpMult
+	for x=0, 98 do
+		local _nextAddr = MemoryAddresses.expTable[gameVer]+(x*4)
+		local _tableVal = ReadInt(_nextAddr)
+		WriteInt(_nextAddr, math.floor(_tableVal*_realExpMult))
+	end
+	self.State.ExpSet = true
 end
 
 return ConfigTask

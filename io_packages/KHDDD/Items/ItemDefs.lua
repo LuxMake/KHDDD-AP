@@ -28,6 +28,10 @@ function ItemDefs:DefineItems()
     { ID = 2691105, Name = "SoS Sora", Type="World Item", Bytes={0x19, 0x04}, Offset=24},
     { ID = 2691111, Name = "SoS Riku", Type="World Item", Bytes={0x1B, 0x04}, Offset=26},
 
+    --Traverse Town 2; Only exists itemized
+    --{ ID = 2691112, Name = "TT2 Sora", Type="World Item", Bytes={0x1F, 0x04}, Offset=30},
+    --{ ID = 2691113, Name = "TT2 Riku", Type="World Item", Bytes={0x21, 0x04}, Offset=32},
+
     --Full World Data
     { ID = 2691001, Name = "La Cite des Cloches [Sora]", Type="World", Bytes={
       WorldFlags.laCiteDesCloches.sora.unlocked[gameVer],
@@ -279,6 +283,14 @@ function ItemDefs:DefineItems()
     { ID = 2661005, Name = "Rail Slide", Type="Flowmotion", Bytes = {0x10}},
     { ID = 2661004, Name = "Pole Swing", Type="Flowmotion", Bytes = {0x08}},
     { ID = 2661006, Name = "Flowmotion", Type="Flowmotion", Bytes = {0xDE}},
+
+    --Flowmotion Itemized
+    { ID = 2661007, Name = "Wall Kick", Type="Flowmotion Item", Bytes={0x1C}},
+    { ID = 2661008, Name = "Super Jump", Type="Flowmotion Item", Bytes={0x21}},
+    { ID = 2661009, Name = "Rail Slide", Type="Flowmotion Item", Bytes={0x1F}},
+    { ID = 2661010, Name = "Pole Spin", Type="Flowmotion Item", Bytes={0x1D}},
+    { ID = 2661011, Name = "Pole Swing", Type="Flowmotion Item", Bytes={0x1E}},
+
 
     --Movement
     { ID = 2681080, Name = "High Jump", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x02}},

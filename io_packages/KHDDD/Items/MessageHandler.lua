@@ -8,9 +8,10 @@ local _trapTypes = {"Trap"}
 MessageHandler.State = { --Track intended info states for the different worlds
 	msgQueue = {},
 	currQueue = 0,
-	msgCd = 40,
-	maxCd = 40, --10 seconds per msg
+	msgCd = 15,
+	maxCd = 15, --40 for %15 in main
 	restore = false,
+	msgLimit = 10, --Only 10 messages can be saved
 	di = {
 		sora = 0x00
 	},
@@ -435,14 +436,21 @@ end
 function MessageHandler:msgReceived(itemId)
 	local _item = getItemById(itemId)
 	table.insert(self.State.msgQueue, {itemId, _item.Name})
+	if #self.State.msgQueue > self.State.msgLimit then
+		table.remove(self.State.msgQueue, 1)
+	end
 end
 
 function MessageHandler:remoteReceived(itemName, playerName, usefulness)
 	table.insert(self.State.msgQueue, {itemName, playerName, usefulness})
+	if #self.State.msgQueue > self.State.msgLimit then
+		table.remove(self.State.msgQueue, 1)
+	end
 end
 
 local _dPad = {0x9E9E98, 0x9E9E88}
-local _queueClearTimer = 12
+--local _queueClearTimer = 12 --For %15 on main
+local _queueClearTimer = 6 --For %30 on main
 function MessageHandler:clearItemQueue()
 	if ReadByte(_dPad[gameVer]) == 0x80 then
 		_queueClearTimer = _queueClearTimer - 1

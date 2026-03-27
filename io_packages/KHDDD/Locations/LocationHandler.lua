@@ -3,179 +3,13 @@ local LocationHandler = {}
 ---------------------------------------------------------------
 ---------------Prevent Invalid World Access--------------------
 ---------------------------------------------------------------
-function LocationHandler:PreventWorldVisit()
-  if ReadByte(WorldFlags.symphonyOfSorcery.sora.story[gameVer]) == 0x00 then --Fix story flags
-    
-    --Set initial story progression
 
-    --Sora
-    WriteArray(WorldFlags.traverseTown.sora.story[gameVer], {0x11, 0x01})
-    WriteArray(WorldFlags.symphonyOfSorcery.sora.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.countryOfMusketeers.sora.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.laCiteDesCloches.sora.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.theGrid.sora.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.prankstersParadise.sora.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.theWorldThatNeverWas.sora.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+--Story-Relevant
+--local _mtSora = {0xA41D9C, 0xA4161C}
+--local _mtRiku = {0xA445B4, 0xA43E34}
+--WriteArray(_mtSora[gameVer], {0xFF, 0x0F}) --Mysterious Tower Sora
+--WriteArray(_mtRiku[gameVer], {0xFF, 0x0F}) --Mysterious Tower Riku
 
-    --Riku
-    WriteArray(WorldFlags.traverseTown.riku.story[gameVer], {0x31, 0x01})
-    WriteArray(WorldFlags.symphonyOfSorcery.riku.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.countryOfMusketeers.riku.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.laCiteDesCloches.riku.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.theGrid.riku.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.prankstersParadise.riku.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-    WriteArray(WorldFlags.theWorldThatNeverWas.riku.story[gameVer], {0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
-
-    --Story-Relevant
-    local _mtSora = {0xA41D9C, 0xA4161C}
-    local _mtRiku = {0xA445B4, 0xA43E34}
-    WriteArray(_mtSora[gameVer], {0xFF, 0x0F}) --Mysterious Tower Sora
-    WriteArray(_mtRiku[gameVer], {0xFF, 0x0F}) --Mysterious Tower Riku
-    --WriteArray(0xA41DC4, {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Sora
-    --WriteArray(0xA445DC, {0xFF, 0xFF, 0xFF, 0xFF}) --Radiant Garden Riku
-
-    --self:LockSavePoints()
-    
-  end
-end
-
-function LocationHandler:LockSavePoints()
-    --Lock save points
-    --Sora
-    --WriteInt(MemoryAddresses.worldStatusS+0x64, 0xFFFFFFFE) --TT (Sora & Riku)
-    WriteLong(MemoryAddresses.worldStatusS[gameVer]+0xB4, 0xFFFFFFFEFFFFFFFE) --PP & LCdC
-    WriteInt(MemoryAddresses.worldStatusS[gameVer]+0xAC, 0xFFFFFFFE) --TG
-    WriteInt(MemoryAddresses.worldStatusS[gameVer]+0x94, 0xFFFFFFFE) --CotM
-    
-    --Riku
-    WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xA4, 0xFFFFFFFE) --Lock SoS Save Points (Riku)
-    WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xBC, 0xFFFFFFFE) --Lock TG Save Points (Riku)
-    WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xC4, 0xFFFFFFFD) --Lock LCdC Save Points (Riku)
-    WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0xFFFFFFFD) --Lock TWTNW Save Points (Riku)
-
-
-    --Lock SoS; idk why it needs a funkier setup to work
-    --Original warp byte is 0x05
-    WriteByte(WorldFlags.symphonyOfSorcery.sora.dockPoint[gameVer], 0x00)
-    --WriteByte(0x10978F78, 0x00)
-
-    --Lock TWTNW
-    --Original warp byte is 0x0A
-    WriteByte(WorldFlags.theWorldThatNeverWas.sora.dockPoint[gameVer], 0x00)
-
-    --Grid needs to be locked for Riku
-    --Original warp byte is 0x09
-    local _gridDock = {0x10979162, 0x109789E2}
-    WriteByte(_gridDock[gameVer], 0x00)
-
-    --Riku TWTNW needs additional lock for Delusive Beginning
-    WriteByte(WorldFlags.theWorldThatNeverWas.riku.dockPoint[gameVer], 0x00)
-
-    --TT Lock
-    local _ttDockSora = {0x10978F18, 0x10978798}
-    local _ttDockRiku = {0x10978FD0, 0x10978850}
-    WriteByte(_ttDockSora[gameVer], 0x00) --Sora
-    WriteByte(_ttDockRiku[gameVer], 0x00) --Riku
-end
-
-LocationHandler.StatusOffsets = {
-  Sora = {
-    tt = 0x64,
-    pp = 0xB4,
-    lcdc = 0xB8,
-    tg = 0xAC,
-    cotm = 0x94
-  },
-  Riku = {
-    lcdc = 0xC4,
-    tg = 0xBC,
-    sos = 0xA4
-  }
-}
-
-function LocationHandler:WorldAccess()
-  local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
-  local _currChar = getCharacter()
-
-  if _currWorld == 0x0B then --Additional check needed for TT
-    local _worldInvItem = getItemById(2691113)
-    if ReadByte(MemoryAddresses.keyItems[gameVer]+_worldInvItem.Offset) == 0x00 then --No access
-      WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.tt, 0xFFFFFFFE)
-    else
-      --Verify story progression for save unlock
-      if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x02) == 0x00 then
-        --Makes visit this world prompt appear
-        WriteByte(WorldFlags.traverseTown.sora.selectable[gameVer], 0x03)
-        WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.tt, 0xFFFFFFFE)
-      else
-        --Makes save points selectable
-        WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.tt, 0)
-      end
-    end
-
-    --Verify Riku TT is locked
-    _worldInvItem = getItemById(2691114)
-    if ReadByte(MemoryAddresses.keyItems[gameVer]+_worldInvItem.Offset) > 0x00 then --Should have access
-      WriteByte(WorldFlags.traverseTown.riku.selectable[gameVer], 0x03)
-    end
-  end
-
-  if _currWorld == 0x03 then --Disable TT status lock
-    if _currChar == 0 then --Only Sora has status lock for this world
-      if ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 and ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) == 0x00 then --Ensure we actually visited the world
-        WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.tt, 0)
-      end
-    end
-  elseif _currWorld == 0x04 then --Disable CotM status lock
-    if _currChar == 0 and ReadByte(WorldFlags.countryOfMusketeers.sora.story[gameVer]) >= 0x11 then --Only Sora has status lock for this world
-      WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.cotm, 0)
-    end
-  elseif _currWorld == 0x05 then --Disable SoS status lock
-    if _currChar == 1 and ReadByte(WorldFlags.symphonyOfSorcery.riku.story[gameVer]) >= 0x11 then --Only Riku has status lock for this world
-      WriteInt(MemoryAddresses.worldStatusR[gameVer]+self.StatusOffsets.Riku.sos, 0)
-    end
-  elseif _currWorld == 0x06 then --Disable PP status lock
-    if _currChar == 0 and ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]) >= 0x11 then --Only Sora has status lock for this world
-      WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.pp, 0)
-    end
-  elseif _currWorld == 0x08 then --Disable LCdC status lock
-    if _currChar == 0 and ReadByte(WorldFlags.laCiteDesCloches.sora.story[gameVer]+0x01) > 0x01 or _currChar == 0 and ReadByte(MemoryAddresses.room) <= 0x02  then --Sora
-      WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.lcdc, 0)
-    elseif _currChar == 1 and ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]+0x01) > 0x01 then --Riku
-      WriteInt(MemoryAddresses.worldStatusR[gameVer]+self.StatusOffsets.Riku.lcdc, 0)
-    end
-  elseif _currWorld == 0x09 then --Disable TG status lock
-    if _currChar == 0 and ReadByte(WorldFlags.theGrid.sora.story[gameVer]) >= 0x11 then
-      WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.tg, 0)
-    elseif _currChar == 1 and ReadByte(WorldFlags.theGrid.riku.story[gameVer]+0x03) >= 0x03 then
-      WriteInt(MemoryAddresses.worldStatusR[gameVer]+self.StatusOffsets.Riku.tg, 0)
-      --Unlock additional save point
-      local _rikuGridWarps = {0xA446F0, 0xA43F70}
-      WriteByte(_rikuGridWarps[gameVer], 0x30) --Ensures Riku's entire grid can be accessed
-    end
-  end
-
-  --Ensure TWTNW stays locked if needed
-  if getCharacter() == 0 then --Check Sora TWTNW
-    local _worldInvItem = getItemById(2691106)
-    if ReadByte(MemoryAddresses.keyItems[gameVer]+_worldInvItem.Offset) == 0x00 then --No access; hide world
-      WriteArray(WorldFlags.theWorldThatNeverWas.sora.unlocked[gameVer], {0x00, 0x00})
-    end
-  else --Check Riku TWTNW
-    local _worldInvItem = getItemById(2691112)
-    if ReadByte(MemoryAddresses.keyItems[gameVer]+_worldInvItem.Offset) == 0x00 then --No access; hide world
-      WriteArray(WorldFlags.theWorldThatNeverWas.riku.unlocked[gameVer], {0x00, 0x00})
-    end
-
-    --See if save point needs to be unlocked
-    if ReadByte(WorldFlags.theWorldThatNeverWas.riku.story[gameVer]+0x02) >= 0x03 then
-      --Ensure Memory's Skyscraper is unlocked if Ansem is defeated
-      local _memSkyscraper = {0x109791AA, 0x10978A2A}
-      WriteArray(_memSkyscraper[gameVer], {0x0A, 0x0D})
-      WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
-    end
-  end
-end
 
 ---------------------------------------------------------------
 --------------------Reveal All Worlds--------------------------
@@ -241,51 +75,71 @@ function LocationHandler:ShowAllWorlds() --Reveals all worlds on the world map f
   WriteByte(WorldFlags.symphonyOfSorcery.riku.selectable[gameVer], 0x00)
   WriteByte(WorldFlags.theWorldThatNeverWas.riku.selectable[gameVer], 0x00)
 
-  ConsolePrint("Unlocked all worlds")
+  ConsolePrint("Open World Configured")
 end
 
 ---------------------------------------------------------------
 ------------------------Chests---------------------------------
 ---------------------------------------------------------------
 
+chestBytes = {sora={}, riku={}}
+
 function LocationHandler:CheckChestBits()
   --New function for tracking which chests have been opened
   if getCharacter() == 0 then --Track Sora's chests
     for i=1, #chests.sora do
-      local _chestByte = ReadByte(MemoryAddresses.soraChests[gameVer]+chests.sora[i].offset)
-      local _chestBits = toBits(_chestByte)
+      local _addr = MemoryAddresses.soraChests[gameVer]+chests.sora[i].offset
+      local _chestByte = ReadByte(_addr)
 
-      local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
-      local _chestCheck = 0
-      for j=1, #_chestBits do
-        if hasValue(chests.sora[i].bitFlags, _validBits[j]) then
-          _chestCheck = _chestCheck+1
-          --Check if we have this found
-          if _chestBits[j] == 1 and not chests.sora[i].foundChests[_chestCheck] then --Chest was found; send to AP client
-            --TODO: Make sure this doesn't send repeatedly
-            chests.sora[i].foundChests[_chestCheck] = true
-            RoomSaveTask:StoreChest(i, j, 0)
-            SendToApClient(MessageTypes.ChestChecked,{chests.sora[i].locationIDStart+(_chestCheck-1)})
+      if chestBytes.sora[_addr] == nil then
+        chestBytes.sora[_addr] = _chestByte
+      end
+
+      if chestBytes.sora[_addr] ~= _chestByte then
+        chestBytes.sora[_addr] = _chestByte
+        local _chestBits = toBits(_chestByte)
+
+        local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
+        local _chestCheck = 0
+        for j=1, #_chestBits do
+          if hasValue(chests.sora[i].bitFlags, _validBits[j]) then
+            _chestCheck = _chestCheck+1
+            --Check if we have this found
+            if _chestBits[j] == 1 and not chests.sora[i].foundChests[_chestCheck] then --Chest was found; send to AP client
+              --TODO: Make sure this doesn't send repeatedly
+              chests.sora[i].foundChests[_chestCheck] = true
+              RoomSaveTask:StoreChest(i, j, 0)
+              SendToApClient(MessageTypes.ChestChecked,{chests.sora[i].locationIDStart+(_chestCheck-1)})
+            end
           end
         end
       end
     end
   else --Track Riku's chests
     for i=1, #chests.riku do
-      local _chestByte = ReadByte(MemoryAddresses.rikuChests[gameVer]+chests.riku[i].offset)
-      local _chestBits = toBits(_chestByte)
+      local _addr = MemoryAddresses.rikuChests[gameVer]+chests.riku[i].offset
+      local _chestByte = ReadByte(_addr)
 
-      local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
-      local _chestCheck = 0
-      for j=1, #_chestBits do
-        if hasValue(chests.riku[i].bitFlags, _validBits[j]) then
-          _chestCheck = _chestCheck+1
-          --Check if we have this found
-          if _chestBits[j] == 1 and not chests.riku[i].foundChests[_chestCheck] then --Chest was found; send to AP client
-            --TODO: Make sure this doesn't send repeatedly
-            chests.riku[i].foundChests[_chestCheck] = true
-            RoomSaveTask:StoreChest(i, j, 1)
-            SendToApClient(MessageTypes.ChestChecked,{chests.riku[i].locationIDStart+(_chestCheck-1)})
+      if chestBytes.riku[_addr] == nil then
+        chestBytes.riku[_addr] = _chestByte
+      end
+
+      if chestBytes.riku[_addr] ~= _chestByte then
+        chestBytes.riku[_addr] = _chestByte
+        local _chestBits = toBits(_chestByte)
+
+        local _validBits = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80}
+        local _chestCheck = 0
+        for j=1, #_chestBits do
+          if hasValue(chests.riku[i].bitFlags, _validBits[j]) then
+            _chestCheck = _chestCheck+1
+            --Check if we have this found
+            if _chestBits[j] == 1 and not chests.riku[i].foundChests[_chestCheck] then --Chest was found; send to AP client
+              --TODO: Make sure this doesn't send repeatedly
+              chests.riku[i].foundChests[_chestCheck] = true
+              RoomSaveTask:StoreChest(i, j, 1)
+              SendToApClient(MessageTypes.ChestChecked,{chests.riku[i].locationIDStart+(_chestCheck-1)})
+            end
           end
         end
       end
@@ -299,23 +153,19 @@ end
 function LocationHandler:CheckLevel()
   local _currChar = getCharacter()
 
-  if levels.soraLevel >= levels.levelCap and _currChar == 0 or levels.rikuLevel >= levels.levelCap and _currChar == 1 then
+  if ReadByte(MemoryAddresses.enablePause[gameVer]) > 0x00 then --Don't check level during transitions
     return
   end
 
-  local _levelsToUse = levels.soraLevel
-  if _currChar == 1 then
-    _levelsToUse = levels.rikuLevel
-  end
-
-  local _currExp = ReadInt(MemoryAddresses.soraExp[gameVer])
-  if _currExp >= expTable[_levelsToUse] then
-    --Send check
-    if _currChar == 0 then
+  local _currLevel = ReadByte(levels.addr[gameVer])
+  if _currChar == 0 then --Check sora
+    if _currLevel > levels.soraLevel then
       levels.soraLevel = levels.soraLevel + 1
       SendToApClient(MessageTypes.LevelChecked, {tostring(levels.soraLevelID+levels.soraLevel)})
       ConsolePrint("Attempting to send a check for level "..tostring(levels.soraLevel))
-    else
+    end
+  else --Check riku
+    if _currLevel > levels.rikuLevel then
       levels.rikuLevel = levels.rikuLevel + 1
       SendToApClient(MessageTypes.LevelChecked, {tostring(levels.rikuLevelID+levels.rikuLevel)})
       ConsolePrint("Attempting to send a check for level "..tostring(levels.rikuLevel))
@@ -562,11 +412,18 @@ function LocationHandler:CheckPortal()
   if not self.inAPortal then --Player is not yet in a secret portal fight
     if _room == _portalDetails.bossRoom and _evt == _portalDetails.evt then --Portal fight is being done
       self.inAPortal = true
+
+      --Apply stock world battle level
+      WorldHandler:ApplyStockBattleLevels()
+
+
       self.portalsWon = ReadByte(_portalsWonAddr[gameVer])
     end
   else
     --Check for fail condition
+
     if _evt ~= _portalDetails.evt then --Fight exited
+      WorldHandler:ApplyScaling() --Restore to mod-specific scalings
       if ReadByte(_portalsWonAddr[gameVer]) > self.portalsWon then --Player won the fight
         ConsolePrint("Portal fight won")
         SendToApClient(MessageTypes.PortalChecked, {tostring(_portalDetails.portalId)})

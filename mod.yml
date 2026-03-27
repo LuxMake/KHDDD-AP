@@ -7,6 +7,10 @@ assets:
   method: copy
   source:
   - name: DDDAPConnector.lua
+- name: scripts/diveskip.lua
+  method: copy
+  source:
+  - name: diveskip.lua
 - name: scripts/io_packages/socket.lua
   method: copy
   source:
@@ -79,6 +83,10 @@ assets:
   method: copy
   source:
   - name: io_packages/KHDDD/Locations/StoryHandler.lua
+- name: scripts/io_packages/KHDDD/Locations/WorldHandler.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/WorldHandler.lua
 - name: scripts/io_packages/KHDDD/Tasks/PromptTask.lua
   method : copy
   source:

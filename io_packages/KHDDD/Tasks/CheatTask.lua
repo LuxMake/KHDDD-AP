@@ -38,7 +38,7 @@ function CheatTask:ExpMult()
 	if _currExp > self.LastExp then
 		local _diff = _currExp - self.LastExp
 		local _newExp = self.LastExp+_diff*Configs.ExpMult
-		RoomSaveTask:StoreExp(_newExp)
+		--RoomSaveTask:StoreExp(_newExp)
 		self.LastExp = _newExp
 		WriteInt(MemoryAddresses.soraExp[gameVer], _newExp)
 	end
