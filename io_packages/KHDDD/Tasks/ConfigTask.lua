@@ -152,7 +152,7 @@ function ConfigTask:SetRemoteNotifs(msgVal)
 end
 
 function ConfigTask:WriteExpTable()
-	if self.State.ExpSet then
+	if self.State.ExpSet or ReadByte(MemoryAddresses.expTable[gameVer]) < 0x28 then
 		return
 	end
 	local _realExpMult = 1/Configs.ExpMult
