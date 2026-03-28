@@ -291,11 +291,3 @@ assets:
   method : copy
   source:
   - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_cnt_000.png
-- name: remastered/menu/en/camp/ablink/bin/numeric.ctt/US_numeric.dds
-  method : copy
-  source:
-  - name: remastered/menu/en/camp/ablink/bin/numeric.ctt/US_numeric.dds
-- name: remastered/menu/en/camp/ablink/bin/numeric.ctt/JP_numeric.dds
-  method : copy
-  source:
-  - name: remastered/menu/en/camp/ablink/bin/numeric.ctt/JP_numeric.dds
