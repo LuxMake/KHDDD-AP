@@ -146,7 +146,7 @@ function WorldHandler:CheckWorlds()
 		--Verify Sora World Access
 		for x=1, #self.WorldsUnlocked.Sora do
 			if self.WorldsUnlocked.Sora[x] > 0 then
-				ConsolePrint("Found Sora World")
+				--ConsolePrint("Found Sora World")
 				self:UnlockWorld(self.WorldIds.Sora[x])
 			else
 				if x ~= self.Worlds.TT2 then
@@ -159,7 +159,7 @@ function WorldHandler:CheckWorlds()
 		--Verify Riku World Access
 		for x=1, #self.WorldsUnlocked.Riku do
 			if self.WorldsUnlocked.Riku[x] > 0 then
-				ConsolePrint("Found Riku World")
+				--ConsolePrint("Found Riku World")
 				self:UnlockWorld(self.WorldIds.Riku[x])
 			else
 				if x ~= self.Worlds.TT2 then
