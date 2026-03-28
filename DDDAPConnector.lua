@@ -1846,7 +1846,7 @@ function _OnFrame()
   SoftlockTask:PreventSoftlocks()
 
 
-  --Is player in report?
+  --Is player in report
   if ReadByte(MemoryAddresses.subMenu[gameVer]) == 0x07 then --Reports are open
     RunReports()
   end

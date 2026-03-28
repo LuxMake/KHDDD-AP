@@ -71,6 +71,13 @@ function WorldHandler:MapLoaded()
 	self:UnlockSaves()
 	self:ApplyScaling()
 	self:FixMenu()
+
+	if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) < 0x11 then --Force reveal world map if not there
+		WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
+	end
+	if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]) < 0x31 then
+		WriteByte(WorldFlags.traverseTown.riku.story[gameVer], 0x31)
+	end
 end
 
 function WorldHandler:ObtainWorld(world)
