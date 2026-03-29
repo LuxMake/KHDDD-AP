@@ -47,7 +47,7 @@ function StoryHandler:OverwriteStoryVars()
       end
     end
 
-    if _currRoom == 0x3C and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01) == 0x01 then --Skip Sora TT Dive
+    if _currRoom == 0x3C and ReadShort(World[_gameVer]+0x10) ~= 0x010B then --Skip Sora TT Dive
       SetStartingLocation()
     end
 

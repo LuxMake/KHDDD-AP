@@ -142,21 +142,14 @@ end
 function SkipFirstDive()
 	--No menu options are presented for the first dives; auto-skip them
 	if ReadByte(World[_gameVer]) == 0x03 then
-		if ReadByte(World[_gameVer]+0x01) == 0x3C then --Sora dive
+		if ReadByte(World[_gameVer]+0x01) == 0x3C and ReadShort(World[_gameVer]+0x10) ~= 0x010B then --Sora dive
 			if ReadByte(Story.TT.Sora[_gameVer]+0x01) == 0x01 then
 				WriteByte(World[_gameVer]+0x01, 0x01)
         WriteByte(World[_gameVer]+0x04, 0x0036)
         WriteByte(World[_gameVer]+0x06, 0x0036)
         WriteByte(World[_gameVer]+0x08, 0x0036)
-      elseif ReadShort(World[_gameVer]+0x10) ~= 0x010B and ReadByte(Story.TT.Sora[_gameVer]) == 0x11 then
-      	--Open world is likely configured
-      	WriteByte(World[_gameVer], 0x0B)
-      	WriteByte(World[_gameVer]+0x01, 0x01)
-      	WriteByte(World[_gameVer]+0x04, 0x0001)
-        WriteByte(World[_gameVer]+0x06, 0x0001)
-        WriteByte(World[_gameVer]+0x08, 0x0001)
 			end
-		elseif ReadByte(World[_gameVer]+0x01) == 0x3D then
+		elseif ReadByte(World[_gameVer]+0x01) == 0x3D and ReadShort(World[_gameVer]+0x10) ~= 0x010B then
 			if ReadByte(Story.TT.Riku[_gameVer]+0x01) == 0x01 then
 				WriteByte(World[_gameVer]+0x01, 0x03)
         WriteByte(World[_gameVer]+0x04, 0x0041)
