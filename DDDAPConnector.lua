@@ -868,6 +868,11 @@ function onPauseChange()
   ItemHandler:RebuildFlowmotion()
   ItemHandler:RebuildStats()
   ItemHandler:RebuildAbilities()
+
+  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+    --Accounts for being warped to world map from a room index of 01
+    WorldHandler:MapLoaded()
+  end
 end
 
 function onRoomChange()
@@ -1614,7 +1619,11 @@ function writeTxtToGame(startAddr, txt, fillerCnt)
 end
 
 function getCharacter() --Returns 0 for sora, 1 for riku
-  return activeCharacter
+  if activeCharacter == 0x00 or activeCharacter == 0x01 then
+    return activeCharacter
+  else
+    return 0 --Return Sora if invalid
+  end
 end
 
 function updateCharacter()
