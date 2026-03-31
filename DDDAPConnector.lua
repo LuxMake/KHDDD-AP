@@ -1619,11 +1619,7 @@ function writeTxtToGame(startAddr, txt, fillerCnt)
 end
 
 function getCharacter() --Returns 0 for sora, 1 for riku
-  if activeCharacter == 0x00 or activeCharacter == 0x01 then
-    return activeCharacter
-  else
-    return 0 --Return Sora if invalid
-  end
+  return activeCharacter
 end
 
 function updateCharacter()
