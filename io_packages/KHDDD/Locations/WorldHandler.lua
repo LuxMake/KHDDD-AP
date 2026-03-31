@@ -71,13 +71,6 @@ function WorldHandler:MapLoaded()
 	self:UnlockSaves()
 	self:ApplyScaling()
 	self:FixMenu()
-
-	if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) < 0x11 then --Force reveal world map if not there
-		WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
-	end
-	if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]) < 0x31 then
-		WriteByte(WorldFlags.traverseTown.riku.story[gameVer], 0x31)
-	end
 end
 
 function WorldHandler:ObtainWorld(world)
@@ -203,23 +196,26 @@ function WorldHandler:CheckTT2() --Check for each character's respective TT2 acc
 	if getCharacter() == 0 then --Grant access to Sora TT2 if needed
 		local _soraTT2Val = ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03)
 		if self.WorldsUnlocked.Sora[self.Worlds.TT2] > 0 and _soraTT2Val ~= 0x72 then
-			if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) ~= 0x31 then --Player has not beaten tt2
+			if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) ~= 0x31 and _soraTT2Val >= 0x11 then --Player has not beaten tt2
 				WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x72)
 				--Reset status as well
 				WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.TT, 0xFFFFFFFD)
 			end
 		elseif self.WorldsUnlocked.Sora[self.Worlds.TT2] == 0 and _soraTT2Val >= 0x40 then
 			--Get rid of premature TT2 unlock
-      WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, _soraTT2Val-0x40)
+      	WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, _soraTT2Val-0x40)
       --WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.TT, 0)
 		end
 	else --Grant Riku access to TT2 if needed
 		local _rikuTT2Val = ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03)
 		if self.WorldsUnlocked.Riku[self.Worlds.TT2] > 0 and _rikuTT2Val == 0x00 then
-			WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x01)
-			--Might need to set status here?
-		elseif self.WorldsUnlocked.Riku[self.Worlds.TT2] == 0 and _rikuTT2Val ~= 0x00 then
-			WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
+			if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x02) >= 0x7F then --TT1 cleared
+				WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x01)
+			end
+		elseif self.WorldsUnlocked.Riku[self.Worlds.TT2] == 0 or ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x02) < 0x7F then
+			if _rikuTT2Val ~= 0x00 then --Remove premature unlock
+				WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x00)
+			end
 		end
 	end
 end
@@ -449,6 +445,14 @@ function WorldHandler:FixMenu()
 	--Re-enable command menu if player leaves TT1 for some reason
 	if getCharacter() == 0 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01) < 0xF1 then
 		WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01, 0xF1)
+	end
+
+	--Force reveal world map if not there
+	if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) < 0x11 then
+		WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
+	end
+	if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]) < 0x31 then
+		WriteByte(WorldFlags.traverseTown.riku.story[gameVer], 0x31)
 	end
 end
 

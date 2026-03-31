@@ -868,6 +868,11 @@ function onPauseChange()
   ItemHandler:RebuildFlowmotion()
   ItemHandler:RebuildStats()
   ItemHandler:RebuildAbilities()
+
+  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+    --Accounts for being warped to world map from a room index of 01
+    WorldHandler:MapLoaded()
+  end
 end
 
 function onRoomChange()

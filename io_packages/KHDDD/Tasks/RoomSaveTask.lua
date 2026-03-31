@@ -69,6 +69,8 @@ function RoomSaveTask:CheckPlayerState() --See if player has died
 		if ReadByte(_ptr, true) == 0x01 or ReadByte(_ptr, true) == 0x02 then --Player respawned
 			ConsolePrint("Restoring items")
 			self:RestoreItems()
+			ItemHandler:RebuildStats()
+  			ItemHandler:RebuildAbilities()
 			self.PrepareLoad = false
 		end
 	end
