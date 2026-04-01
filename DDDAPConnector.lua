@@ -892,6 +892,10 @@ function onRoomChange()
   setSecretPortals()
 
   if ReadByte(MemoryAddresses.world[gameVer]) == 0x03 then
+    if ReadByte(MemoryAddresses.worldStatusS[gameVer]+0x64) >= 0xFE then --Should never be this value
+      WriteInt(MemoryAddresses.worldStatusS[gameVer]+0x64, 0x00)
+    end
+
     if ReadByte(MemoryAddresses.room[gameVer]) == 0x04 then
       if ReadShort(MemoryAddresses.world[gameVer]+0x10) == 0x010B then
         --Entered 4th district via flick rush menu; dont actually visit

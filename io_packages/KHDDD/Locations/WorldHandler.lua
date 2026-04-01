@@ -199,7 +199,7 @@ function WorldHandler:CheckTT2() --Check for each character's respective TT2 acc
 			if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) ~= 0x31 and _soraTT2Val >= 0x11 then --Player has not beaten tt2
 				WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x72)
 				--Reset status as well
-				WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.TT, 0xFFFFFFFD)
+				--WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.TT, 0xFFFFFFFD)
 			end
 		elseif self.WorldsUnlocked.Sora[self.Worlds.TT2] == 0 and _soraTT2Val >= 0x40 then
 			--Get rid of premature TT2 unlock

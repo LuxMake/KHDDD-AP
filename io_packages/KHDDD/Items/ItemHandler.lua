@@ -783,6 +783,9 @@ function ItemHandler:CheckMacguffins()
         WriteByte(MemoryAddresses.worldStatusR[gameVer]+0x03, 0x01)
         --WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
       end
+      if ReadInt(MemoryAddresses.worldStatusR[gameVer]+0xCC) > 0 then
+        WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
+      end
     end
 
     self.State.HasCat = _hasCat
