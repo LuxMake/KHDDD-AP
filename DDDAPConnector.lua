@@ -727,7 +727,7 @@ function setSecretPortals()
 
       if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) >= 0x01 and allPortalsWon() >= 2 then --Riku beat TT2; Enable Julius
         --Advance story to allow manhole to spawn
-        if ItemHandler:CheckMacguffins() then
+        if #ItemHandler.State.Recipes >= Configs.RecipeReqs then
           if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) < 0x4F then
             WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04, 0x4F)
           end
@@ -743,7 +743,7 @@ function setSecretPortals()
     else
       if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04) >= 0x3F then --Sora beat TT2; Enable Julius
         if allPortalsWon() == 1 or allPortalsWon() == 3 then
-          if ItemHandler:CheckMacguffins() then
+          if #ItemHandler.State.Recipes >= Configs.RecipeReqs then
             --Advance story to allow manhole to spawn
             if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04) < 0x8F then
               WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04, 0x8F)
