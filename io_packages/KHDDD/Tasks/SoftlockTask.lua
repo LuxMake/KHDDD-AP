@@ -10,16 +10,17 @@ function SoftlockTask:PreventSoftlocks()
 end
 
 function SoftlockTask:BeagleBoys()
-	local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
 	local _currChar = getCharacter()
 
-	if _currChar == 1 and _currWorld == 0x04 then
+	if _currChar == 1 and roomInfo[1] == 0x04 then
 		--Disable flag preventing Riku from leaving the beagle boys room
 		local _storyProg = ReadByte(WorldFlags.countryOfMusketeers.riku.story[gameVer]+0x01)
 		if _storyProg < 0x3F and _storyProg >= 0x1F then --Player has started the fight but has not obtained the stage gadget yet
 			local _beaglePrompt = {0xA44792, 0xA44012}
+			local _operaPrompt = {0xA4478E, 0xA4400E}
 			if ReadByte(_beaglePrompt[gameVer]) == 0x0A then --Flag is enabled; disable it
 				WriteArray(_beaglePrompt[gameVer], {0x00, 0x00})
+				WriteArray(_operaPrompt[gameVer], {0x00, 0x00})
 			end
 		end
 	end
@@ -67,13 +68,6 @@ local _actionVal = 0x00
 local _inBounds = false
 
 function SoftlockTask:MontSaintMichel()
-	local _soraX = GetPointer(_soraPos[gameVer],_xOffset)
-	local _soraY = GetPointer(_soraPos[gameVer], _yOffset)
-	local _soraZ = GetPointer(_soraPos[gameVer], _zOffset)
-	local _xCord = ReadFloat(_soraX, true)
-	local _yCord = ReadFloat(_soraY, true)
-	local _zCord = ReadFloat(_soraZ, true)
-
 	--Bounds to grant High Jump in:
 	--Lower X: -3.5
 	--Upper X: -0.5
@@ -83,7 +77,14 @@ function SoftlockTask:MontSaintMichel()
 	--Upper Z: 33.8
 
 	--World/Room Check
-	if ReadByte(MemoryAddresses.world[gameVer]) == 0x04 and ReadByte(MemoryAddresses.room[gameVer]) == 0x04 then
+	if roomInfo[1] == 0x04 and roomInfo[2] == 0x04 then
+		local _soraX = GetPointer(_soraPos[gameVer],_xOffset)
+		local _soraY = GetPointer(_soraPos[gameVer], _yOffset)
+		local _soraZ = GetPointer(_soraPos[gameVer], _zOffset)
+		local _xCord = ReadFloat(_soraX, true)
+		local _yCord = ReadFloat(_soraY, true)
+		local _zCord = ReadFloat(_soraZ, true)
+
 		--Is this needed?
 		local _cmdActionByte = ReadByte(MemoryAddresses.commandActions[gameVer])
 		local _cmdActionBits = toBits(_cmdActionByte)

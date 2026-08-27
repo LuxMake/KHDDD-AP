@@ -20,8 +20,8 @@ function RoomSaveTask:Init()
 end
 
 function RoomSaveTask:GetRoomChange() --Determine if the room has changed
-	local _currRoom = ReadByte(MemoryAddresses.room[gameVer])
-	local _currEvt = ReadByte(MemoryAddresses.evt[gameVer])
+	local _currRoom = roomInfo[2]
+	local _currEvt = roomInfo[3]
 	if self.State.Room ~= _currRoom or self.State.Evt ~= _currEvt then
 		ConsolePrint("Room changed")
 		self:OnRoomChange()

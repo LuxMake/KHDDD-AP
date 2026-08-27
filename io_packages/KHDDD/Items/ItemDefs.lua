@@ -3,30 +3,31 @@ local ItemDefs = {}
 function ItemDefs:DefineItems()
   items = {
     --Events
+    { ID = 2639999, Name = "Victory", Usefulness = item_usefulness.special, Type="Goal"},
     { ID = 2640000, Name = "Victory", Usefulness = item_usefulness.special, Type="Goal"},
 
     --Traps
     { ID = 2621001, Name = "Instant Drop", Usefulness = item_usefulness.trap, Type="Trap"},
 
     --Key Items
-    { ID = 2801001, Name = "Recusant Sigil", Usefulness = item_usefulness.special, Type="Key", Bytes = {0x1D, 0x04}, Offset=28},
+    { ID = 2801001, Name = "Recusant Sigil", Usefulness = item_usefulness.special, Type="Key", Bytes = {0x1D, 0x04}, Offset=58}, --28
 
     --Worlds
     --Itemized Versions
-    { ID = 2691106, Name = "TWTNW Sora", Type="World Item", Bytes={0x01, 0x04}, Offset=0},
-    { ID = 2691112, Name = "TWTNW Riku", Type="World Item", Bytes={0x03, 0x04}, Offset=2},
-    { ID = 2691113, Name = "TT Sora", Type="World Item", Bytes={0x05, 0x04}, Offset=4},
-    { ID = 2691114, Name = "TT Riku", Type="World Item", Bytes={0x07, 0x04}, Offset=6},
-    { ID = 2691101, Name = "LCdC Sora", Type="World Item", Bytes={0x09, 0x04}, Offset=8},
-    { ID = 2691107, Name = "LCdC Riku", Type="World Item", Bytes={0x0B, 0x04}, Offset=10},
-    { ID = 2691102, Name = "TG Sora", Type="World Item", Bytes={0x0D, 0x04}, Offset=12},
-    { ID = 2691108, Name = "TG Riku", Type="World Item", Bytes={0x0F, 0x04}, Offset=14},
-    { ID = 2691103, Name = "PP Sora", Type="World Item", Bytes={0x11, 0x04}, Offset=16},
-    { ID = 2691109, Name = "PP Riku", Type="World Item", Bytes={0x13, 0x04}, Offset=18},
-    { ID = 2691104, Name = "CotM Sora", Type="World Item", Bytes={0x15, 0x04}, Offset=20},
-    { ID = 2691110, Name = "CotM Riku", Type="World Item", Bytes={0x17, 0x04}, Offset=22},
-    { ID = 2691105, Name = "SoS Sora", Type="World Item", Bytes={0x19, 0x04}, Offset=24},
-    { ID = 2691111, Name = "SoS Riku", Type="World Item", Bytes={0x1B, 0x04}, Offset=26},
+    { ID = 2691106, Name = "TWTNW Sora", Type="World Item", Bytes={0x01, 0x04}, Offset=2}, --Key Item 2
+    { ID = 2691112, Name = "TWTNW Riku", Type="World Item", Bytes={0x03, 0x04}, Offset=6}, --Key Item 4
+    { ID = 2691113, Name = "TT Sora", Type="World Item", Bytes={0x05, 0x04}, Offset=10}, --Key Item 6
+    { ID = 2691114, Name = "TT Riku", Type="World Item", Bytes={0x07, 0x04}, Offset=14}, --Key Item 8
+    { ID = 2691101, Name = "LCdC Sora", Type="World Item", Bytes={0x09, 0x04}, Offset=18}, --Key Item 10
+    { ID = 2691107, Name = "LCdC Riku", Type="World Item", Bytes={0x0B, 0x04}, Offset=22}, --Key Item 12
+    { ID = 2691102, Name = "TG Sora", Type="World Item", Bytes={0x0D, 0x04}, Offset=26}, --Key Item 14
+    { ID = 2691108, Name = "TG Riku", Type="World Item", Bytes={0x0F, 0x04}, Offset=30}, --Key Item 16
+    { ID = 2691103, Name = "PP Sora", Type="World Item", Bytes={0x11, 0x04}, Offset=34},
+    { ID = 2691109, Name = "PP Riku", Type="World Item", Bytes={0x13, 0x04}, Offset=38},
+    { ID = 2691104, Name = "CotM Sora", Type="World Item", Bytes={0x15, 0x04}, Offset=42},
+    { ID = 2691110, Name = "CotM Riku", Type="World Item", Bytes={0x17, 0x04}, Offset=46},
+    { ID = 2691105, Name = "SoS Sora", Type="World Item", Bytes={0x19, 0x04}, Offset=50},
+    { ID = 2691111, Name = "SoS Riku", Type="World Item", Bytes={0x1B, 0x04}, Offset=54},
 
     --Traverse Town 2; Only exists itemized
     --{ ID = 2691112, Name = "TT2 Sora", Type="World Item", Bytes={0x1F, 0x04}, Offset=30},
@@ -238,7 +239,7 @@ function ItemDefs:DefineItems()
     --Keyblades
     --Sora
     { ID = 2651001, Name = "Skull Noise [Sora]", Type="Keyblades [Sora]", Bytes={0x01, 0x02}, Offset=2},
-    { ID = 2651002, Name = "Ultima Weapon [Sora]", Type="Keyblades [Sora]", Bytes={0x08, 0x02}, Offset=14},
+    { ID = 2651002, Name = "Ultima Weapon [Sora]", Type="Keyblades [Sora]", Bytes={0x08, 0x02}, Offset=16},
     { ID = 2651003, Name = "Guardian Bell [Sora]", Type="Keyblades [Sora]", Bytes={0x02, 0x02}, Offset=4},
     { ID = 2651004, Name = "Ferris Gear [Sora]", Type="Keyblades [Sora]", Bytes={0x03, 0x02}, Offset=6},
     { ID = 2651005, Name = "Dual Disc [Sora]", Type="Keyblades [Sora]", Bytes={0x04, 0x02}, Offset=8},
@@ -264,17 +265,40 @@ function ItemDefs:DefineItems()
     { ID = 2651024, Name = "Knockout Punch [Riku]", Type="Keyblades [Riku]", Bytes={0x1C, 0x02}, Offset=24},
 
     --Stats
-    { ID = 2631001, Name = "Max HP Increase [Sora]", Type="Stats [Sora]", Bytes={0x14}},
-    { ID = 2631002, Name = "Deck Capacity Increase [Sora]", Type="Stats [Sora]", Bytes={0x01}},
-    { ID = 2631003, Name = "Strength Increase [Sora]", Type="Stats [Sora]", Bytes={0x02}},
-    { ID = 2631004, Name = "Magic Increase [Sora]", Type="Stats [Sora]", Bytes={0x02}},
-    { ID = 2631005, Name = "Defense Increase [Sora]", Type="Stats [Sora]", Bytes={0x02}},
-    { ID = 2631006, Name = "Max HP Increase [Riku]", Type="Stats [Riku]", Bytes={0x14}},
-    { ID = 2631007, Name = "Deck Capacity Increase [Riku]", Type="Stats [Riku]", Bytes={0x01}},
-    { ID = 2631008, Name = "Strength Increase [Riku]", Type="Stats [Riku]", Bytes={0x02}},
-    { ID = 2631009, Name = "Magic Increase [Riku]", Type="Stats [Riku]", Bytes={0x02}},
-    { ID = 2631010, Name = "Defense Increase [Riku]", Type="Stats [Riku]", Bytes={0x02}},
+    { ID = 2631001, Name = "Max HP Up [S]", Type="Stats [Sora]", Bytes={0x14}},
+    { ID = 2631002, Name = "Deck Cap Up [S]", Type="Stats [Sora]", Bytes={0x01}},
+    { ID = 2631003, Name = "Strength Up [S]", Type="Stats [Sora]", Bytes={0x02}},
+    { ID = 2631004, Name = "Magic Up [S]", Type="Stats [Sora]", Bytes={0x02}},
+    { ID = 2631005, Name = "Defense Up [S]", Type="Stats [Sora]", Bytes={0x02}},
+    { ID = 2631006, Name = "Max HP Up [R]", Type="Stats [Riku]", Bytes={0x14}},
+    { ID = 2631007, Name = "Deck Cap Up [R]", Type="Stats [Riku]", Bytes={0x01}},
+    { ID = 2631008, Name = "Strength Up [R]", Type="Stats [Riku]", Bytes={0x02}},
+    { ID = 2631009, Name = "Magic Up [R]", Type="Stats [Riku]", Bytes={0x02}},
+    { ID = 2631010, Name = "Defense Up [R]", Type="Stats [Riku]", Bytes={0x02}},
 
+    --Itemized Stats (for chests)
+    { ID = 2631101, Name = "HP Up [Sora]", Type="Stats [Sora]", Bytes={0x23, 0x04}},
+    { ID = 2631102, Name = "Deck Up [Sora]", Type="Stats [Sora]", Bytes={0x24, 0x04}},
+    { ID = 2631103, Name = "Str Up [Sora]", Type="Stats [Sora]", Bytes={0x25, 0x04}},
+    { ID = 2631104, Name = "Mag Up [Sora]", Type="Stats [Sora]", Bytes={0x26, 0x04}},
+    { ID = 2631105, Name = "Def Up [Sora]", Type="Stats [Sora]", Bytes={0x27, 0x04}},
+    { ID = 2631106, Name = "HP Up [Riku]", Type="Stats [Riku]", Bytes={0x0F, 0x07}},
+    { ID = 2631107, Name = "Deck Up [Riku]", Type="Stats [Riku]", Bytes={0x10, 0x07}},
+    { ID = 2631108, Name = "Str Up [Riku]", Type="Stats [Riku]", Bytes={0x11, 0x07}},
+    { ID = 2631109, Name = "Mag Up [Riku]", Type="Stats [Riku]", Bytes={0x12, 0x07}},
+    { ID = 2631110, Name = "Def Up [Riku]", Type="Stats [Riku]", Bytes={0x13, 0x07}},
+
+    --Food itemization (for detailed rewards)
+    --{ ID = 2631201, Name = "HP Up [S]", Type="Stats [Sora]", Bytes={0x0F, 0x07}, Addr=ItemOverwrite.food16NameAddr[gameVer]},
+    --{ ID = 2631202, Name = "Deck Up [S]", Type="Stats [Sora]", Bytes={0x10, 0x07}, Addr=ItemOverwrite.food17NameAddr[gameVer]},
+    --{ ID = 2631203, Name = "Str Up [S]", Type="Stats [Sora]", Bytes={0x11, 0x07}, Addr=ItemOverwrite.food18NameAddr[gameVer]},
+    --{ ID = 2631204, Name = "Mag Up [S]", Type="Stats [Sora]", Bytes={0x12, 0x07}, Addr=ItemOverwrite.food19NameAddr[gameVer]},
+    --{ ID = 2631205, Name = "Def Up [S]", Type="Stats [Sora]", Bytes={0x13, 0x07}, Addr=ItemOverwrite.food20NameAddr[gameVer]},
+    --{ ID = 2631206, Name = "HP Up [R]", Type="Stats [Sora]", Bytes={0x0F, 0x07}, Addr=ItemOverwrite.food16NameAddr[gameVer]},
+    --{ ID = 2631207, Name = "Deck Up [R]", Type="Stats [Sora]", Bytes={0x10, 0x07}, Addr=ItemOverwrite.food17NameAddr[gameVer]},
+    --{ ID = 2631208, Name = "Str Up [R]", Type="Stats [Sora]", Bytes={0x11, 0x07}, Addr=ItemOverwrite.food18NameAddr[gameVer]},
+    --{ ID = 2631209, Name = "Mag Up [R]", Type="Stats [Sora]", Bytes={0x12, 0x07}, Addr=ItemOverwrite.food19NameAddr[gameVer]},
+    --{ ID = 2631210, Name = "Def Up [R]", Type="Stats [Sora]", Bytes={0x13, 0x07}, Addr=ItemOverwrite.food20NameAddr[gameVer]},
 
     --Flowmotion
     { ID = 2661001, Name = "Pole Spin", Type="Flowmotion", Bytes={0x04}},
@@ -285,12 +309,12 @@ function ItemDefs:DefineItems()
     { ID = 2661006, Name = "Flowmotion", Type="Flowmotion", Bytes = {0xDE}},
 
     --Flowmotion Itemized
-    { ID = 2661007, Name = "Wall Kick", Type="Flowmotion Item", Bytes={0x1C}},
-    { ID = 2661008, Name = "Super Jump", Type="Flowmotion Item", Bytes={0x21}},
-    { ID = 2661009, Name = "Rail Slide", Type="Flowmotion Item", Bytes={0x1F}},
-    { ID = 2661010, Name = "Pole Spin", Type="Flowmotion Item", Bytes={0x1D}},
-    { ID = 2661011, Name = "Pole Swing", Type="Flowmotion Item", Bytes={0x1E}},
-
+    { ID = 2661007, Name = "Pole Spin", Type="Flowmotion Item", Bytes={0x1D}},
+    { ID = 2661008, Name = "Wall Kick", Type="Flowmotion Item", Bytes={0x1C}},
+    { ID = 2661009, Name = "Super Jump", Type="Flowmotion Item", Bytes={0x21}},
+    { ID = 2661011, Name = "Rail Slide", Type="Flowmotion Item", Bytes={0x1F}},
+    { ID = 2661010, Name = "Pole Swing", Type="Flowmotion Item", Bytes={0x1E}},
+    { ID = 2661012, Name = "Flowmotion", Type="Flowmotion Item", Bytes={0x36, 0x03}},
 
     --Movement
     { ID = 2681080, Name = "High Jump", Type="Command", Usefulness=item_usefulness.progression, Bytes={0x02}},
@@ -415,52 +439,53 @@ end
 function ItemDefs:DefineAbilities()
   abilities = {
     --Stat Abilities
-    {ID = 2671001, Name = "HP Boost", Stacks=5, Offset = -0x54, Type="Stat"},
-    {ID = 2671002, Name = "Fire Boost", Stacks=3, Offset = -0x51, Type="Stat"},
-    {ID = 2671003, Name = "Blizzard Boost", Stacks=3, Offset = -0x4E, Type="Stat"},
-    {ID = 2671004, Name = "Thunder Boost", Stacks=3, Offset = -0x4B, Type="Stat"},
-    {ID = 2671005, Name = "Water Boost", Stacks=3, Offset = -0x48, Type="Stat"},
-    {ID = 2671006, Name = "Cure Boost", Stacks=3, Offset = -0x45, Type="Stat"},
-    {ID = 2671007, Name = "Item Boost", Stacks=3, Offset = -0x42, Type="Stat"},
-    {ID = 2671008, Name = "Attack Haste", Stacks=5, Offset = -0x3F, Type="Stat"},
-    {ID = 2671009, Name = "Magic Haste", Stacks=5, Offset = -0x3C, Type="Stat"},
-    {ID = 2671010, Name = "Attack Boost", Stacks=3, Offset = -0x39, Type="Stat"},
-    {ID = 2671011, Name = "Magic Boost", Stacks=3, Offset = -0x36, Type="Stat"},
-    {ID = 2671012, Name = "Defense Boost", Stacks=3, Offset = -0x33, Type="Stat"},
-    {ID = 2671013, Name = "Fire Screen", Stacks=5, Offset = -0x30, Type="Stat"},
-    {ID = 2671014, Name = "Blizzard Screen", Stacks=5, Offset = -0x2D, Type="Stat"},
-    {ID = 2671015, Name = "Thunder Screen", Stacks=5, Offset = -0x2A, Type="Stat"},
-    {ID = 2671016, Name = "Water Screen", Stacks=5, Offset = -0x27, Type="Stat"},
-    {ID = 2671017, Name = "Dark Screen", Stacks=5, Offset = -0x24, Type="Stat"},
-    {ID = 2671018, Name = "Light Screen", Stacks=5, Offset = -0x21, Type="Stat"},
-    {ID = 2671019, Name = "Mini Block", Stacks=1, Offset = -0x1E, Type="Stat"},
-    {ID = 2671020, Name = "Blindness Block", Stacks=1, Offset = -0x1B, Type="Stat"},
-    {ID = 2671021, Name = "Confusion Block", Stacks=1, Offset = -0x18, Type="Stat"},
-    {ID = 2671022, Name = "Bind Block", Stacks=1, Offset = -0x15, Type="Stat"},
-    {ID = 2671023, Name = "Poison Block", Stacks=1, Offset = -0x12, Type="Stat"},
-    {ID = 2671024, Name = "Slow Block", Stacks=1, Offset = -0x0F, Type="Stat"},
-    {ID = 2671025, Name = "Sleep Block", Stacks=1, Offset = -0x0C, Type="Stat"},
-    {ID = 2671026, Name = "Stop Block", Stacks=1, Offset = -0x09, Type="Stat"},
-    {ID = 2671027, Name = "Reload Boost", Stacks=1, Offset = -0x06, Type="Stat"},
-    {ID = 2671028, Name = "Defender", Stacks=1, Offset = -0x03, Type="Stat"},
+    {ID = 2671001, Name = "HP Boost", Stacks=5, Offset = -0x54, Type="Stat", Bytes={0xEC}},
+    {ID = 2671002, Name = "Fire Boost", Stacks=3, Offset = -0x51, Type="Stat", Bytes={0xED}},
+    {ID = 2671003, Name = "Blizzard Boost", Stacks=3, Offset = -0x4E, Type="Stat", Bytes={0xEE}},
+    {ID = 2671004, Name = "Thunder Boost", Stacks=3, Offset = -0x4B, Type="Stat", Bytes={0xEF}},
+    {ID = 2671005, Name = "Water Boost", Stacks=3, Offset = -0x48, Type="Stat", Bytes={0xF0}},
+    {ID = 2671006, Name = "Cure Boost", Stacks=3, Offset = -0x45, Type="Stat", Bytes={0xF1}},
+    {ID = 2671007, Name = "Item Boost", Stacks=3, Offset = -0x42, Type="Stat", Bytes={0xF2}},
+    {ID = 2671008, Name = "Attack Haste", Stacks=5, Offset = -0x3F, Type="Stat", Bytes={0xF3}},
+    {ID = 2671009, Name = "Magic Haste", Stacks=5, Offset = -0x3C, Type="Stat", Bytes={0xF4}},
+    {ID = 2671010, Name = "Attack Boost", Stacks=3, Offset = -0x39, Type="Stat", Bytes={0xF5}},
+    {ID = 2671011, Name = "Magic Boost", Stacks=3, Offset = -0x36, Type="Stat", Bytes={0xF6}},
+    {ID = 2671012, Name = "Defense Boost", Stacks=3, Offset = -0x33, Type="Stat", Bytes={0xF7}},
+    {ID = 2671013, Name = "Fire Screen", Stacks=5, Offset = -0x30, Type="Stat", Bytes={0xF8}},
+    {ID = 2671014, Name = "Blizzard Screen", Stacks=5, Offset = -0x2D, Type="Stat", Bytes={0xF9}},
+    {ID = 2671015, Name = "Thunder Screen", Stacks=5, Offset = -0x2A, Type="Stat", Bytes={0xFA}},
+    {ID = 2671016, Name = "Water Screen", Stacks=5, Offset = -0x27, Type="Stat", Bytes={0xFB}},
+    {ID = 2671017, Name = "Dark Screen", Stacks=5, Offset = -0x24, Type="Stat", Bytes={0xFC}},
+    {ID = 2671018, Name = "Light Screen", Stacks=5, Offset = -0x21, Type="Stat", Bytes={0xFD}},
+    {ID = 2671019, Name = "Mini Block", Stacks=1, Offset = -0x1E, Type="Stat", Bytes={0xFE}},
+    {ID = 2671020, Name = "Blindness Block", Stacks=1, Offset = -0x1B, Type="Stat", Bytes={0xFF}},
+    {ID = 2671021, Name = "Confusion Block", Stacks=1, Offset = -0x18, Type="Stat", Bytes={0x00, 0x01}},
+    {ID = 2671022, Name = "Bind Block", Stacks=1, Offset = -0x15, Type="Stat", Bytes={0x01, 0x01}},
+    {ID = 2671023, Name = "Poison Block", Stacks=1, Offset = -0x12, Type="Stat", Bytes={0x02, 0x01}},
+    {ID = 2671024, Name = "Slow Block", Stacks=1, Offset = -0x0F, Type="Stat", Bytes={0x03, 0x01}},
+    {ID = 2671025, Name = "Sleep Block", Stacks=1, Offset = -0x0C, Type="Stat", Bytes={0x04, 0x01}},
+    {ID = 2671026, Name = "Stop Block", Stacks=1, Offset = -0x09, Type="Stat", Bytes={0x05, 0x01}},
+    {ID = 2671027, Name = "Reload Boost", Stacks=1, Offset = -0x06, Type="Stat", Bytes={0x06, 0x01}},
+    {ID = 2671028, Name = "Defender", Stacks=1, Offset = -0x03, Type="Stat", Bytes={0x07, 0x01}},
 
     --Support Abilities
-    {ID = 2671029, Name = "Combo Plus", Stacks=3, Offset = 0x00, Type="Support"},
-    {ID = 2671030, Name = "Air Combo Plus", Stacks=3, Offset = 0x03, Type="Support"},
-    {ID = 2671031, Name = "Combo Master", Stacks=1, Offset = 0x06, Type="Support"},
-    {ID = 2671032, Name = "EXP Boost", Stacks=1, Offset = 0x09, Type="Support"},
-    {ID = 2671033, Name = "EXP Walker", Stacks=1, Offset = 0x0C, Type="Support"},
-    {ID = 2671034, Name = "EXP Zero", Stacks=1, Offset = 0x0F, Type="Support"},
-    {ID = 2671035, Name = "Damage Syphon", Stacks=1, Offset = 0x12, Type="Support"},
-    {ID = 2671036, Name = "Second Chance", Stacks=1, Offset = 0x15, Type="Support"},
-    {ID = 2671037, Name = "Once More", Stacks=1, Offset = 0x18, Type="Support"},
-    {ID = 2671038, Name = "Scan", Stacks=1, Offset = 0x1B, Type="Support"},
-    {ID = 2671039, Name = "Leaf Bracer", Stacks=1, Offset = 0x1E, Type="Support"},
-    {ID = 2671040, Name = "Treasure Magnet", Stacks=5, Offset = 0x21, Type="Support"},
+    {ID = 2671029, Name = "Combo Plus", Stacks=3, Offset = 0x00, Type="Support", Bytes={0x08, 0x01}},
+    {ID = 2671030, Name = "Air Combo Plus", Stacks=3, Offset = 0x03, Type="Support", Bytes={0x09, 0x01}},
+    {ID = 2671031, Name = "Combo Master", Stacks=1, Offset = 0x06, Type="Support", Bytes={0x0A, 0x01}},
+    {ID = 2671032, Name = "EXP Boost", Stacks=1, Offset = 0x09, Type="Support", Bytes={0x0B, 0x01}},
+    {ID = 2671033, Name = "EXP Walker", Stacks=1, Offset = 0x0C, Type="Support", Bytes={0x0C, 0x01}},
+    {ID = 2671034, Name = "EXP Zero", Stacks=1, Offset = 0x0F, Type="Support", Bytes={0x0D, 0x01}},
+    {ID = 2671035, Name = "Damage Syphon", Stacks=1, Offset = 0x12, Type="Support", Bytes={0x0E, 0x01}},
+    {ID = 2671036, Name = "Second Chance", Stacks=1, Offset = 0x15, Type="Support", Bytes={0x0F, 0x01}},
+    {ID = 2671037, Name = "Once More", Stacks=1, Offset = 0x18, Type="Support", Bytes={0x10, 0x01}},
+    {ID = 2671038, Name = "Scan", Stacks=1, Offset = 0x1B, Type="Support", Bytes={0x11, 0x01}},
+    {ID = 2671039, Name = "Leaf Bracer", Stacks=1, Offset = 0x1E, Type="Support", Bytes={0x12, 0x01}},
+    {ID = 2671040, Name = "Treasure Magnet", Stacks=5, Offset = 0x21, Type="Support", Bytes={0x13, 0x01}},
     --Spirit Abilities
-    {ID = 2671041, Name = "Link Critical", Stacks=1, Offset = 0x24, Type="Spirit"},
-    {ID = 2671042, Name = "Support Boost", Stacks=3, Offset = 0x27, Type="Spirit"},
-    {ID = 2671043, Name = "Waking Dream", Stacks=1, Offset = 0x2A, Type="Spirit"}
+    {ID = 2671041, Name = "Link Critical", Stacks=1, Offset = 0x24, Type="Spirit", Bytes={0x14, 0x01}},
+    {ID = 2671042, Name = "Support Boost", Stacks=3, Offset = 0x27, Type="Spirit", Bytes={0x15, 0x01}},
+    {ID = 2671043, Name = "Waking Dream", Stacks=1, Offset = 0x2A, Type="Spirit", Bytes={0x16, 0x01}},
+    {ID = 2672000, Name = "Ability", Bytes={0x0F, 0x08}}
   }
   return abilities
 end

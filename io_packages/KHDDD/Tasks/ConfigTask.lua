@@ -17,7 +17,9 @@ ConfigTask.SlotDataTypes = {
   StatBoost = 8,
   LordKyroo = 9,
   LocalItemNotifs = 10,
-  RemoteItemNotifs = 11
+  RemoteItemNotifs = 11,
+  PatchInfo = 12,
+  VanillaLevels = 13
 }
 
 function ConfigTask:ParseSlotData(slotType, msgVal)
@@ -45,6 +47,10 @@ function ConfigTask:ParseSlotData(slotType, msgVal)
     	self:SetItemNotifs(msgVal)
     elseif slotType == self.SlotDataTypes.RemoteItemNotifs then
     	self:SetRemoteNotifs(msgVal)
+    elseif slotType == self.SlotDataTypes.PatchInfo then
+    	self:PatchGame(msgVal)
+    elseif slotType == self.SlotDataTypes.VanillaLevels then
+    	self:SetVanillaLevels(msgVal)
     end
 end
 
@@ -69,6 +75,78 @@ function ConfigTask:SaveKeybladeStats(msgVals)
 					WriteArray(KeybladeStats.soraBase[gameVer] + (KeybladeStats.offset * (#self.State.SavedKbStats-1)), {_kbStr, _kbMag})
 				else --Riku keyblade
 					WriteArray(KeybladeStats.rikuBase[gameVer] + ((KeybladeStats.offset) * (#self.State.SavedKbStats-16)), {_kbStr, _kbMag})
+				end
+			end
+		end
+	end
+end
+
+function ConfigTask:PatchGame(msgVals)
+	local _soraChestRange = {2650211, 2650435}
+	local _rikuChestRange = {2650436, 2650648}
+	local _levelRange = {2660000, 2660200}
+
+	for i=1, #msgVals do
+		if i%2 == 0 then --Message pair
+			local _locId = tonumber(msgVals[i-1])
+			local _itemId = tonumber(msgVals[i]) 
+
+			--Chest Patching
+			--Each Chest entry is 8 bytes
+			--Location IDs are not logged in same order as chests appear in itemtd
+
+			if _locId >= _soraChestRange[1] and _locId <= _rikuChestRange[2] then --Location is a chest
+				local _useAddr = MemoryAddresses.chestDataR[gameVer]
+				local _useChar = 1
+				if _locId <= _soraChestRange[2] then --Sora Chest
+					_useAddr = MemoryAddresses.chestDataS[gameVer]
+					_useChar = 0
+				end
+
+				local _chestStart = _useAddr+0x1A --ID of first item
+				--local _chestOffset = _locId - _soraChestRange[1]
+				local _chestInfo = getChestById(_locId, _useChar)
+				local _chestOffset = _locId - _chestInfo.locationIDStart + 1
+
+				_itemId = PatchTask:ChangeToCompatibleItem(_itemId, true)
+
+				local _itemInfo = getItemById(_itemId)
+				local _itemBytes = _itemInfo.Bytes
+
+				--ConsolePrint("Location Offset: "..tostring(_chestOffset))
+
+				--TODO: Traverse Town Fountain Plaza Balloon [Sora] not recorded correctly
+				local _entries = _chestInfo.entries
+				local _itemDest = _chestStart+(_entries[_chestOffset]*8)
+
+				--ConsolePrint("Item Dest: "..tostring(_itemDest))
+
+
+				if #_itemBytes == 1 then
+					table.insert(_itemBytes, 0x00)
+				end
+
+				if _itemDest > 0x00 then
+					WriteArray(_itemDest, _itemBytes)
+				end
+				--WriteArray(_chestStart+_chestOffset, _itemBytes)
+				--ConsolePrint("Patched Chest")
+			elseif _locId > _levelRange[1] and _locId < _levelRange[2] then --Level
+				_itemId = PatchTask:ChangeToCompatibleItem(_itemId)
+				PatchTask:AssignLevelRewards(_locId, _itemId)
+			else --Reward
+				if PatchTask.MissionDict[tostring(_locId)] ~= nil then
+					_itemId = PatchTask:ChangeToCompatibleItem(_itemId, false, true)
+					local _itemInfo = getItemById(_itemId)
+					PatchTask:AssignMissionRewards(_locId, _itemInfo.Bytes)
+				elseif PatchTask.BonusSlots[tostring(_locId)] ~= nil then
+					_itemId = PatchTask:ChangeToCompatibleItem(_itemId, false, false)
+					local _itemInfo = getItemById(_itemId)
+					PatchTask:AssignBonusRewards(_locId, _itemInfo.Name)
+				else
+					_itemId = PatchTask:ChangeToCompatibleItem(_itemId, false, true)
+					local _itemInfo = getItemById(_itemId)
+					PatchTask:SetRewardForLocation(_locId, _itemInfo.Bytes)
 				end
 			end
 		end
@@ -149,6 +227,15 @@ end
 function ConfigTask:SetRemoteNotifs(msgVal)
 	ConsolePrint("Setting Sent Notifications to "..msgVal[1])
 	Configs.RemoteItemNotifs = tonumber(msgVal[1])
+end
+
+function ConfigTask:SetVanillaLevels(msgVal)
+	ConsolePrint("Setting Vanilla Levels to "..msgVal[1])
+	if msgVal[1] == "1" then
+		Configs.VanillaLevels = true
+	else
+		Configs.VanillaLevels = false
+	end
 end
 
 function ConfigTask:WriteExpTable()

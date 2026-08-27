@@ -1,4 +1,4 @@
-title: KHDDD AP Companion
+title: KHDDD AP Companion [Developer]
 originalAuthor: Lux
 description: Archipelago Companion for KHDDD
 assets:
@@ -107,6 +107,10 @@ assets:
   method : copy
   source:
   - name: io_packages/KHDDD/Tasks/SoftlockTask.lua
+- name: scripts/io_packages/KHDDD/Tasks/PatchTask.lua
+  method : copy
+  source:
+  - name: io_packages/KHDDD/Tasks/PatchTask.lua
 - name: setdata/jp/bin/di/di05set.bin
   method : copy
   source:
@@ -227,6 +231,18 @@ assets:
   method : copy
   source:
   - name: setdata/jp/bin/eh/eh19set.bin
+- name: remastered/item/jp/bin/it0409.ctt/it0409.dds
+  method : copy
+  source:
+  - name: remastered/item/jp/bin/it0409.ctt/it0409.dds
+- name: item/jp/bin/it0409.ctt
+  method : copy
+  source:
+  - name: item/jp/bin/it0409.ctt
+- name: item/jp/bin/itemdata.ite
+  method : copy
+  source:
+  - name: item/jp/bin/itemdata.ite
 - name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
   method : copy
   source:

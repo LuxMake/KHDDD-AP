@@ -2,9 +2,7 @@
 
 --Standalone mod to skip dives in Kingdom Hearts Dream Drop Distance
 
---Investigate world+0x10 for flick rush?
-
-DockPoints = { --TODO: Calc EGS Addresses
+DockPoints = {
 	TT = {Sora = {0x109790E2, 0x10978962}, Riku={0x1097914A, 0x109789CA}},
 	LCDC = {Sora = {0x109790EE, 0x1097896E}, Riku = {0x10979176, 0x109789F6}},
 	TG = {Sora = {0x109790F6, 0x10978976}, Riku = {0x10979162, 0x109789E2}},
@@ -14,7 +12,7 @@ DockPoints = { --TODO: Calc EGS Addresses
 	TWTNW = {Sora = {0x1097913A, 0x109789BA}, Riku={0x1097919E, 0x10978A1E}}
 }
 
-Story = { --TODO: Calc EGS Addresses
+Story = {
 	TT = {Sora={0xA41DA4, 0xA41624}, Riku={0xA445BC, 0xA43E3C}},
 	LCDC = {Sora={0xA41DCC, 0xA4164C}, Riku={0xA445E4, 0xA43E64}},
 	TG = {Sora={0xA41DD4, 0xA41654}, Riku = {0xA445EC, 0xA43E6C}},

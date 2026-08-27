@@ -161,12 +161,14 @@ function LocationHandler:CheckLevel()
   if _currChar == 0 then --Check sora
     if _currLevel > levels.soraLevel then
       levels.soraLevel = levels.soraLevel + 1
+      PatchTask:WriteLevelReward(levels.soraLevel+1, 0)
       SendToApClient(MessageTypes.LevelChecked, {tostring(levels.soraLevelID+levels.soraLevel)})
       ConsolePrint("Attempting to send a check for level "..tostring(levels.soraLevel))
     end
   else --Check riku
     if _currLevel > levels.rikuLevel then
       levels.rikuLevel = levels.rikuLevel + 1
+      PatchTask:WriteLevelReward(levels.rikuLevel+1, 1)
       SendToApClient(MessageTypes.LevelChecked, {tostring(levels.rikuLevelID+levels.rikuLevel)})
       ConsolePrint("Attempting to send a check for level "..tostring(levels.rikuLevel))
     end
@@ -177,7 +179,11 @@ end
 -------------------Story Locations-----------------------------
 ---------------------------------------------------------------
 function LocationHandler:CheckStory()
-  local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
+  if ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) == 0x00 and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 then
+    return --Don't need to check story if it is not currently being incremented
+  end
+
+  local _currWorld = roomInfo[1]
   local _currChar = getCharacter()
   local _storyAddr = 0x00
   if _currWorld == 0x03 then --Traverse Town
@@ -278,12 +284,12 @@ function LocationHandler:LordKyroo()
 
   --If solo seed and all locations for that character have been visited; force trigger the battle
   if getCharacter() == 0 then
-    if Configs.Character == 1 and ReadByte(MemoryAddresses.world[gameVer]) == 0x06 then
+    if Configs.Character == 1 and roomInfo[1] == 0x06 then
       if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]) == 0x11 then --World cleared; check kyroo now
         --if ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x03) == 0x47 then --Lost to Kyroo
         if not _kyrooPP then  
           --Start fight in promontory
-          if ReadByte(MemoryAddresses.room[gameVer]) == 0x04 and allowKyroo then
+          if roomInfo[2] == 0x04 and allowKyroo then
             WriteByte(MemoryAddresses.map[gameVer], 0x39)
             WriteByte(MemoryAddresses.btl[gameVer], 0x39)
             WriteByte(MemoryAddresses.evt[gameVer], 0x39)
@@ -298,13 +304,13 @@ function LocationHandler:LordKyroo()
     if Configs.Character == 2 then
       if ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]) == 0x11 and ReadByte(WorldFlags.symphonyOfSorcery.riku.story[gameVer]) == 0x11 then
         --World Cleared; See if Lord Kyroo needs to be rematched
-        if ReadByte(MemoryAddresses.world[gameVer]) == 0x08 and ReadByte(MemoryAddresses.room[gameVer]) == 0x03 and allowKyroo then -- 0x03 then
+        if roomInfo[1] == 0x08 and roomInfo[2] == 0x03 and allowKyroo then -- 0x03 then
           --Start Nave Battle
           WriteByte(MemoryAddresses.map[gameVer], 0x3D)
           WriteByte(MemoryAddresses.btl[gameVer], 0x3D)
           WriteByte(MemoryAddresses.evt[gameVer], 0x3D)
           allowKyroo = false
-        elseif ReadByte(MemoryAddresses.world[gameVer]) == 0x05 and ReadByte(MemoryAddresses.room[gameVer]) == 0x06 and allowKyroo then
+        elseif roomInfo[1] == 0x05 and roomInfo[2] == 0x06 and allowKyroo then
           --Start Moonlight Wood Battle
           WriteByte(MemoryAddresses.map[gameVer], 0x37)
           WriteByte(MemoryAddresses.btl[gameVer], 0x37)
@@ -316,6 +322,8 @@ function LocationHandler:LordKyroo()
   end
 
   if not _kyrooDefeated then
+    --TODO: Do world check before doing the bit functions
+
     --Send the check
     local _foughtPP = toBits(ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x03))
     local _wonPP = toBits(ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]+0x04))
@@ -377,40 +385,50 @@ function LocationHandler:CheckPortal()
   local _portalsWonAddr = {0xA51940, 0xA511C0}
 
   local _currChar = getCharacter()
-  local _world = ReadByte(MemoryAddresses.world[gameVer])
-  local _room = ReadByte(MemoryAddresses.room[gameVer])
-  local _evt = ReadByte(MemoryAddresses.evt[gameVer])
-  local _worldCheck = {}
+  local _world = roomInfo[1]
+  local _room = roomInfo[2]
+  local _evt = roomInfo[3]
+  --local _worldCheck = {}
+  _worldCheck = ""
 
   --Check which world to look at
   if _world == 0x03 then
-    _worldCheck = portalDigits.traverseTown
+    --_worldCheck = portalDigits.traverseTown
+    _worldCheck = "traverseTown"
   elseif _world == 0x04 then
-    _worldCheck = portalDigits.countryOfMusketeers
+    --_worldCheck = portalDigits.countryOfMusketeers
+    _worldCheck = "countryOfMusketeers"
   elseif _world == 0x05 then
-    _worldCheck = portalDigits.symphonyOfSorcery
+    --_worldCheck = portalDigits.symphonyOfSorcery
+    _worldCheck = "symphonyOfSorcery"
   elseif _world == 0x06 then
-    _worldCheck = portalDigits.prankstersParadise
+    --_worldCheck = portalDigits.prankstersParadise
+    _worldCheck = "prankstersParadise"
   elseif _world == 0x08 then
-    _worldCheck = portalDigits.laCiteDesCloches
+    --_worldCheck = portalDigits.laCiteDesCloches
+    _worldCheck = "laCiteDesCloches"
   elseif _world == 0x09 then
-    _worldCheck = portalDigits.theGrid
+    --_worldCheck = portalDigits.theGrid
+    _worldCheck = "theGrid"
   else --Invalid world
     return
   end
 
   --Determine which portal details to look at based on character
   if _currChar == 0 then
-    _portalDetails = _worldCheck.sora
+    --_portalDetails = _worldCheck.sora
+    _portalChar = "sora"
   else
     if _world == 0x05 then
       return --Riku has no secret portal in SoS
     end
-    _portalDetails = _worldCheck.riku
+    _portalChar = "riku"
+    --_portalDetails = _worldCheck.riku
   end
 
   if not self.inAPortal then --Player is not yet in a secret portal fight
-    if _room == _portalDetails.bossRoom and _evt == _portalDetails.evt then --Portal fight is being done
+    --if _room == _portalDetails.bossRoom and _evt == _portalDetails.evt then --Portal fight is being done
+    if _room == portalDigits[_worldCheck][_portalChar].bossRoom and _evt == portalDigits[_worldCheck][_portalChar].evt then
       self.inAPortal = true
 
       --Apply stock world battle level
@@ -422,14 +440,17 @@ function LocationHandler:CheckPortal()
   else
     --Check for fail condition
 
-    if _evt ~= _portalDetails.evt then --Fight exited
+    --if _evt ~= _portalDetails.evt then --Fight exited
+    if _evt ~= portalDigits[_worldCheck][_portalChar].evt then
       WorldHandler:ApplyScaling() --Restore to mod-specific scalings
       if ReadByte(_portalsWonAddr[gameVer]) > self.portalsWon then --Player won the fight
         ConsolePrint("Portal fight won")
-        SendToApClient(MessageTypes.PortalChecked, {tostring(_portalDetails.portalId)})
+        --SendToApClient(MessageTypes.PortalChecked, {tostring(_portalDetails.portalId)})
+        SendToApClient(MessageTypes.PortalChecked, {tostring(portalDigits[_worldCheck][_portalChar].portalId)})
 
         --Write Portal Fight victory status to the story progression
-        WriteByte(_portalDetails.saveAddr, 0x01)
+        --WriteByte(_portalDetails.saveAddr, 0x01)
+        WriteByte(portalDigits[_worldCheck][_portalChar].saveAddr, 0x01)
 
         --Recheck secret portals (for granting access to julius)
         setSecretPortals()

@@ -5,6 +5,12 @@
 ------ Special Thanks to Sonicshadowsilver2, Meebo, & Krujo
 ---------------------------------------------------
 
+--LOCAL TESTING NOTES:
+--Deck Up Riku item in-game rewards Strength Up Riku in AP
+--Hide world and stat key item descriptions when not paused
+--Sora level 8 did not display level up text (Faith)
+--Maybe read level text on the actual prompt to determine which rewards to display?
+
 local socket = require("socket")
 ItemHandler = require("KHDDD.Items.ItemHandler")
 local ItemDefs = require("KHDDD.Items.ItemDefs")
@@ -13,12 +19,12 @@ local LocationDefs = require("KHDDD.Locations.LocationDefs")
 local LocationHandler = require("KHDDD.Locations.LocationHandler")
 local StoryHandler = require("KHDDD.Locations.StoryHandler")
 local PromptTask = require("KHDDD.Tasks.PromptTask")
-local CheatTask = require("KHDDD.Tasks.CheatTask")
 local ConfigTask = require("KHDDD.Tasks.ConfigTask")
 RoomSaveTask = require("KHDDD.Tasks.RoomSaveTask")
 local SoftlockTask = require("KHDDD.Tasks.SoftlockTask")
 local MessageHandler = require("KHDDD.Items.MessageHandler")
 WorldHandler = require("KHDDD.Locations.WorldHandler")
+PatchTask = require("KHDDD.Tasks.PatchTask")
 
 LUAGUI_NAME = "DDD AP Connector [Socket]"
 LUAGUI_AUTH = "Lux"
@@ -54,7 +60,9 @@ local client
 --  --rikuKeyblades = 0xA4C288,
 MemoryAddresses = { --Primary memory addresses to reference
   keyblades = {0xA4C264, 0xA4BAE4},
-  rikuKeyblades = {0xA4C2A2, 0xA4BB22},
+  --rikuKeyblades = {0xA4C2A2, 0xA4BB22},
+  rikuKeyblades = {0xA4C284, 0xA4BB04},
+  commandStockStart = {0xA4C6D4, 0xA4BF44},
   commandStock = {0xA4C77C, 0xA4BFEC},
   commandDeckPopup = {0xA4C404, 0xA4BC84},
   equippedCommands = {0xA4D9D8, 0xA4D258},
@@ -149,7 +157,8 @@ Configs = {
   Goal = 0, --0: Final Boss; 1: Super Boss
   FightKyroo = 0,
   LocalItemNotifs = 0,
-  RemoteItemNotifs = 0
+  RemoteItemNotifs = 0,
+  VanillaLevels = false
 }
 
 ItemOverwrite = {
@@ -159,8 +168,36 @@ ItemOverwrite = {
   dummyDesc = "An item for another world.",
   dummyId = {0x13, 0x08},
   dummyName = "AP Item",
-  recipeNameAddr = {0x10944CD6, 0x10944556},
+  --Stats Riku
+  food16NameAddr = {0x10944ABC},
+  food16DescAddr = {0x10955C4C},
+  food17NameAddr = {0x10944AD6},
+  food17DescAddr = {0x10955C70},
+  food18NameAddr = {0x10944AF0},
+  food18DescAddr = {0x10955C94},
+  food19NameAddr = {0x10944B0A},
+  food19DescAddr = {0x10955CB8},
+  food20NameAddr = {0x10944B24},
+  food20DescAddr = {0x10955CDC},
+  recipe55NameAddr = {0x10943E58},
+  recipe55DescAddr = {0x1095299E},
+  key36NameAddr = {0x1094420C},
+  key37NameAddr = {0x10944224},
+  key38NameAddr = {0x1094423C},
+  key39NameAddr = {0x10944254},
+  key40NameAddr = {0x1094426C},
+  --Stats Riku
+  recipeNameAddr = {0x10944CD6, 0x10944556}, --TOY 18
   recipeDescAddr = {0x109561FC, 0x10955A7C},
+  --toy17NameAddr = {},
+  --toy17DescAddr = {},
+  toy16NameAddr = {0x10944CBA, 0x1094543A}, --TOY 16
+  toy16DescAddr = {0x109561CC, 0x1095694C},
+  --toy15NameAddr = {},
+  --toy15DescAddr = {},
+  --toy14NameAddr = {},
+  --toy14DescAddr = {},
+
   levelUpTxtAddr = {0x10946494, 0x10945D14},
   strIncreasedTxt = {0x10946494, 0x10945D14},
   magIncreasedTxt = {0x109464BC, 0x10945D3C},
@@ -430,6 +467,8 @@ MessageTypes = {
   Handshake = 12,
   GetCurrentIndex = 13,
   ItemPrompt = 14,
+  DataStorage = 15,
+  HasSlotData = 16,
   Closed = 20
 }
 HandshakeSent = false
@@ -444,18 +483,13 @@ chests = {}
 levels = {
   addr = {0xA98034, 0xA978B4},
   soraLevel = 1,
-  soraLevelID = 2660008,
+  soraLevelID = 2660000,
   rikuLevel = 1,
-  rikuLevelID = 2660058,
+  rikuLevelID = 2660100,
   levelCap=50
 }
 worldEvents = {}
 portalDigits = {}
-expTable = {40,250,600,1120,1760,2520,3400,4400,5520,6760,8154,
-9621,11351,13157,15135,17242,19530,21990,24560,27305,30249,
-33331,36620,40052,43700,47492,51510,55675,60075,64625,69325,
-74175,79175,84325,89625,95175,100675,106424,112325,118375,125195,
-132175,139329,146644,154125,161770,169580,177555,185695}
 
 SpiritStats = {}
 
@@ -482,14 +516,15 @@ rikuSpiritFix = 0 --Tracks if story vals need to be reset for riku TT1
 
 activeCharacter = 0
 
-currentReceivedIndex = 0 --Updates when a new item is obtained and is saved to the medals value on change
+roomInfo = {0x00, 0x00, 0x00} --[world, room, map/btl/evt]
+
+--currentReceivedIndex = 0 --Updates when a new item is obtained and is saved to the medals value on change
 lastReceivedIndex = 0 --Updates when save file is loaded
 receivedInit = false --Have we received our items after connecting to the server?
 
 local _soraUnboundSent = false
 local _rikuUnboundSent = false
-
-local _activeRoom = 0x00
+doingPortal = false
 
 -- ############################################################
 -- ######################  Game State  ########################
@@ -635,7 +670,7 @@ function RunReports()
       end
 
       if _conditionsMet == 2 then --Can fight Julius
-        _goTxt = "| Julius can found in the manhole after |clearing TT2."
+        _goTxt = "| Julius can be found in the manhole after |clearing TT2."
       end
       writeTxtToGame(ItemOverwrite.glossaryDesc[gameVer], _goalTxt.._reqTxt.._portalTxt.._goTxt, 3)
     end
@@ -840,24 +875,30 @@ function onCharacterChange()
 
   setSecretPortals()
 
-  --Fix an issue where forced drop events reset the battle level scaling
   WorldHandler:ApplyScaling()
-  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+  if ReadByte(roomInfo[1]) == 0x0B or ReadByte(DropAddresses.sora.world[gameVer]) == 0x0B or ReadByte(DropAddresses.riku.world[gameVer]) == 0x0B then
     WorldHandler:MapLoaded()
   end
+
+  local _charLvl = ReadByte(levels.addr[gameVer])
+  PatchTask:WriteLevelReward(_charLvl+0x01, getCharacter())
+
 
   MessageHandler.State.restore = true
 end
 
 local _isPaused = false
 function checkPause()
+  local _pauseType = ReadByte(MemoryAddresses.pauseType[gameVer])
   if not _isPaused then
-    if ReadByte(MemoryAddresses.pauseType[gameVer]) > 0x00 then
+    if _pauseType > 0x00 then
       onPauseChange()
+      --Check to remove invalid items from stock
+      ItemHandler:RemoveAbilityFromStock()
       _isPaused = true
     end
   else
-    if ReadByte(MemoryAddresses.pauseType[gameVer]) == 0x00 then
+    if _pauseType == 0x00 then
       onPauseChange()
       _isPaused = false
     end
@@ -865,11 +906,13 @@ function checkPause()
 end
 
 function onPauseChange()
-  ItemHandler:RebuildFlowmotion()
-  ItemHandler:RebuildStats()
+  ItemHandler:RebuildFlowmotion() --TODO: Nop this to prevent rebuild?
+  if not Configs.VanillaLevels then
+    ItemHandler:RebuildStats()
+  end
   ItemHandler:RebuildAbilities()
 
-  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+  if ReadByte(roomInfo[1]) == 0x0B then
     --Accounts for being warped to world map from a room index of 01
     WorldHandler:MapLoaded()
   end
@@ -881,22 +924,27 @@ function onRoomChange()
   else
     MessageHandler:restoreMissions()
   end
-  if ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then
+  if roomInfo[1] == 0x0B then
     LocationHandler.allowKyroo = true
 
     WorldHandler:MapLoaded()
   end
-  ItemHandler:RebuildStats()
+  if not Configs.VanillaLevels then
+    ItemHandler:RebuildStats()
+  end
   ItemHandler:RebuildAbilities()
   ItemHandler:RebuildFlowmotion()
+  PatchTask:WriteBonusRewards()
+  PatchTask:ResetRewards()
+  _exeTime = -1
   setSecretPortals()
 
-  if ReadByte(MemoryAddresses.world[gameVer]) == 0x03 then
+  if roomInfo[1] == 0x03 then
     if ReadByte(MemoryAddresses.worldStatusS[gameVer]+0x64) >= 0xFE then --Should never be this value
       WriteInt(MemoryAddresses.worldStatusS[gameVer]+0x64, 0x00)
     end
 
-    if ReadByte(MemoryAddresses.room[gameVer]) == 0x04 then
+    if roomInfo[2] == 0x04 then
       if ReadShort(MemoryAddresses.world[gameVer]+0x10) == 0x010B then
         --Entered 4th district via flick rush menu; dont actually visit
         if getCharacter() == 0 and WorldHandler.WorldsUnlocked.Sora[1] == 0 or getCharacter() == 1 and WorldHandler.WorldsUnlocked.Riku[1] == 0 then
@@ -914,12 +962,16 @@ function makeDummyItem()
   --writeTxtToGame(ItemOverwrite.dummyDescAddr, ItemOverwrite.dummyDesc, 7)
   writeTxtToGame(ItemOverwrite.dummyDescAddr[gameVer], ItemOverwrite.dummyDesc, 3)
 
-  --Write Recipe Total text to TOY 18
+  --TOY 18
   writeTxtToGame(ItemOverwrite.recipeNameAddr[gameVer], "Recipes", 3)
   --writeTxtToGame(ItemOverwrite.recipeDescAddr, "Recipes Required: "..tostring(Configs.RecipeReqs), 1)
 
+  --TOY 16
+  --writeTxtToGame(ItemOverwrite.dummyAbilityNameAddr[gameVer], "Ability", 3)
+  --writeTxtToGame(ItemOverwrite.dummyAbilityDescAddr[gameVer], "Check log for Ability", 2)
+
   --Replace chest data with this item
-  for i=0, 255 do
+  for i=0, 226 do
     WriteArray(MemoryAddresses.chestDataS[gameVer]+0x1A+(8*i), ItemOverwrite.dummyId)
     WriteArray(MemoryAddresses.chestDataR[gameVer]+0x1A+(8*i), ItemOverwrite.dummyId)
   end
@@ -929,68 +981,18 @@ function makeDummyItem()
   local _descSize = 15 --Number of characters per desc
 
   --Write replacement key items
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer], "TWTNW Sora", 0) --Key Item 2 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer], "The World That Never Was for Sora", 3)
+  WorldHandler:RestoreWorldKeyTxt() --World items
 
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*2), "TWTNW Riku", 0) --Key Item 4 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+(38*2), "World That Never Was for Riku", 3)
+  --Write replacement stat items
+  writeStatKeys()
 
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*4), "TT Sora", 2) --Key Item 6 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+140, "Traverse Town for Sora", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*6), "TT Riku", 2) --Key Item 8 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+204, "Traverse Town for Riku", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*8), "LCdC Sora", 2) --Key Item 10 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+268, "La Cite des Cloches for Sora", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+224, "LCdC Riku", 2) --Key Item 12 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+336, "La Cite des Cloches for Riku", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+272, "TG Sora", 2) --Key Item 14 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+404, "The Grid for Sora", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+320, "TG Riku", 2) --Key Item 16 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+472, "The Grid for Riku", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+368, "PP Sora", 2) --Key Item 18 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+540, "Pranksters Paradise for Sora", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+416, "PP Riku", 2) --Key Item 20 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+608, "Pranksters Paradise for Riku", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+464, "CotM Sora", 2) --Key Item 22 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+676, "Country of Musketeers for Sora", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+512, "CotM Riku", 2) --Key Item 24 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+744, "Country of Musketeers for Riku", 3)
-
-  --add 10 if wrong
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+560, "SoS Sora", 2) --Key Item 26 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+812, "Symphony of Sorcery for Sora", 3)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+608, "SoS Riku", 2) --Key Item 28 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+880, "Symphony of Sorcery for Riku", 3)
-
-  --Recusant's Sigil for additional ending condition
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+656, "Recusant Sigil", 2) --Key Item 30 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+948, "Sigil of the Recusant.", 3)
-
-  --Traverse Town 2
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+704, "TT2 Sora", 2) --Key Item 32 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1016, "Traverse Town 2nd Visit for Sora", 2)
-
-  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+752, "TT2 Riku", 2) --Key Item 34 replacement
-  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1084, "Traverse Town 2nd Visit for Riku", 2)
+  writeTxtToGame(ItemOverwrite.recipe55NameAddr[gameVer], "Flowmotion", 2) --Recipe 55 replacement
+  writeTxtToGame(ItemOverwrite.recipe55DescAddr[gameVer], "Grants all Flowmotion abilities.", 2)
 
   --Replace reward text
   writeTxtToGame(ItemOverwrite.hpIncreasedTxt[gameVer], "Archipelago Item!", 4)
   writeTxtToGame(ItemOverwrite.dropBonusTxt[gameVer], "Archipelago Item!", 9)
   writeTxtToGame(ItemOverwrite.deckCapIncreasedTxt[gameVer], "Archipelago Item!", 7)
-
-  writeTxtToGame(ItemOverwrite.strIncreasedTxt[gameVer], "Archipelago Item", 2)
-  writeTxtToGame(ItemOverwrite.magIncreasedTxt[gameVer], "Archipelago Item", 0)
-  writeTxtToGame(ItemOverwrite.defIncreasedTxt[gameVer], "Archipelago Item", 1)
 
   --GO Mode Report
   --glossaryAddr, glossaryName, glossaryDesc
@@ -999,10 +1001,73 @@ function makeDummyItem()
 
 end
 
+function writeStatKeys()
+
+  --Riku Stats
+
+  writeTxtToGame(ItemOverwrite.food16NameAddr[gameVer], "HP Up [R]", 3)
+  writeTxtToGame(ItemOverwrite.food16DescAddr[gameVer], "Max HP Up Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.food17NameAddr[gameVer], "Deck Up [R]", 3)
+  writeTxtToGame(ItemOverwrite.food17DescAddr[gameVer], "Deck Cap Up Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.food18NameAddr[gameVer], "Str Up [R]", 3)
+  writeTxtToGame(ItemOverwrite.food18DescAddr[gameVer], "Strength Up Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.food19NameAddr[gameVer], "Mag Up [R]", 3)
+  writeTxtToGame(ItemOverwrite.food19DescAddr[gameVer], "Magic Up Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.food20NameAddr[gameVer], "Def Up [R]", 3)
+  writeTxtToGame(ItemOverwrite.food20DescAddr[gameVer], "Defense Up Riku", 3)
+
+  --Sora Stats
+
+  writeTxtToGame(ItemOverwrite.key36NameAddr[gameVer], "HP Up [S]", 3) --36
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1152, "Max HP Up Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.key37NameAddr[gameVer], "Deck Up [S]", 3) --37
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1186, "Deck Cap Up Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.key38NameAddr[gameVer], "Str Up [S]", 3) --38
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1220, "Strength Up Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.key39NameAddr[gameVer], "Mag Up [S]", 3) --39
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1254, "Magic Up Sora", 3)  
+
+  writeTxtToGame(ItemOverwrite.key40NameAddr[gameVer], "Def Up [S]", 3) --40
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1288, "Defense Up Sora", 3)
+
+
+end
+
+--Dummy Item Inventory
+local _dummyInv = {0xA4C580, 0xA4BE00}
+local _abilityInv = {0xA4C570, 0xA4BDF0}
+local _flowmotionKeyInv = {0xA4C360}
 function removeDummyItem()
-  local _dummyInv = {0xA4C580, 0xA4BE00} --This might need to be scanned for
-  if ReadByte(_dummyInv[gameVer]) ~= 0x00 then --We have a dummy; wipe it
+  if ReadByte(_dummyInv[gameVer]) > 0x00 then --We have a dummy; wipe it
     WriteArray(_dummyInv[gameVer], {0x00, 0x00, 0x00})
+  end
+  if ReadByte(_abilityInv[gameVer]) > 0x00 then
+    WriteArray(_abilityInv[gameVer], {0x00, 0x00, 0x00})
+  end
+  if ReadByte(_flowmotionKeyInv[gameVer]) > 0x00 then
+    WriteArray(_flowmotionKeyInv[gameVer], {0x00, 0x00})
+  end
+end
+
+local _foodStart = {0xA4C520}
+function removeStatKeys()
+  for i=70, 80, 2 do --Remove stat key items
+    if ReadByte(MemoryAddresses.keyItems[gameVer]+i) > 0x00 then
+      WriteByte(MemoryAddresses.keyItems[gameVer]+i, 0x00)
+      WriteByte(MemoryAddresses.keyItems[gameVer]+i+1, 0x00)
+    end
+  end
+  for i=0, 20, 4 do
+    if ReadByte(_foodStart[gameVer]+i) > 0x00 then
+      WriteArray(_foodStart[gameVer]+i, {0x00, 0x00, 0x00, 0x00})
+    end
   end
 end
 
@@ -1025,9 +1090,8 @@ end
 function DeliverDrop()
   if holdDropTrap then
     --Make sure player can drop
-    local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
 
-    if _currWorld == 0x0B or _currWorld == 0x01 then
+    if roomInfo[1] == 0x0B or roomInfo[1] == 0x01 then
       return
     end
 
@@ -1049,9 +1113,8 @@ local _deathlinkSent = false
 local _fromDeathlink = false
 function CheckDeathlink() --For sending deathlink
   --Get current hp
-  local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
 
-  if _currWorld == 0x0B or _currWorld == 0x01 or _activeRoom >= 0x3C then
+  if roomInfo[1] == 0x0B or roomInfo[1] == 0x01 or roomInfo[2] >= 0x3C then
     return
   end
 
@@ -1124,7 +1187,7 @@ function SkipDETutorial()
   end
 
   --Fix Riku's 2nd District cutscene
-  if getCharacter() == 1 and _activeRoom == 0x02 then
+  if getCharacter() == 1 and roomInfo[2] == 0x02 then
     if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01) == 0x07 and ReadByte(MemoryAddresses.evt[gameVer]) <= 0x0001 and ReadByte(MemoryAddresses.cutscenePauseType[gameVer]) ~= 0x03 then
       if ReadByte(menuOpen[gameVer]) == 0x00 and ReadByte(tutorialInMenu[gameVer]) ~= 0x00 then
         WriteByte(MemoryAddresses.evt[gameVer], 0x0001)
@@ -1288,18 +1351,49 @@ function HandleMessage(msg)
   --Receive Multiple Items from Server
   if msg.type == MessageTypes.ReceiveAllItems then
     ConsolePrint("Receiving all items")
-    ItemHandler:Reset()
-    local i = 1; 
-    while i <= #msg.values-1 do
-      local _msg = msg.values[i]
-      ReceiveItem(tonumber(_msg), tonumber(msg.values[#msg.values])+i)
-      i = i + 1
+    --ItemHandler:Reset()
+
+    local _skipNext = false
+    local _totReceived = 1
+    for i = 1, #msg.values-1 do
+      if _skipNext then
+        _skipNext = false
+      else
+        local _msg = msg.values[i]
+        local _itemType = getItemById(tonumber(_msg)).Type
+        if msg.values[i+1] == "local" then
+          --TODO: Remove invalid items from stock (abilities)
+          --TODO: Still perform special functions like world unlocking
+          --TODO: Directly invoking room save like this might result in duped items
+          --      when re-receiving all from server
+          ItemHandler:Receive(_itemType, tonumber(_msg), tonumber(msg.values[#msg.values])+_totReceived, true)
+          --ReceiveLocalItem(tonumber(_msg), tonumber(msg.values[#msg.values])+_totReceived)
+          --RoomSaveTask:StoreItem(tonumber(_msg))
+          _skipNext = true
+        else
+          ConsolePrint(msg.values[#msg.values])
+          ItemHandler:Receive(_itemType, tonumber(_msg), tonumber(msg.values[#msg.values])+_totReceived)
+          --ReceiveItem(tonumber(_msg), tonumber(msg.values[#msg.values])+_totReceived)
+        end
+        _totReceived = _totReceived + 1
+      end
     end
 
   --Receive Single Item from Server
   elseif msg.type == MessageTypes.ReceiveSingleItem then
     ConsolePrint("Receiving single item")
-    ReceiveItem(tonumber(msg.values[1]), tonumber(msg.values[2]))
+    local _itemType = getItemById(tonumber(msg.values[1])).Type
+    if #msg.values > 2 then
+      --Local item; add to roomsave and do not receive
+      --ReceiveLocalItem(tonumber(msg.values[1]), tonumber(msg.values[2]))
+      ItemHandler:Receive(_itemType, tonumber(msg.values[1]), tonumber(msg.values[2]), true)
+      --RoomSaveTask:StoreItem(tonumber(msg.values[1]))
+      return
+    end
+    --ReceiveItem(tonumber(msg.values[1]), tonumber(msg.values[2]))
+    ItemHandler:Receive(_itemType, tonumber(msg.values[1]), tonumber(msg.values[2]))
+    --RoomSaveTask:StoreItem(tonumber(msg.values[1]))
+
 
   elseif msg.type == MessageTypes.ItemPrompt then
     local _itemName = msg.values[1]
@@ -1347,6 +1441,11 @@ function HandleMessage(msg)
     ConfigTask:ParseSlotData(_slotType, _sentVals)
 
   elseif msg.type == MessageTypes.Handshake then
+    if not HandshakeReceived then
+      SendToApClient(MessageTypes.HasSlotData, {"0"})
+    else
+      SendToApClient(MessageTypes.HasSlotData, {"1"})
+    end
     HandshakeReceived = true
     ConsolePrint("Received handshake; Requesting items: "..msg.values[1])
     if msg.values[1] == "True" then
@@ -1464,6 +1563,52 @@ function ReceiveItem(itemID, itemCnt)
   updateReceived(itemCnt)
 end
 
+function ReceiveLocalItem(itemID, itemCnt)
+  if itemID == nil then
+    ConsolePrint("Local item invalid. Val: "..itemID)
+    return
+  end
+
+  --TODO: RECEIVE COMMANDS IF THEY WERE OBTAINED FROM BONUS OR LEVEL UP
+
+  if itemCnt <= currentReceivedIndex then
+    return
+  end
+
+  local _item = getItemById(itemID)
+  local _type = _item.Type
+  
+  local validTypes = {"Recipe", "Flowmotion", "World", "Key", "Stat", "Support", "Spirit", "Stats [Sora]", "Stats [Riku]"}
+
+  --See if we should autocraft or record ability
+  --local _isBehind = currentReceivedIndex < lastReceivedIndex
+  local _isBehind = itemCnt < lastReceivedIndex
+
+  if hasValue(validTypes, _type) then --Specially handle this item
+    --Do not write physical item to inventory; only write the unique functionality
+    if _type == "Recipe" then
+      ConsolePrint("Local recipe obtained with behind value: "..tostring(_isBehind))
+      ItemHandler:GiveRecipe(itemID, _isBehind, true)
+    elseif _type == "Flowmotion" then
+      ItemHandler:GiveFlowmotion(itemID, false)
+    elseif _type == "World" and not _isBehind then
+      WorldHandler:ObtainWorld(itemID) --TODO: This does not appear to be applying battle level correctly
+      ItemHandler:PlaceWorldItem(itemID)
+    elseif _type == "Key" then
+      ItemHandler:GiveKeyItem(itemID) --TODO: Make sure this doesn't duplicate
+    elseif _type == "Support" or _type == "Spirit" then
+      ItemHandler:GiveAbility(itemID, not _isBehind)
+    elseif _type == "Stat" then
+      ItemHandler:GiveAbility(itemID, true)
+    elseif _type == "Stats [Sora]" or _type == "Stats [Riku]" then
+      ItemHandler:GiveStatBonus(itemID)
+    end
+  end
+
+  updateReceived(itemCnt)
+
+end
+
 function toHex(str)
   return string.format("%X", str)
 end
@@ -1477,6 +1622,20 @@ function toBits(num)
         num=(num-rest)/2
     end
     return t
+end
+
+function compareArrays(arr1, arr2)
+  if #arr1 ~= #arr2 then
+    return false
+  end
+
+  for i, v in ipairs(arr1) do
+    if v ~= arr2[i] then
+      return false
+    end
+  end
+
+  return true
 end
 
 function hasValue(arr, val)
@@ -1521,6 +1680,30 @@ function removeDuplicates(arr)
 
 end
 
+function getChestById(loc_id, theChar)
+  local _tempId = loc_id
+  local _chestFound = false
+  local _useChests = chests.sora
+  if theChar == 1 then
+    _useChests = chests.riku
+  end
+  for i = 1, #_useChests do
+    if i+1 == #_useChests+1 then
+      while _useChests[i].locationIDStart < _tempId and not _chestFound do
+        _tempId = _tempId - 1
+      end
+    end
+    while _useChests[i].locationIDStart < _tempId and _tempId < _useChests[i+1].locationIDStart and not _chestFound do
+      _tempId = _tempId - 1
+    end
+
+    if _tempId == _useChests[i].locationIDStart then
+      _chestFound = true
+      return _useChests[i]
+    end
+  end
+end
+
 function getItemById(item_id)
   for i = 1, #items do
     if items[i].ID == tonumber(item_id) then
@@ -1533,6 +1716,7 @@ function getItemById(item_id)
     end
   end
 end
+
 function getAbilityById(ab_id)
   for i = 1, #abilities do
     if abilities[i].ID == ab_id then
@@ -1633,6 +1817,17 @@ function updateCharacter()
   end
 end
 
+function updateRoomInfo()
+  local _readInfo = ReadArray(MemoryAddresses.world[gameVer], 0x05)
+  if _readInfo[1] ~= roomInfo[1] or _readInfo[2] ~= roomInfo[2] or _readInfo[5] ~= roomInfo[3] then
+    roomInfo[1] = _readInfo[1]
+    roomInfo[2] = _readInfo[2]
+    roomInfo[3] = _readInfo[5]
+    onRoomChange()
+    dataStorage()
+  end 
+end
+
 function updateReceived(itemCnt)
   if currentReceivedIndex < lastReceivedIndex then --Increment current received until we reach our last received
     currentReceivedIndex = currentReceivedIndex+1
@@ -1642,7 +1837,8 @@ function updateReceived(itemCnt)
     end
     receivedInit = true --We have finished receiving the intial set of items from the mod
   end
-  WriteInt(MemoryAddresses.medals[gameVer], currentReceivedIndex)
+  --WriteInt(MemoryAddresses.medals[gameVer], currentReceivedIndex)
+  WriteShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07, currentReceivedIndex)
   ConsolePrint("Current Received Index: "..tostring(currentReceivedIndex))
   ConsolePrint("Last Received Index: "..tostring(lastReceivedIndex))
   ConsolePrint("Item Cnt: "..tostring(itemCnt))
@@ -1679,27 +1875,9 @@ function checkIfCanReceive(id, type)
   end
 end
 
-function cheatGame()
-  --Grant these items
-  for i=1, #items do
-    local _item = items[i]
-    if _item.Type == "Flowmotion" then
-      --if _item.ID == 2661005 then --Rail slide
-      --  ItemHandler:Receive(_item.Type, _item.ID)
-      --end
-      --ItemHandler:Receive(_item.Type, _item.ID)
-    end
-    if _item.ID == 2681060 or _item.ID == 2631001 or _item.ID == 2631003 then --Balloonra and HP boosts
-      ItemHandler:Receive(_item.Type, _item.ID)
-      ItemHandler:Receive(_item.Type, _item.ID)
-      ItemHandler:Receive(_item.Type, _item.ID)
-    end
-    if _item.ID == 2631003 or _item.ID == 2631004 or _item.ID == 2631005 or _item.ID == 2631010 or _item.ID == 2631008 then
-      for j=1, 90 do
-        ItemHandler:Receive(_item.Type, _item.ID)
-      end
-    end
-  end
+function dataStorage()
+  --Send some info to the server for data storage
+  SendToApClient(MessageTypes.DataStorage, {tostring(roomInfo[1]), tostring(roomInfo[2]), tostring(getCharacter())})
 end
 
 -- ############################################################
@@ -1707,6 +1885,8 @@ end
 -- ############################################################
 
 function main()
+  updateRoomInfo()
+
   MessageHandler:runItemQueue()
   MessageHandler:clearItemQueue()
 
@@ -1714,6 +1894,9 @@ function main()
   LocationHandler:CheckLevel()
   LocationHandler:CheckStory()
   LocationHandler:JuliusDefeated()
+  LocationHandler:CheckPortal() --Move back to _onframe if this does not consistently check
+
+  removeStatKeys() --TODO: Maybe run this less often?
 
   killPlayer() --Check if deathlink is received
 
@@ -1726,13 +1909,8 @@ function main()
   RoomSaveTask:StoreExp()
 
   ItemHandler:RebuildFlowmotion()
-  --ItemHandler:RebuildAbilities()
 
-  if _activeRoom ~= ReadByte(MemoryAddresses.room[gameVer]) then
-    --Room change occurred; check some stuff
-    onRoomChange()
-    _activeRoom = ReadByte(MemoryAddresses.room[gameVer])
-  end
+  doingPortal = LocationHandler.inAPortal
   
 end
 
@@ -1754,8 +1932,22 @@ function OnGameStart()
     connectionInitialized = true
     gameStarted = true
     initGameState()
-    lastReceivedIndex = ReadInt(MemoryAddresses.medals[gameVer])
-    
+    lastReceivedIndex = ReadShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07)
+    --lastReceivedIndex = ReadInt(MemoryAddresses.medals[gameVer])
+
+    --Nop functions that prevent AP stuff from working correctly
+
+    --Prevents abilities from overwriting
+    WriteArray(0x376EB5, {0x90, 0x90, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
+    --Make world item chests open-able
+    WriteArray(0x271A43, {0x39, 0xC0, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
+    --Make recipe chests open-able
+    --WriteArray(0x2719FA, {0x39, 0xC0, 0x90, 0x90, 0x90})
+    --Make ability chests open-able
+    WriteArray(0x271956, {0xB0, 0x01})
+
+    --Prevent battle level from being overwritten (may only apply to riku?)
+    WriteArray(0x23A980, {0x90, 0x90})
 
     --Game Clear Flag
     --WriteByte(0xA40780, 0x01)
@@ -1797,7 +1989,7 @@ function _OnInit()
   LocationDefs:DefinePortals()
   ItemDefs:DefineItems()
   ItemDefs:DefineAbilities()
-  CheatTask:Init()
+  PatchTask:InitPatchTable()
   Spirits:DefineSpiritStats()
 
   if gameID == 3899271824 and _gameDetected then
@@ -1805,6 +1997,26 @@ function _OnInit()
   else
     ConsolePrint("Dream Drop Distance not detected. Make sure your game is up to date.")
   end
+end
+
+local _exeTime = -1
+function timerStart()
+  if not _isPaused then
+    _exeTime = os.clock()
+  end
+end
+
+function timerEnd(funcName)
+  if _exeTime == -1 then
+    return
+  end
+  local _endTime = os.clock()
+  local _totalTime = _endTime - _exeTime
+  local _formatStr = string.format("%.6f", _totalTime)
+  if _formatStr ~= "0.000000" and _formatStr ~= "0.001000" then
+    ConsolePrint(string.format("Execution time for "..funcName..": %.6f seconds", _totalTime))
+  end
+  _exeTime = -1
 end
 
 function _OnFrame()
@@ -1839,10 +2051,10 @@ function _OnFrame()
 
   checkPause()
 
-  LocationHandler:CheckPortal() --Needs to be checked every frame for activation/completion
   if Configs.LordKyroo then
     LocationHandler:LordKyroo()
   end
+
   DeliverDrop() --For sending drop traps
 
   MessageHandler:checkForRestore()
@@ -1854,6 +2066,8 @@ function _OnFrame()
   --Prevent potential softlocks
   SoftlockTask:PreventSoftlocks()
 
+  --Check if reward items need to be replaced
+  PatchTask:CheckForPatch()
 
   --Is player in report
   if ReadByte(MemoryAddresses.subMenu[gameVer]) == 0x07 then --Reports are open
@@ -1863,7 +2077,4 @@ function _OnFrame()
   if Configs.Deathlink then
     CheckDeathlink()
   end
-
-  --Run certain cheats every loop
-  --CheatTask:ExpMult()
 end
