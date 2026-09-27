@@ -1361,7 +1361,7 @@ function SendToApClient(type,messages)
       message = message .. ";" .. tostring(messages[i])
     end
     ConsolePrint("KHDDD Lua Output -> AP Client: << " .. message .. " >>")
-    client:send(message)
+    client:send(message .. "\n")
   end
 end
 
