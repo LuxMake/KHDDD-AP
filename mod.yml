@@ -243,14 +243,14 @@ assets:
   method : copy
   source:
   - name: item/jp/bin/itemdata.ite
-- name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
+- name: remastered/item/jp/bin/it0501.ctt/it0501.dds
   method : copy
   source:
-  - name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
-- name: item/jp/bin/itxxxx.ctt
+  - name: remastered/item/jp/bin/it0501.ctt/it0501.dds
+- name: item/jp/bin/it0501.ctt
   method : copy
   source:
-  - name: item/jp/bin/itxxxx.ctt
+  - name: item/jp/bin/it0501.ctt
 - name: item/jp/bin/shop.bin
   method : copy
   source:

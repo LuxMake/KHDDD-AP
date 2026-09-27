@@ -1959,6 +1959,14 @@ function APCommunication() --Interpret AP messages
   end
 end
 
+--Fills bytes[off+1..off+4] with the rel32 of a jmp/jcc: target minus the address of the next instruction, little-endian
+local function putRel32(bytes, off, nextInstr, target)
+  local d = (target - nextInstr) & 0xFFFFFFFF
+  for i = 1, 4 do
+    bytes[off + i] = (d >> (8 * (i - 1))) & 0xFF
+  end
+end
+
 function OnGameStart()
   local connected =  ConnectToApClient()
 
@@ -2020,6 +2028,30 @@ function OnGameStart()
       0x0F, 0x44, 0xD8,                   --+0x1A cmove ebx, eax
       0xEB, 0x0B,                         --+0x1D jmp +0x2A      shared epilogue, {0x2726F3, 0x272693}
       0x90, 0x90, 0x90})                  --+0x1F nop x3         pads to the original 34 bytes
+
+    --Item image: the AP dummy item loads it0501.ctt instead of itxxxx.ctt, the fallback shared by every item without an image of
+    --its own. The game ships it0501 and it0502 as solid black placeholders that nothing loads, so the mod's it0501.ctt/.dds
+    --can hold the AP art.
+    --The image name dispatcher at {0x26F770, 0x26F710} keeps the item id in edi and the name buffer in rbx. Its toy case
+    --subtracts 0x800 from edi and jump-tables 0x800-0x80C; anything higher takes a ja to the default case, which copies
+    --"itxxxx.ctt". That ja now goes to a stub written into 20 bytes of int3 padding (was: CC x20) after a library function.
+    --was: 0F 87 F3 01 00 00  ja default {0x26FCCF, 0x26FC6F}
+    local _toyImageJa = {0x26FAD6, 0x26FA76}
+    local _imageDefault = {0x26FCCF, 0x26FC6F}
+    local _imageSprintf = {0x26F857, 0x26F7F7} --the 0x06xx case: sprintf(rbx, "it%04x.ctt", edi), then return
+    local _imageStub = {0x75267C, 0x7524BC}
+    local _stub = _imageStub[gameVer]
+    local _stubBytes = {
+      0x83, 0xFF, 0x13,             --+0x00 cmp edi, 0x13      toy 0x813 once the toy case subtracted 0x800
+      0x0F, 0x85, 0, 0, 0, 0,       --+0x03 jne default        other toys keep itxxxx.ctt
+      0xBF, 0x01, 0x05, 0x00, 0x00, --+0x09 mov edi, 0x501
+      0xE9, 0, 0, 0, 0}             --+0x0E jmp sprintf case   so the name becomes "it0501.ctt"
+    putRel32(_stubBytes, 0x05, _stub + 0x09, _imageDefault[gameVer])
+    putRel32(_stubBytes, 0x0F, _stub + 0x13, _imageSprintf[gameVer])
+    WriteArray(_stub, _stubBytes)
+    local _jaBytes = {0x0F, 0x87, 0, 0, 0, 0} --ja stub
+    putRel32(_jaBytes, 0x02, _toyImageJa[gameVer] + 6, _stub)
+    WriteArray(_toyImageJa[gameVer], _jaBytes)
 
     --Game Clear Flag
     --WriteByte(0xA40780, 0x01)
