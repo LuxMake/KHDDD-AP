@@ -18,7 +18,6 @@ local Spirits = require("KHDDD.Items.Spirits")
 local LocationDefs = require("KHDDD.Locations.LocationDefs")
 local LocationHandler = require("KHDDD.Locations.LocationHandler")
 local StoryHandler = require("KHDDD.Locations.StoryHandler")
-local PromptTask = require("KHDDD.Tasks.PromptTask")
 local ConfigTask = require("KHDDD.Tasks.ConfigTask")
 RoomSaveTask = require("KHDDD.Tasks.RoomSaveTask")
 local SoftlockTask = require("KHDDD.Tasks.SoftlockTask")
@@ -935,7 +934,7 @@ function onPauseChange()
   end
   ItemHandler:RebuildAbilities()
 
-  if ReadByte(roomInfo[1]) == 0x0B then
+  if roomInfo[1] == 0x0B then
     --Accounts for being warped to world map from a room index of 01
     WorldHandler:MapLoaded()
   end
@@ -1962,29 +1961,8 @@ function OnGameStart()
     lastReceivedIndex = ReadShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07)
     --lastReceivedIndex = ReadInt(MemoryAddresses.medals[gameVer])
 
-    --Nop functions that prevent AP stuff from working correctly
-
-    --Prevents abilities from overwriting
-    local _abFunc = {0x376EB5, 0x376EA4}
-    local _worldChest = {0x271A43, 0x271A33}
-    local _abChest = {0x271956, 0x271946}
-    local _btlFunc = {0x23A980, 0x23A970}
-    WriteArray(_abFunc[gameVer], {0x90, 0x90, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
-    --Make world item chests open-able
-    WriteArray(_worldChest[gameVer], {0x39, 0xC0, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
-    --Make recipe chests open-able
-    --WriteArray(0x2719FA, {0x39, 0xC0, 0x90, 0x90, 0x90})
-    --Make ability chests open-able
-    WriteArray(_abChest[gameVer], {0xB0, 0x01})
-
-    --Prevent battle level from being overwritten (may only apply to riku?)
-    WriteArray(_btlFunc[gameVer], {0x90, 0x90})
-
     --Game Clear Flag
     --WriteByte(0xA40780, 0x01)
-
-    ------------------ENABLE DEV CHEATS--------------------
-    --cheatGame()
   end
 end
 
