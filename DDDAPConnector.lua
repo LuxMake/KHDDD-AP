@@ -18,7 +18,6 @@ local Spirits = require("KHDDD.Items.Spirits")
 local LocationDefs = require("KHDDD.Locations.LocationDefs")
 local LocationHandler = require("KHDDD.Locations.LocationHandler")
 local StoryHandler = require("KHDDD.Locations.StoryHandler")
-local PromptTask = require("KHDDD.Tasks.PromptTask")
 local ConfigTask = require("KHDDD.Tasks.ConfigTask")
 RoomSaveTask = require("KHDDD.Tasks.RoomSaveTask")
 local SoftlockTask = require("KHDDD.Tasks.SoftlockTask")
@@ -2055,9 +2054,6 @@ function OnGameStart()
 
     --Game Clear Flag
     --WriteByte(0xA40780, 0x01)
-
-    ------------------ENABLE DEV CHEATS--------------------
-    --cheatGame()
   end
 end
 
