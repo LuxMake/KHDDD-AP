@@ -55,6 +55,10 @@ assets:
   method: copy
   source:
   - name: io_packages/mime/core.dll
+- name: scripts/io_packages/KHDDD/Tools/AsmEdits.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Tools/AsmEdits.lua
 - name: scripts/io_packages/KHDDD/Items/ItemHandler.lua
   method: copy
   source:
