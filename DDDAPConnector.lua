@@ -61,8 +61,8 @@ MemoryAddresses = { --Primary memory addresses to reference
   keyblades = {0xA4C264, 0xA4BAE4},
   --rikuKeyblades = {0xA4C2A2, 0xA4BB22},
   rikuKeyblades = {0xA4C284, 0xA4BB04},
-  commandStockStart = {0xA4C6D4, 0xA4BF44},
-  commandStock = {0xA4C77C, 0xA4BFEC},
+  commandStockStart = {0xA4C6D4, 0xA4BF54},
+  commandStock = {0xA4C77C, 0xA4BFFC},
   commandDeckPopup = {0xA4C404, 0xA4BC84},
   equippedCommands = {0xA4D9D8, 0xA4D258},
   dodgeRollStock = {0xA4C70C, 0xA4BF8C},
@@ -234,13 +234,15 @@ KHSCII = {
 }
 
 KHCOLORS = {
+  WHITE = {0x28, 0xE0},
+  WHITE = {0x27, 0xE0},
+  YELLOW = {0x26, 0xE0}, --Progression
+  CYAN = {0x25, 0xE0}, 
+  GREEN = {0x24, 0xE0}, --Useful
+  PINK = {0x23, 0xE0}, --Useful Progression
   RED = {0x22, 0xE0}, --Trap
-  YELLOW = {0x26, 0xE0}, --Player
-  CYAN = {0x25, 0xE0}, --Filler
-  GREEN = {0x24, 0xE0},
-  PINK = {0x23, 0xE0}, --Progression
-  BLUE = {0x21, 0xE0}, --Useful
-  GRAY = {0x20, 0xE0},
+  BLUE = {0x21, 0xE0}, --Player
+  GRAY = {0x20, 0xE0}, --Filler
 }
 
 --Record: A51940
@@ -275,7 +277,7 @@ WorldFlags = {
     worldNo = 0x01,
     sora = {
       story = {0xA41D94, 0xA41614},
-      info = {0xA41E50, 0xA416D0}
+      info = {0xA41E4E, 0xA416CE}
     }
   },
   traverseTown = {
@@ -287,7 +289,7 @@ WorldFlags = {
       selectable = {0x10978F18, 0x10978798},
       startRoom = 0x01,
       secretPortal = {0x64, 0x01, 0x05},
-      info = {0xA41E54, 0xA416D4},
+      info = {0xA41E52, 0xA416D2},
     },
     riku = {
       story = {0xA445BC, 0xA43E3C},
@@ -380,7 +382,7 @@ WorldFlags = {
       startRoom = 0x0F,
       battle = {0xA41E00, 0xA41680},
       secretPortal = {0x6C, 0x01, 0x03},
-      info = {0xA41E56, 0xA416D6},
+      info = {0xA41E54, 0xA416D4},
     },
     riku = {
       unlocked = {0xA44720, 0xA43FA0},
@@ -404,7 +406,7 @@ WorldFlags = {
       dockPoint = {0x10979106, 0x10978986},
       battle = {0xA41E01, 0xA41681},
       secretPortal = {0x6E, 0x01, 0x01},
-      info = {0xA41E58, 0xA416D8},
+      info = {0xA41E56, 0xA416D6},
     },
     riku = {
       unlocked = {0xA44724, 0xA43FA4},
@@ -446,8 +448,11 @@ WorldFlags = {
 item_usefulness = {
   progression = 1,
   normal = 2,
+  progression_useful = 3, -- Useful Progression especially good!
   trap = 4,
-  special = 5
+  special = 5, -- shouldn't need this...
+  skip_balancing = 6, -- Mcguffins
+  deprioritized = 8, -- non prio locations
 }
 
 MessageTypes = {
@@ -898,7 +903,7 @@ function onCharacterChange()
   setSecretPortals()
 
   WorldHandler:ApplyScaling()
-  if ReadByte(roomInfo[1]) == 0x0B or ReadByte(DropAddresses.sora.world[gameVer]) == 0x0B or ReadByte(DropAddresses.riku.world[gameVer]) == 0x0B then
+  if roomInfo[1] == 0x0B or ReadByte(DropAddresses.sora.world[gameVer]) == 0x0B or ReadByte(DropAddresses.riku.world[gameVer]) == 0x0B then
     WorldHandler:MapLoaded()
   end
 
@@ -907,6 +912,9 @@ function onCharacterChange()
 
 
   MessageHandler.State.restore = true
+
+  --quick fix to instant drop/tt & twtnw drops not changing characters correctly
+  dataStorage()
 end
 
 local _isPaused = false
@@ -1336,7 +1344,7 @@ function ConnectToApClient()
   local ok, err = client:connect("127.0.0.1", 13713)
 
   if ok or err == "already connected" then
-    ConsolePrint("Connected to client!")
+    ConsolePrint("Connected to AP Client!")
     return true
   elseif err == "timeout" then
     return false
@@ -1351,10 +1359,8 @@ function SendToApClient(type,messages)
     for i = 1, #messages do
       message = message .. ";" .. tostring(messages[i])
     end
-    message = message .. "\n"
-
-    ConsolePrint("Sending message:" .. message)
-    client:send(message)
+    ConsolePrint("KHDDD Lua Output -> AP Client: << " .. message .. " >>")
+    client:send(message .. "\n")
   end
 end
 
@@ -1426,8 +1432,9 @@ function HandleMessage(msg)
     local _playerName = msg.values[2]
     local _itemCategory = msg.values[3]
 
-    if Configs.RemoteItemNotifs == 0 or Configs.RemoteItemNotifs == tonumber(_itemCategory) then
-      MessageHandler:remoteReceived(_itemName, _playerName, tonumber(_itemCategory))
+    local _flags = tonumber(_itemCategory)
+    if Configs.RemoteItemNotifs == 0 or (Configs.RemoteItemNotifs == 1 and _flags % 2 == 1) then --bit 0 is progression
+      MessageHandler:remoteReceived(_itemName, _playerName, _flags)
     end
 
     --ConsolePrint("Remote item message: Sent ".._itemName.." to ".._playerName.." | ".._itemCategory)
@@ -1493,9 +1500,9 @@ function ReceiveFromApClient()
     if message then
       if _receiveBuffer ~= "" then
         message = _receiveBuffer .. message
-        receiveBuffer = ""
+        _receiveBuffer = ""
       end
-      ConsolePrint("Full message received: "..message)
+      ConsolePrint("APClient -> KHDDD Lua Input: << " .. message .. " >> ")
       local parts = SplitString(message, ";")
       local type = tonumber(parts[1])
       local newMessage = {
@@ -1509,7 +1516,7 @@ function ReceiveFromApClient()
 
       --Check if connection is closed
       if newMessage.type == MessageTypes.Closed then
-        ConsolePrint("Server Closed; Resetting Client")
+        ConsolePrint("APClient Connection Closed; Resetting Lua Connection.")
         CloseConnection()
         return
       end
@@ -1517,12 +1524,12 @@ function ReceiveFromApClient()
       return newMessage
 
     elseif partial and #partial > 0 then
-      receiveBuffer = receiveBuffer .. partial
-      ConsolePrint("Partial message received")
+      _receiveBuffer = _receiveBuffer .. partial
+      ConsolePrint("APClient -> KHDDD Lua Input Part: << " .. partial)
     elseif err then
-      ConsolePrint("Error receiving message: " .. err)
+      ConsolePrint("Error receiving message from AP: " .. err)
       if err == "timeout" then
-        ConsolePrint("Please relaunch the AP Client")
+        ConsolePrint("Timed out; please relaunch the AP Client")
         CloseConnection()
       end
     end
@@ -1577,7 +1584,7 @@ function ReceiveItem(itemID, itemCnt)
       MessageHandler:msgReceived(itemID, 0)
     elseif Configs.LocalItemNotifs == 1 then
       local _progTypes = {"World", "Recipe", "Flowmotion", "Key", "Goal"}
-      if hasValue(_progTypes, _type) or _item.Usefulness == item_usefulness.progression then
+      if hasValue(_progTypes, _type) or _item.Usefulness == item_usefulness.progression or _item.Usefulness == item_usefulness.progression_useful then
         MessageHandler:msgReceived(itemID, 0)
       end
     end
@@ -1951,6 +1958,14 @@ function APCommunication() --Interpret AP messages
   end
 end
 
+--Fills bytes[off+1..off+4] with the rel32 of a jmp/jcc: target minus the address of the next instruction, little-endian
+local function putRel32(bytes, off, nextInstr, target)
+  local d = (target - nextInstr) & 0xFFFFFFFF
+  for i = 1, 4 do
+    bytes[off + i] = (d >> (8 * (i - 1))) & 0xFF
+  end
+end
+
 function OnGameStart()
   local connected =  ConnectToApClient()
 
@@ -1960,6 +1975,82 @@ function OnGameStart()
     initGameState()
     lastReceivedIndex = ReadShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07)
     --lastReceivedIndex = ReadInt(MemoryAddresses.medals[gameVer])
+
+    --Nop functions that prevent AP stuff from working correctly
+    --Address pairs are {Steam, EGS} offsets into KINGDOM HEARTS Dream Drop Distance.exe. To spot check one, open
+    --"KINGDOM HEARTS Dream Drop Distance.exe"+addr in Cheat Engine's memory viewer, or file offset addr-0xC00 in a hex editor.
+    --"was" is the code each patch overwrites; it is byte-identical in both builds.
+
+    --Prevents abilities from overwriting
+    --was: 42 80 24 09 07  and byte ptr [rcx+r9], 7  clears bits 3-7; the following or byte ptr [rcx+r9], dl sets the new ones
+    --now: nop x5, so the or can only add bits
+    local _abFunc = {0x376EB5, 0x376D25}
+    WriteArray(_abFunc[gameVer], {0x90, 0x90, 0x90, 0x90, 0x90})
+
+    --Chest checks: the function at {0x271910, 0x2718B0} switches on the item id's category and returns 1 when the chest can open
+    --Make world item chests open-able (key items, 0x04xx)
+    --was: 66 39 7C 41 88  cmp word ptr [rcx+rax*2-0x78], di  inventory count vs 0 (di); the following jmp goes to sete dil
+    --now: 39 C0 90 90 90  cmp eax, eax; nop x3  always equal, so sete returns 1
+    local _worldChest = {0x271A43, 0x2719E3}
+    WriteArray(_worldChest[gameVer], {0x39, 0xC0, 0x90, 0x90, 0x90})
+    --Make recipe chests open-able (0x03xx)
+    --was: 66 41 39 7C 40 50  cmp word ptr [r8+rax*2+0x50], di  six bytes, so this patch needs a sixth nop
+    --local _recipeChest = {0x2719FA, 0x27199A}
+    --WriteArray(_recipeChest[gameVer], {0x39, 0xC0, 0x90, 0x90, 0x90, 0x90})
+    --Make ability chests open-able (ids below 0x200)
+    --was: 8B C7  mov eax, edi  returns the ability check's 0/1
+    --now: B0 01  mov al, 1
+    local _abChest = {0x271956, 0x2718F6}
+    WriteArray(_abChest[gameVer], {0xB0, 0x01})
+
+    --Prevent battle level from being overwritten (may only apply to riku?)
+    --was: 88 08  mov byte ptr [rax], cl  stores levels 0-99; above 99, a separate unpatched mov at {0x23A967, 0x23A9D7} stores 99
+    --now: nop x2
+    local _btlFunc = {0x23A980, 0x23A9F0}
+    WriteArray(_btlFunc[gameVer], {0x90, 0x90})
+
+    --Item-get popup: give the AP dummy item (ItemOverwrite.dummyId, 0x0813) icon frame 5, which the shipped itemget_02_n.l2d
+    --points at sheet cell (3,0). Rewrites the toy (0x08xx) case of the icon helper at {0x272560, 0x272500}; entry 7 of its jump
+    --table at {0x272708, 0x2726A8} points here. In: esi = item id, dil = 0 when an item-get popup wants a frame (two menus pass 1
+    --and get icon 0x73). Out: eax; the patch leaves its result in ebx and jumps to the shared epilogue at +0x2A, which does
+    --mov eax, ebx and returns.
+    --was: B8 04 00 00 00 40 84 FF BB 73 00 00 00 0F 44 D8 8B C3 48 8B 5C 24 30 48 8B 74 24 38 48 83 C4 20 5F C3
+    --     mov eax, 4; test dil, dil; mov ebx, 0x73; cmove ebx, eax; mov eax, ebx; restore rbx and rsi; add rsp, 0x20; pop rdi; ret
+    local _iconToyCase = {0x2726C9, 0x272669}
+    WriteArray(_iconToyCase[gameVer], {
+      0x81, 0xFE, 0x13, 0x08, 0x00, 0x00, --+0x00 cmp esi, 0x813
+      0xB8, 0x04, 0x00, 0x00, 0x00,       --+0x06 mov eax, 4     other toys keep frame 4 (lollipop); mov leaves the flags alone
+      0x75, 0x05,                         --+0x0B jne +0x12
+      0xB8, 0x05, 0x00, 0x00, 0x00,       --+0x0D mov eax, 5
+      0x40, 0x84, 0xFF,                   --+0x12 test dil, dil
+      0xBB, 0x73, 0x00, 0x00, 0x00,       --+0x15 mov ebx, 0x73  menu icon, unchanged
+      0x0F, 0x44, 0xD8,                   --+0x1A cmove ebx, eax
+      0xEB, 0x0B,                         --+0x1D jmp +0x2A      shared epilogue, {0x2726F3, 0x272693}
+      0x90, 0x90, 0x90})                  --+0x1F nop x3         pads to the original 34 bytes
+
+    --Item image: the AP dummy item loads it0501.ctt instead of itxxxx.ctt, the fallback shared by every item without an image of
+    --its own. The game ships it0501 and it0502 as solid black placeholders that nothing loads, so the mod's it0501.ctt/.dds
+    --can hold the AP art.
+    --The image name dispatcher at {0x26F770, 0x26F710} keeps the item id in edi and the name buffer in rbx. Its toy case
+    --subtracts 0x800 from edi and jump-tables 0x800-0x80C; anything higher takes a ja to the default case, which copies
+    --"itxxxx.ctt". That ja now goes to a stub written into 20 bytes of int3 padding (was: CC x20) after a library function.
+    --was: 0F 87 F3 01 00 00  ja default {0x26FCCF, 0x26FC6F}
+    local _toyImageJa = {0x26FAD6, 0x26FA76}
+    local _imageDefault = {0x26FCCF, 0x26FC6F}
+    local _imageSprintf = {0x26F857, 0x26F7F7} --the 0x06xx case: sprintf(rbx, "it%04x.ctt", edi), then return
+    local _imageStub = {0x75267C, 0x7524BC}
+    local _stub = _imageStub[gameVer]
+    local _stubBytes = {
+      0x83, 0xFF, 0x13,             --+0x00 cmp edi, 0x13      toy 0x813 once the toy case subtracted 0x800
+      0x0F, 0x85, 0, 0, 0, 0,       --+0x03 jne default        other toys keep itxxxx.ctt
+      0xBF, 0x01, 0x05, 0x00, 0x00, --+0x09 mov edi, 0x501
+      0xE9, 0, 0, 0, 0}             --+0x0E jmp sprintf case   so the name becomes "it0501.ctt"
+    putRel32(_stubBytes, 0x05, _stub + 0x09, _imageDefault[gameVer])
+    putRel32(_stubBytes, 0x0F, _stub + 0x13, _imageSprintf[gameVer])
+    WriteArray(_stub, _stubBytes)
+    local _jaBytes = {0x0F, 0x87, 0, 0, 0, 0} --ja stub
+    putRel32(_jaBytes, 0x02, _toyImageJa[gameVer] + 6, _stub)
+    WriteArray(_toyImageJa[gameVer], _jaBytes)
 
     --Game Clear Flag
     --WriteByte(0xA40780, 0x01)

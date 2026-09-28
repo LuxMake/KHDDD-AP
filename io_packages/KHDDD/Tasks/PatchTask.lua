@@ -1,6 +1,6 @@
 local PatchTask = {}
 
-local _rewardAddr = {0xA96F28, 0xA967A8} --TODO: Find EGS Address
+local _rewardAddr = {0xA96F28, 0xA967A8}
 
 function PatchTask:InitPatchTable()
 	--TODO: Build out reward sets so this works better
