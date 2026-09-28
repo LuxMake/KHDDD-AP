@@ -247,6 +247,10 @@ assets:
   method : copy
   source:
   - name: remastered/item/jp/bin/it0501.ctt/it0501.dds
+- name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
+  method : copy
+  source:
+  - name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
 - name: item/jp/bin/it0501.ctt
   method : copy
   source:
