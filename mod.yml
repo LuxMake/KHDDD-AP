@@ -235,30 +235,58 @@ assets:
   method : copy
   source:
   - name: setdata/jp/bin/eh/eh19set.bin
-- name: remastered/item/jp/bin/it0409.ctt/it0409.dds
-  method : copy
-  source:
-  - name: remastered/item/jp/bin/it0409.ctt/it0409.dds
-- name: item/jp/bin/it0409.ctt
-  method : copy
-  source:
-  - name: item/jp/bin/it0409.ctt
 - name: item/jp/bin/itemdata.ite
   method : copy
   source:
   - name: item/jp/bin/itemdata.ite
-- name: remastered/item/jp/bin/it0501.ctt/it0501.dds
-  method : copy
-  source:
-  - name: remastered/item/jp/bin/it0501.ctt/it0501.dds
 - name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
   method : copy
   source:
   - name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
-- name: item/jp/bin/it0501.ctt
+- name: raw/item/jp/bin/it0813.ctt
   method : copy
   source:
-  - name: item/jp/bin/it0501.ctt
+  - name: raw/item/jp/bin/it0813.ctt
+- name: raw/item/jp/bin/it080d.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it080d.ctt
+- name: raw/item/jp/bin/it041d.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it041d.ctt
+- name: raw/item/jp/bin/it0423.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it0423.ctt
+- name: raw/item/jp/bin/it0401.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it0401.ctt
+- name: raw/item/jp/bin/it0405.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it0405.ctt
+- name: raw/item/jp/bin/it0409.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it0409.ctt
+- name: raw/item/jp/bin/it040d.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it040d.ctt
+- name: raw/item/jp/bin/it0411.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it0411.ctt
+- name: raw/item/jp/bin/it0415.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it0415.ctt
+- name: raw/item/jp/bin/it0419.ctt
+  method : copy
+  source:
+  - name: raw/item/jp/bin/it0419.ctt
 - name: item/jp/bin/shop.bin
   method : copy
   source:
@@ -331,3 +359,11 @@ assets:
   method : copy
   source:
   - name: remastered/menu/en/ckpt/info/itemget/bin/itemget_02_n.l2d/US_itemget_02.dds
+- name: menu/en/camp/icon/bin/icon.l2d
+  method : copy
+  source:
+  - name: menu/en/camp/icon/bin/icon.l2d
+- name: remastered/menu/en/camp/icon/bin/icon.l2d/US_icon.dds
+  method : copy
+  source:
+  - name: remastered/menu/en/camp/icon/bin/icon.l2d/US_icon.dds
