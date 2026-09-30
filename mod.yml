@@ -239,10 +239,6 @@ assets:
   method : copy
   source:
   - name: item/jp/bin/itemdata.ite
-- name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
-  method : copy
-  source:
-  - name: remastered/item/jp/bin/itxxxx.ctt/itxxxx.dds
 - name: raw/item/jp/bin/it0813.ctt
   method : copy
   source:
