@@ -127,6 +127,18 @@ function AsmEdits:IconReplace()
     putRel32(_iconJmp, 0x01, _iconHookSite[gameVer] + 5, _iconLookup)
     WriteArray(_iconHookSite[gameVer], _iconJmp)
 
+    --Banner frames above 5. The banner code turns frames 1-5 into layout times 1.0-5.0 through a switch (three copies) and
+    --leaves 0.0, frame 0's keyblade, for any other frame. Each switch now converts the frame itself and jumps to where the
+    --switch rejoins, 0x49 bytes on.
+    local _bannerFrameSwitches = { --{{Steam, EGS} address, cvtsi2ss ModRM for xmm6 and the frame register}
+      {{0x1B88CC, 0x1B893C}, 0xF1}, --was: 83 E9 01 74 3C ...  sub ecx, 1; je ...
+      {{0x1B901F, 0x1B908F}, 0xF3}, --was: 83 EB 01 74 3C ...  sub ebx, 1; je ...
+      {{0x1B9188, 0x1B91F8}, 0xF3}, --was: 83 EB 01 74 3C ...  sub ebx, 1; je ...
+    }
+    for _, s in ipairs(_bannerFrameSwitches) do
+      WriteArray(s[1][gameVer], {0xF3, 0x0F, 0x2A, s[2], 0xEB, 0x43}) --cvtsi2ss xmm6, frame; jmp +0x49
+    end
+
     --Item pictures from ItemImages. The image name dispatcher at {0x26F770, 0x26F710} keeps the item id in edi and the name
     --buffer in rbx; its key, treat and toy cases send ids without a picture of their own to the default case, which copies
     --"itxxxx.ctt". Those three branches now go to a lookup in the unused tail of .text past its last function (was: 00 bytes,
