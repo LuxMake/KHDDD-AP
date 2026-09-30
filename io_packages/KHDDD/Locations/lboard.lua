@@ -1,0 +1,188 @@
+local LBoard = {}
+
+--Items used for gate requirements
+local _checkItem1 = {0xA4C538, 0xA4BDB8} --First blank toy for spirit board
+local _checkItem2 = {0xA4C53C, 0xA4BDBC} --Second blank toy for spirit board
+local _prizeIdNameStart = {0x1096A9B8} --34 bytes per name
+local _commandHeader = {0x10B7D624}
+
+--Determine if player is in the spirit menu
+local _inSpiritMenu = {0xA9B2DC, 0xA9AB5C}
+local _canMove = {0xA9B2F4, 0xA9AB74}
+
+--Find Spirit ID of board that is currently being viewed
+local _activeBoard = {0x9E9A40} --TODO: Find EGS address
+local _activeBoardOffset = 0x490
+local _cursorPosOffset = 0x350 --Uses same addr as activeboard
+--+0 is x pos, +4 is y pos
+
+LBoard.BoardReqs = {}
+--Example Req: {{0, 7}, {1, 3}} --Require 7 sora worlds on gate 1 and 3 riku worlds on gate 2
+
+LBoard.GateCoords = {
+	{{2, 0}, {2, 2}}, --Meow Wow
+	{{3, 1}, {1, 3}}  --Tama Sheep
+}
+
+LBoard.SpiritItems = {}
+
+function LBoard:FillBoardRewards() --Fill board nodes with generic item
+	local _padding = 12
+	local _rewardCnt = 864
+	for i=1, _rewardCnt do
+		--Replace all items with PRIZE_ID_Dream10
+		local _base = 0x3B
+		local _mod = (i-1) % 16
+
+		WriteArray(MemoryAddresses.boardRewards[gameVer]+(_padding*(i-1)), {0x3B+_mod, 0x01, 0x3B+_mod, 0x01, 0x3B+_mod, 0x01, 0x3B+_mod, 0x01, 0x01, 0x00, 0x00}) --Last few bytes are for disposition?
+	end
+	self:WriteFillerNames()
+end
+
+function LBoard:WriteFillerNames()
+	local _numOfItems = 15
+	local _padding = 34
+	for i=0, _numOfItems do
+		writeTxtToGame(_prizeIdNameStart[gameVer]+(i*_padding), "Archipelago Item", 3)
+	end
+end
+
+function LBoard:WriteBoardReward(spirit, id, nodeNum) --Assign a specific reward to node
+	local _padding = 12
+	local _initialSpot = (spirit-1)*16
+	local _nodeToChange = _initialSpot+(nodeNum)
+	ConsolePrint("Writing Board Reward for spirit "..tostring(spirit).." and node "..tostring(nodeNum))
+	WriteArray(MemoryAddresses.boardRewards[gameVer]+(_padding*_nodeToChange), {id[1], id[2], id[1], id[2], id[1], id[2], id[1], id[2]})
+end
+
+function LBoard:ChangeGateReqs(spirit, gateNum, gateType, cnt)
+	--Spirit: Which spirit to change the gate for
+	--GateNum: Whether Gate 1 or Gate 2 are being changed
+	--GateType: 0 for Sora Worlds Cleared, 1 for Riku Worlds Cleared
+	--Cnt: How many worlds are needed to clear
+
+	self.BoardReqs[spirit][gateNum] = {gateType, cnt}
+end
+
+function LBoard:CheckCursorPos() --Returns x and y coordinates of cursor on the link board
+	local _cursorAddr = GetPointer(_activeBoard[gameVer], _cursorPosOffset)
+	return {ReadByte(_cursorAddr, true), ReadByte(_cursorAddr+0x04, true)}
+end
+
+function LBoard:ChangeItemNames()
+	local _currBoardAddr = GetPointer(_activeBoard[gameVer], _activeBoardOffset)
+	local _spiritId = ReadByte(_currBoardAddr, true)
+
+	if self.SpiritItems[_spiritId] ~= nil then
+		for x=1, 16 do
+			if self.SpiritItems[_spiritId][x] ~= nil then
+				local _padding = 34
+				writeTxtToGame(_prizeIdNameStart[gameVer]+(_padding*(x-1)), self.SpiritItems[_spiritId][x], 2)
+			end
+		end
+	end
+end
+
+boardVals = {}
+local _spiritInv = {0xA45A70, 0xA452F0}
+function LBoard:CheckRedeems()
+	local _partyLimit = 102
+	local _redeemOffset = 0x56 --86
+	for x=0, _partyLimit do
+		if boardVals[x+1] == nil then --Set board vals if not already defined
+			boardVals[x+1] = ReadArray(_spiritInv[gameVer]+(x*0x100)+_redeemOffset, 2)
+		end
+		local _boardVal = boardVals[x+1]
+		local _currVal = ReadArray(_spiritInv[gameVer]+(x*0x100)+_redeemOffset, 2)
+		if _currVal[1] > _boardVal[1] then --One of the first 8 nodes redeemed
+			_bitTbl = toBits(_currVal[1] - _boardVal[2])
+			for bit=1, #_bitTbl do
+				if _bitTbl[bit] == 1 then
+					self:RedeemNode(ReadByte(_spiritInv[gameVer]+(x*0x100)), bit)
+				end
+			end
+		end
+		if _currVal[2] > _boardVal[2] then --One of the last 8 nodes redeemed
+			_bitTbl = toBits(_currVal[2] - _boardVal[2])
+			for bit=1, #_bitTbl do
+				self:RedeemNode(ReadByte(_spiritInv[gameVer]+(x*0x100)), bit+8)
+			end
+		end
+
+		--Update board vals
+		boardVals[x+1] = _currVal
+	end
+end
+
+function LBoard:RedeemNode(spiritId, nodeNum)
+	SendToApClient(MessageTypes.NodeChecked, {tostring(spiritId), tostring(nodeNum)})
+end
+
+function LBoard:NameToBoard(spiritId, nodeNum, pName)
+	ConsolePrint("Attempting to write name")
+	local _addToBoard = Boards[spiritId]
+	if _addToBoard ~= nil then
+		for y=1, #_addToBoard do
+			for x=1, #_addToBoard[y] do
+				if _addToBoard[y][x][1] == nodeNum then
+					table.insert(_addToBoard[y][x], pName)
+					ConsolePrint(pName.." written to "..tostring(y)..","..tostring(x))
+				end
+			end
+		end
+	else
+		ConsolePrint("Failed to write requested name")
+	end
+end
+
+function LBoard:DisplayOwningPlayer()
+	local _nameWritten = false
+
+	local _pos = self:CheckCursorPos()
+	local _x = _pos[1]
+	local _y = _pos[2]
+	local _spiritPtr = GetPointer(_activeBoard[gameVer], _activeBoardOffset)
+	local _activeSpirit = ReadByte(_spiritPtr, true)
+
+	local _brdScan = Boards[_activeSpirit]
+
+	--ConsolePrint("Scanning index "..tostring(_y+1)..","..tostring(_x+1))
+	if _brdScan ~= nil then
+		if _brdScan[_y+1] ~= nil then
+			if _brdScan[_y+1][_x+1] ~= nil then
+				if #_brdScan[_y+1][_x+1] > 1 then --Name present in node
+					writeTxtToGame(_commandHeader[gameVer], _brdScan[_y+1][_x+1][2], 1)
+					_nameWritten = true
+				end
+			end
+		end
+	end
+		
+
+	if _nameWritten == false then
+		writeTxtToGame(_commandHeader[gameVer], "Command", 1)
+	end
+
+end
+
+local _inMenu = false
+function LBoard:Update()
+	--Check if player is in the spirit menu
+	if ReadByte(_inSpiritMenu[gameVer]) ~= 0x06 or ReadByte(_canMove[gameVer]) ~= 0x04 then
+		if _inMenu then
+			self:Exit()
+			_inMenu = false
+		end
+		return
+	end
+	_inMenu = true
+	self:ChangeItemNames()
+	self:CheckRedeems()
+	self:DisplayOwningPlayer()
+end
+
+function LBoard:Exit() --Player left the link board
+	self:WriteFillerNames()
+end
+
+return LBoard

@@ -91,6 +91,14 @@ assets:
   method: copy
   source:
   - name: io_packages/KHDDD/Locations/WorldHandler.lua
+- name: scripts/io_packages/KHDDD/Locations/lboard.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/lboard.lua
+- name: game/de/bin/lboard.bin
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/lboard_genned.bin
 - name: scripts/io_packages/KHDDD/Tasks/PromptTask.lua
   method : copy
   source:
@@ -363,3 +371,7 @@ assets:
   method : copy
   source:
   - name: remastered/menu/en/camp/icon/bin/icon.l2d/US_icon.dds
+- name: remastered/chara/f_obj/f_de50/mig/5/bin/f_de505.txa/f_de505_a.dds
+  method: copy
+  source:
+  - name: io_packages/KHDDD/f_de505_b.dds

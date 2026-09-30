@@ -1,7 +1,7 @@
 local AsmEdits = {}
 
 --Fills bytes[off+1..off+4] with the rel32 of a jmp/jcc: target minus the address of the next instruction, little-endian
-function AsmEdits:putRel32(bytes, off, nextInstr, target)
+local function putRel32(bytes, off, nextInstr, target)
   local d = (target - nextInstr) & 0xFFFFFFFF
   for i = 1, 4 do
     bytes[off + i] = (d >> (8 * (i - 1))) & 0xFF

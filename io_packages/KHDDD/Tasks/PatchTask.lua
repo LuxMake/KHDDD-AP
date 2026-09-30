@@ -559,4 +559,48 @@ function PatchTask:ResetRewards()
 	end
 end
 
+function PatchTask:LinkBoardReward(locId, itemId)
+	local _baseLocId = 2690000 --First 2 0's for spirit ID, last 2 0's for node number
+
+	--Calculate intended spirit
+	local _trimmedId = locId - _baseLocId
+	local _spiritId = math.floor(_trimmedId/100)
+	local _nodeNum = _trimmedId-(_spiritId * 100)
+
+	local _item = getItemById(itemId)
+	local _itemBytes = _item.Bytes
+	if #_itemBytes == 1 then
+		table.insert(_itemBytes, 0x00)
+	end
+
+	local _validItems = {"Command", "Stat", "Support", "Spirit", "Consumable"}
+
+	if hasValue(_validItems, _item.Type) == true then --Item can go into spirit board normally
+		LBoard:WriteBoardReward(_spiritId, _itemBytes, _nodeNum)
+	else --Write item name to spirit dict
+		local _strLength = string.len("Archipelago Item")
+		if LBoard.SpiritItems[_spiritId] == nil then --Initialize table
+			LBoard.SpiritItems[_spiritId] = {}
+		end
+		ConsolePrint("Writing ".._item.Name.." to spirit "..tostring(_spiritId).." node "..tostring(_nodeNum))
+		LBoard.SpiritItems[_spiritId][_nodeNum+1] = string.sub(_item.Name, 1, _strLength)
+		LBoard:NameToBoard(_spiritId, _nodeNum, "Special")
+	end
+
+end
+
+function PatchTask:RemoteBoardRewards(spiritId, nodeNum, itemName, playerName)
+	local _strLength = string.len("Archipelago Item")
+	local _spiritId = tonumber(spiritId)
+	local _nodeNum = tonumber(nodeNum)
+
+	if LBoard.SpiritItems[_spiritId] == nil then
+		LBoard.SpiritItems[_spiritId] = {}
+	end
+
+	--TODO: Get name of owning player for description
+	LBoard.SpiritItems[_spiritId][_nodeNum] = string.sub(itemName, 1, _strLength)
+	LBoard:NameToBoard(_spiritId, _nodeNum-1, playerName)
+end
+
 return PatchTask
