@@ -14,7 +14,7 @@
 local socket = require("socket")
 ItemHandler = require("KHDDD.Items.ItemHandler")
 local ItemDefs = require("KHDDD.Items.ItemDefs")
-local Spirits = require("KHDDD.Items.Spirits")
+Spirits = require("KHDDD.Items.Spirits")
 local LocationDefs = require("KHDDD.Locations.LocationDefs")
 local LocationHandler = require("KHDDD.Locations.LocationHandler")
 local StoryHandler = require("KHDDD.Locations.StoryHandler")
@@ -25,6 +25,7 @@ local MessageHandler = require("KHDDD.Items.MessageHandler")
 WorldHandler = require("KHDDD.Locations.WorldHandler")
 PatchTask = require("KHDDD.Tasks.PatchTask")
 local AsmEdits = require("KHDDD.Tools.AsmEdits")
+LBoard = require("KHDDD.Locations.lboard")
 
 LUAGUI_NAME = "DDD AP Connector [Socket]"
 LUAGUI_AUTH = "Lux"
@@ -105,7 +106,7 @@ MemoryAddresses = { --Primary memory addresses to reference
   cutscenePauseType = {0xA3D06C, 0xA3C8EC},
   medals = {0xA51768, 0xA50FE8},
   lboard = {0x11992780, 0x11992000},
-  boardRewards = {0x10986D60, 0x109865E0},
+  boardRewards = {0x10986D54, 0x109865D4},
   expTable = {0x7B2A94, 0x7B2C34},
   subMenu = {0xA9B2F4, 0xA9AB74},
   emblems = {0xA4C568, 0xA4BDE8}
@@ -475,6 +476,8 @@ MessageTypes = {
   ItemPrompt = 14,
   DataStorage = 15,
   HasSlotData = 16,
+  ScoutBoard = 17,
+  NodeChecked = 18,
   Closed = 20
 }
 HandshakeSent = false
@@ -1011,6 +1014,9 @@ function makeDummyItem()
     WriteArray(MemoryAddresses.chestDataR[gameVer]+0x1A+(8*i), ItemOverwrite.dummyId)
   end
 
+  --Replace link board data with dummy
+  LBoard:FillBoardRewards()
+
   --Overwrite unused Key Items for AP specific items
   local _nameSize = 10 --Number of characters per name
   local _descSize = 15 --Number of characters per desc
@@ -1489,6 +1495,9 @@ function HandleMessage(msg)
 
   elseif msg.type == MessageTypes.GetCurrentIndex then
     SendToApClient(MessageTypes.GetCurrentIndex, {tostring(currentReceivedIndex)})
+
+  elseif msg.type == MessageTypes.ScoutBoard then
+    PatchTask:RemoteBoardRewards(msg.values[1], msg.values[2], msg.values[3], msg.values[4])
   end
 
 
@@ -1553,95 +1562,6 @@ end
 -- ############################################################
 -- ######################  Helpers  ###########################
 -- ############################################################
-
-function ReceiveItem(itemID, itemCnt)
-  if itemID == 2639999 then --Victory; Not a real item
-    GoalGame()
-    return
-  end
-
-  if itemID == nil then
-    ConsolePrint("Invalid item received. Val: "..itemID)
-    return
-  end
-
-  if itemID < 2630000 then --Trap received
-    ConsolePrint("Sending drop trap")
-    if lastReceivedIndex < currentReceivedIndex then
-      DropTrap()
-    end
-    return
-  end
-
-  --Distribute real item
-  local _item = getItemById(itemID)
-  local _type = _item.Type
-  if itemCnt <= currentReceivedIndex or lastReceivedIndex > currentReceivedIndex then
-    checkIfCanReceive(itemID, _type)
-  else
-
-    --Check if a notification should be sent for this item
-    if Configs.LocalItemNotifs == 0 then
-      MessageHandler:msgReceived(itemID, 0)
-    elseif Configs.LocalItemNotifs == 1 then
-      local _progTypes = {"World", "Recipe", "Flowmotion", "Key", "Goal"}
-      if hasValue(_progTypes, _type) or _item.Usefulness == item_usefulness.progression or _item.Usefulness == item_usefulness.progression_useful then
-        MessageHandler:msgReceived(itemID, 0)
-      end
-    end
-
-
-    ItemHandler:Receive(_type, itemID)
-    RoomSaveTask:StoreItem(itemID)
-  end
-  updateReceived(itemCnt)
-end
-
-function ReceiveLocalItem(itemID, itemCnt)
-  if itemID == nil then
-    ConsolePrint("Local item invalid. Val: "..itemID)
-    return
-  end
-
-  --TODO: RECEIVE COMMANDS IF THEY WERE OBTAINED FROM BONUS OR LEVEL UP
-
-  if itemCnt <= currentReceivedIndex then
-    return
-  end
-
-  local _item = getItemById(itemID)
-  local _type = _item.Type
-  
-  local validTypes = {"Recipe", "Flowmotion", "World", "Key", "Stat", "Support", "Spirit", "Stats [Sora]", "Stats [Riku]"}
-
-  --See if we should autocraft or record ability
-  --local _isBehind = currentReceivedIndex < lastReceivedIndex
-  local _isBehind = itemCnt < lastReceivedIndex
-
-  if hasValue(validTypes, _type) then --Specially handle this item
-    --Do not write physical item to inventory; only write the unique functionality
-    if _type == "Recipe" then
-      ConsolePrint("Local recipe obtained with behind value: "..tostring(_isBehind))
-      ItemHandler:GiveRecipe(itemID, _isBehind, true)
-    elseif _type == "Flowmotion" then
-      ItemHandler:GiveFlowmotion(itemID, false)
-    elseif _type == "World" and not _isBehind then
-      WorldHandler:ObtainWorld(itemID) --TODO: This does not appear to be applying battle level correctly
-      ItemHandler:PlaceWorldItem(itemID)
-    elseif _type == "Key" then
-      ItemHandler:GiveKeyItem(itemID) --TODO: Make sure this doesn't duplicate
-    elseif _type == "Support" or _type == "Spirit" then
-      ItemHandler:GiveAbility(itemID, not _isBehind)
-    elseif _type == "Stat" then
-      ItemHandler:GiveAbility(itemID, true)
-    elseif _type == "Stats [Sora]" or _type == "Stats [Riku]" then
-      ItemHandler:GiveStatBonus(itemID)
-    end
-  end
-
-  updateReceived(itemCnt)
-
-end
 
 function toHex(str)
   return string.format("%X", str)
@@ -1862,22 +1782,6 @@ function updateRoomInfo()
   end 
 end
 
-function updateReceived(itemCnt)
-  if currentReceivedIndex < lastReceivedIndex then --Increment current received until we reach our last received
-    currentReceivedIndex = currentReceivedIndex+1
-  else --Fill with item index of latest received
-    if itemCnt > currentReceivedIndex then
-      currentReceivedIndex = itemCnt
-    end
-    receivedInit = true --We have finished receiving the intial set of items from the mod
-  end
-  --WriteInt(MemoryAddresses.medals[gameVer], currentReceivedIndex)
-  WriteShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07, currentReceivedIndex)
-  ConsolePrint("Current Received Index: "..tostring(currentReceivedIndex))
-  ConsolePrint("Last Received Index: "..tostring(lastReceivedIndex))
-  ConsolePrint("Item Cnt: "..tostring(itemCnt))
-end
-
 --This function is needed for room save to work
 function sendToInv(itemId)
   local _item = getItemById(itemId)
@@ -1889,23 +1793,6 @@ function sendToInv(itemId)
     ItemHandler:RecipeToInv(itemId)
   else
     ItemHandler:Receive(_item.Type, itemId)
-  end
-end
-
-function checkIfCanReceive(id, type)
-  local validTypes = {"Stats [Sora]", "Stats [Riku]", "Recipe", "Flowmotion", "World", "Key", "Stat"}
-  if hasValue(validTypes, type) and not receivedInit then
-    --For recipe, create a version that only adds to table and bypasses adding recipe to inventory and auto-craft
-    if type ~= "Recipe" and type ~= "Key" and type ~= "Stat" then
-      ConsolePrint("Successfully received stat/movement/world")
-      ItemHandler:Receive(type, id)
-      RoomSaveTask:StoreItem(id)
-    elseif type == "Key" or type == "Stat" then
-      ItemHandler:Receive(type, id) --Don't store this in room save
-    else
-      ConsolePrint("Successfully received recipe")
-      ItemHandler:RecipeToState(id)
-    end
   end
 end
 
@@ -2096,6 +1983,9 @@ function _OnFrame()
 
   --Check if reward items need to be replaced
   PatchTask:CheckForPatch()
+
+  --Run link board scripts that need to update every frame
+  LBoard:Update()
 
   --Is player in report
   if ReadByte(MemoryAddresses.subMenu[gameVer]) == 0x07 then --Reports are open

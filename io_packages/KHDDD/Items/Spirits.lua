@@ -18,6 +18,24 @@ local RankMult = {-0.18, -0.12, -0.06, 0, 0.06, 0.12, 0.18}
 local GrowthMult = {0, -0.01, 0.01}
 
 --m_deXX0 records from btlparam.bin; hp/str/mag/def are x10, exp is a percent of SpiritExp
+MeowWowBoard = {
+	{{-1}, {-1}, {20}, {7}, {8}, {9}, {10}},
+	{{-1}, {0}, {1}, {2}, {3}, {4}, {5}, {6}},
+	{{-1}, {-1}, {30}, {11}, {12}, {13}, {14}, {-1}},
+	{{-1}, {-1}, {-1}, {-1}, {15}}
+}
+
+TamaSheepBoard = {
+	{{-1}},
+	{{0}, {1}, {2}, {20}, {6}, {7}, {10}},
+	{{3}, {-1}, {-1}, {4}, {5}, {8}, {9}},
+	{{-1}, {30}, {11}, {12}, {13}, {14}, {15}}
+}
+
+--20 and 30 represent the 2 item gates
+Boards = {MeowWowBoard, TamaSheepBoard}
+
+--Stat lines pulled from KH Wiki
 function Spirits:DefineSpiritStats()
 SpiritStats = { --Base stats for Dream Eaters
 	{hp=360, str=84, mag=111, def=66, exp=90,
