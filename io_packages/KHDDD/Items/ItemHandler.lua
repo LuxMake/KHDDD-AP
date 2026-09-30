@@ -52,6 +52,7 @@ function ItemHandler:Receive(type, value, cnt, isLocal)
 
   local _ahead = true
   local _receivedAgain = false
+
   if cnt then
     _ahead = cnt > lastReceivedIndex
     if cnt > self.State.ReceivedIndex then
@@ -60,7 +61,6 @@ function ItemHandler:Receive(type, value, cnt, isLocal)
       _receivedAgain = true
     end
   end
-
   if _receivedAgain then
     return
   end
@@ -683,6 +683,11 @@ function ItemHandler:GiveRecipe(value, skipCraft, skipItem)
   local _item = getItemById(value)
   local _slotNo = value-2701001 --Base address for meow wow; recipes need to go in proper slot
   local _targetSlot = MemoryAddresses.recipes[gameVer]+(_slotNo*2)
+
+  --Scout board for received recipe
+  ConsolePrint("ATTEMPTING TO HINT BOARDS")
+  SendToApClient(MessageTypes.ScoutBoard, {tostring(_slotNo+1)})
+
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   if not skipItem then
     WriteArray(_targetSlot, _item.Bytes)
@@ -698,6 +703,10 @@ end
 function ItemHandler:RecipeToState(value)
   --This table only logs a recipe to the state table without adding to inventory or auto-crafting
   table.insert(self.State.Recipes, value)
+  local _slotNo = value-2701001
+  --Scout board for received recipe
+  ConsolePrint("ATTEMPTING TO HINT BOARDS")
+  SendToApClient(MessageTypes.ScoutBoard, {tostring(_slotNo+1)})
   self:UpdateRecipeTotal()
 end
 
@@ -706,6 +715,7 @@ function ItemHandler:RecipeToInv(value)
   local _item = getItemById(value)
   local _slotNo = value-2701001 --Base address for meow wow; recipes need to go in proper slot
   local _targetSlot = MemoryAddresses.recipes[gameVer]+(_slotNo*2)
+
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   WriteArray(_targetSlot, _item.Bytes)
   self:UpdateRecipeTotal()

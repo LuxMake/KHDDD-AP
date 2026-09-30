@@ -88,6 +88,7 @@ function ConfigTask:PatchGame(msgVals)
 	local _soraChestRange = {2650211, 2650435}
 	local _rikuChestRange = {2650436, 2650648}
 	local _levelRange = {2660000, 2660200}
+	local _boardRange = {2690099, 2700000}
 
 	for i=1, #msgVals do
 		if i%2 == 0 then --Message pair
@@ -137,6 +138,9 @@ function ConfigTask:PatchGame(msgVals)
 			elseif _locId > _levelRange[1] and _locId < _levelRange[2] then --Level
 				_itemId = PatchTask:ChangeToCompatibleItem(_itemId)
 				PatchTask:AssignLevelRewards(_locId, _itemId)
+			elseif _locId > _boardRange[1] and _locId < _boardRange[2] then --Link Board Reward
+				_itemId = PatchTask:ChangeToCompatibleItem(_itemId, true)
+				PatchTask:LinkBoardReward(_locId, _itemId)
 			else --Reward
 				if PatchTask.MissionDict[tostring(_locId)] ~= nil then
 					_itemId = PatchTask:ChangeToCompatibleItem(_itemId, false, true)

@@ -1,5 +1,22 @@
 local Spirits = {}
 
+MeowWowBoard = {
+	{{-1}, {-1}, {20}, {7}, {8}, {9}, {10}},
+	{{-1}, {0}, {1}, {2}, {3}, {4}, {5}, {6}},
+	{{-1}, {-1}, {30}, {11}, {12}, {13}, {14}, {-1}},
+	{{-1}, {-1}, {-1}, {-1}, {15}}
+}
+
+TamaSheepBoard = {
+	{{-1}},
+	{{0}, {1}, {2}, {20}, {6}, {7}, {10}},
+	{{3}, {-1}, {-1}, {4}, {5}, {8}, {9}},
+	{{-1}, {30}, {11}, {12}, {13}, {14}, {15}}
+}
+
+--20 and 30 represent the 2 item gates
+Boards = {MeowWowBoard, TamaSheepBoard}
+
 --Stat lines pulled from KH Wiki
 function Spirits:DefineSpiritStats()
 SpiritStats = { --Base stats for Dream Eaters
