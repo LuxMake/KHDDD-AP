@@ -1,23 +1,8 @@
 local Spirits = {}
 
---Game's spirit exp table, scaled by each spirit's exp rate
-local SpiritExp = {
-	40, 250, 600, 1120, 1760, 2520, 3400, 4400, 5520, 6760,
-	8154, 9671, 11351, 13157, 15135, 17242, 19530, 21950, 24560, 27305,
-	30249, 33331, 36621, 40052, 43700, 47492, 51510, 55675, 60075, 64625,
-	69325, 74175, 79175, 84325, 89625, 95075, 100675, 106425, 112325, 118375,
-	125195, 132180, 139330, 146645, 154125, 161770, 169580, 177555, 185695, 194000,
-	202470, 211105, 219905, 228870, 238000, 247295, 256755, 266380, 276170, 286125,
-	296245, 306530, 316980, 327595, 338375, 349320, 360430, 371705, 383145, 394750,
-	406520, 418455, 430555, 442820, 455250, 467845, 480605, 493530, 506620, 519875,
-	533295, 546880, 560630, 574545, 588625, 602870, 617280, 631855, 646595, 661500,
-	676570, 691805, 707205, 722770, 738500, 754395, 770455, 786680,
-}
-
 local RankMult = {-0.18, -0.12, -0.06, 0, 0.06, 0.12, 0.18}
 local GrowthMult = {0, -0.01, 0.01}
 
---m_deXX0 records from btlparam.bin; hp/str/mag/def are x10, exp is a percent of SpiritExp
 MeowWowBoard = {
 	{{-1}, {-1}, {20}, {7}, {8}, {9}, {10}},
 	{{-1}, {0}, {1}, {2}, {3}, {4}, {5}, {6}},
@@ -35,7 +20,7 @@ TamaSheepBoard = {
 --20 and 30 represent the 2 item gates
 Boards = {MeowWowBoard, TamaSheepBoard}
 
---Stat lines pulled from KH Wiki
+--m_deXX0 records from btlparam.bin; hp/str/mag/def are x10, exp is a percent of the game's exp table
 function Spirits:DefineSpiritStats()
 SpiritStats = { --Base stats for Dream Eaters
 	{hp=360, str=84, mag=111, def=66, exp=90,
@@ -169,14 +154,6 @@ function Spirits:GetStats(id, level, rank, growth)
 		return math.floor(f32(f32(f32(_mult*base)*_level)/100))
 	end
 	return {hp=stat(_base.hp, 6), str=stat(_base.str, 0), mag=stat(_base.mag, 2), def=stat(_base.def, 4)}
-end
-
---Exp at the start of level, as the game sets it when it creates a spirit
-function Spirits:GetExp(id, level)
-	if level <= 1 then
-		return 0
-	end
-	return SpiritExp[level-1]*SpiritStats[id].exp // 100
 end
 
 return Spirits

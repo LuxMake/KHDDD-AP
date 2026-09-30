@@ -217,6 +217,7 @@ end
 function ConfigTask:SetExpMult(msgVal)
 	Configs.ExpMult = tonumber(msgVal[1])
 	self:WriteExpTable()
+	ItemHandler:SetPendingSpiritExp()
 	ConsolePrint("Setting Exp Mult to "..msgVal[1])
 end
 
