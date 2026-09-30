@@ -11,7 +11,7 @@ end
 --Writes a 6-byte jcc (0F op rel32) at addr that goes to target
 function AsmEdits:writeJcc(addr, op, target)
   local bytes = {0x0F, op, 0, 0, 0, 0}
-  self:putRel32(bytes, 0x02, addr + 6, target)
+  putRel32(bytes, 0x02, addr + 6, target)
   WriteArray(addr, bytes)
 end
 
@@ -109,10 +109,10 @@ function AsmEdits:IconReplace()
       0x83, 0xF8, 0x09,                   --+0x3C no row:  cmp eax, 9
       0x0F, 0x87, 0, 0, 0, 0,             --+0x3F          ja epilogue
       0xE9, 0, 0, 0, 0}                   --+0x45          jmp dispatch
-    self:putRel32(_iconCode, 0x03, _iconLookup + 0x07, _iconRows)
-    self:putRel32(_iconCode, 0x32, _iconLookup + 0x36, _iconEpilogue[gameVer])
-    self:putRel32(_iconCode, 0x41, _iconLookup + 0x45, _iconEpilogue[gameVer])
-    self:putRel32(_iconCode, 0x46, _iconLookup + 0x4A, _iconDispatch[gameVer])
+    putRel32(_iconCode, 0x03, _iconLookup + 0x07, _iconRows)
+    putRel32(_iconCode, 0x32, _iconLookup + 0x36, _iconEpilogue[gameVer])
+    putRel32(_iconCode, 0x41, _iconLookup + 0x45, _iconEpilogue[gameVer])
+    putRel32(_iconCode, 0x46, _iconLookup + 0x4A, _iconDispatch[gameVer])
     local _iconRowBytes = {}
     for _, r in ipairs(ItemIcons) do --8-byte rows: u16 first id, u16 last id, u16 banner frame, u16 menu icon
       for _, v in ipairs(r) do
@@ -124,7 +124,7 @@ function AsmEdits:IconReplace()
     WriteArray(_iconRows, _iconRowBytes)
     WriteArray(_iconLookup, _iconCode)
     local _iconJmp = {0xE9, 0, 0, 0, 0, 0x90, 0x90, 0x90, 0x90} --jmp lookup; nop x4 fills the rest of the ja
-    self:putRel32(_iconJmp, 0x01, _iconHookSite[gameVer] + 5, _iconLookup)
+    putRel32(_iconJmp, 0x01, _iconHookSite[gameVer] + 5, _iconLookup)
     WriteArray(_iconHookSite[gameVer], _iconJmp)
 
     --Item pictures from ItemImages. The image name dispatcher at {0x26F770, 0x26F710} keeps the item id in edi and the name
@@ -161,8 +161,8 @@ function AsmEdits:IconReplace()
       0xC3,                               --+0x43              ret
       0x48, 0x83, 0xC0, 0x10,             --+0x44 next row:    add rax, 0x10
       0xEB, 0xCB}                         --+0x48              jmp +0x15
-    self:putRel32(_code, 0x11, _lookup + 0x15, _rows)
-    self:putRel32(_code, 0x1C, _lookup + 0x20, _imageDefault[gameVer])
+    putRel32(_code, 0x11, _lookup + 0x15, _rows)
+    putRel32(_code, 0x1C, _lookup + 0x20, _imageDefault[gameVer])
     local _rowBytes = {}
     for _, r in ipairs(ItemImages) do --16-byte rows: u16 first id, u16 last id, name padded with NULs to 12 bytes
       assert(#r[3] <= 11, "ItemImages name longer than 11 characters: " .. r[3])
