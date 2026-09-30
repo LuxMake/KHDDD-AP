@@ -178,6 +178,7 @@ function ConfigTask:SetEmblemReq(msgVal)
 	local _reqStr = "Required: "..msgVal[1]
 	writeTxtToGame(ItemOverwrite.toy14DescAddr[gameVer], _reqStr, 1)
 	ConsolePrint("Setting required emblems to "..msgVal[1])
+	ItemHandler:CheckEmblems() --Catches a count reached before the requirement was known
 end
 
 function ConfigTask:SetGoal(msgVal)

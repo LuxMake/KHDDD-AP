@@ -98,7 +98,7 @@ function ItemHandler:Receive(type, value, cnt, isLocal)
   elseif type == "Recipe" then
     self:GiveRecipe(value, not _ahead)
   elseif type == "Key" then
-    self:GiveKeyItem(value, (_ahead and not isLocal)) --Only receive emblems if not local
+    self:GiveKeyItem(value, _ahead, isLocal)
   elseif type == "Stat" or type == "Support" or type == "Spirit" then
     self:GiveAbility(value, true)
   else
@@ -176,11 +176,13 @@ end
 -- ############################################################
 -- ####################  Key Items  ###########################
 -- ############################################################
-function ItemHandler:GiveKeyItem(value, canReceive)
+function ItemHandler:GiveKeyItem(value, ahead, isLocal)
   local _key = getItemById(value)
   if _key.Name == "Lucky Emblem" then
-    if canReceive then
+    if ahead and not isLocal then
       self:GiveLuckyEmblem()
+    elseif ahead then
+      self:CheckEmblems() --The game already counted a local emblem
     end
     return
   end
@@ -195,9 +197,12 @@ function ItemHandler:GiveLuckyEmblem()
 
   local _currVal = ReadByte(MemoryAddresses.emblems[gameVer]+0x02)
   _currVal = math.min(_currVal, 98)+0x01 --Don't try to receive more than we can
-  self.State.Emblems = _currVal
   WriteByte(MemoryAddresses.emblems[gameVer]+0x02, _currVal)
+  self:CheckEmblems()
+end
 
+function ItemHandler:CheckEmblems()
+  self.State.Emblems = ReadByte(MemoryAddresses.emblems[gameVer]+0x02)
   if self.State.Emblems >= Configs.EmblemReqs and Configs.EmblemReqs > 0 then --Send location for finding all emblems
     SendToApClient(MessageTypes.StoryChecked, {"2670300"})
   end
