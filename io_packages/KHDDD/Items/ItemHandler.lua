@@ -1,3 +1,5 @@
+local Spirits = require("KHDDD.Items.Spirits")
+
 local ItemHandler = {}
 
 ItemHandler.State = {
@@ -810,8 +812,6 @@ function ItemHandler:CheckMacguffins()
 end
 
 function ItemHandler:CraftSpirits(value)
-  math.randomseed(os.time()) --Set seed to ensure randomness
-
   local _baseRecipe = getItemById(value)
 
   local _spiritId = (value - 2701001)+1 --Get int value representing spirit
@@ -836,35 +836,29 @@ function ItemHandler:CraftSpirits(value)
   local _nameOffset = 0x06 --Spirit Name
 
   local _maxHpOffset = 0x30
+  local _bonusOffset = 0x32 --Hp, stat, and resistance bonuses the game adds when it recalculates stats
   local _statOffset = 0x3D
+  local _growthOffset = 0x47
 
-  --Write Spirit Stats
+  local _level = math.max(ReadByte(levels.addr[gameVer]), 1)
+  local _growth = math.random(0, 2) | math.random(0, 2) << 2 | math.random(0, 2) << 4 | math.random(0, 2) << 6
   local _spiritStats = SpiritStats[_spiritId]
-  local _hpBonus = math.random()+math.random(0, 3)
-  local _strBonus = math.random()+math.random(0, 3)
-  local _magBonus = math.random()+math.random(0, 3)
-  local _defBonus = math.random()+math.random(0, 3)
-  WriteByte(_spiritAddr+_maxHpOffset, math.floor(_spiritStats.hp+_hpBonus))
-  WriteByte(_spiritAddr+_currHpOffset, math.floor(_spiritStats.hp+_hpBonus))
-  WriteByte(_spiritAddr+_statOffset, math.floor(_spiritStats.str+_strBonus))
-  WriteByte(_spiritAddr+_statOffset+1, math.floor(_spiritStats.mag+_magBonus))
-  WriteByte(_spiritAddr+_statOffset+2, math.floor(_spiritStats.def+_defBonus))
-  WriteByte(_spiritAddr+_statOffset+3, _spiritStats.fireRes)
-  WriteByte(_spiritAddr+_statOffset+4, _spiritStats.iceRes)
-  WriteByte(_spiritAddr+_statOffset+5, _spiritStats.elecRes)
-  WriteByte(_spiritAddr+_statOffset+6, _spiritStats.waterRes)
-  WriteByte(_spiritAddr+_statOffset+7, _spiritStats.darkRes)
-  WriteByte(_spiritAddr+_statOffset+8, _spiritStats.lightRes)
-
-  --Write level
-  local _levelToUse = levels.soraLevel-1
-  if getCharacter() == 1 then
-    _levelToUse = levels.rikuLevel-1
-  end
-  if _levelToUse < 1 then
-    _levelToUse = 1
-  end
-  WriteByte(_spiritAddr+_levelOffset, _levelToUse)
+  local _stats = Spirits:GetStats(_spiritId, _level, _rank, _growth)
+  WriteByte(_spiritAddr+_levelOffset, _level)
+  WriteByte(_spiritAddr+_growthOffset, _growth)
+  WriteArray(_spiritAddr+_bonusOffset, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
+  WriteShort(_spiritAddr+_maxHpOffset, _stats.hp)
+  WriteShort(_spiritAddr+_currHpOffset, _stats.hp)
+  WriteByte(_spiritAddr+_statOffset, _stats.str)
+  WriteByte(_spiritAddr+_statOffset+1, _stats.mag)
+  WriteByte(_spiritAddr+_statOffset+2, _stats.def)
+  WriteByte(_spiritAddr+_statOffset+3, 100) --Physical resistance, 100 for every spirit
+  WriteByte(_spiritAddr+_statOffset+4, _spiritStats.fireRes)
+  WriteByte(_spiritAddr+_statOffset+5, _spiritStats.iceRes)
+  WriteByte(_spiritAddr+_statOffset+6, _spiritStats.elecRes)
+  WriteByte(_spiritAddr+_statOffset+7, _spiritStats.waterRes)
+  WriteByte(_spiritAddr+_statOffset+8, _spiritStats.darkRes)
+  WriteByte(_spiritAddr+_statOffset+9, _spiritStats.lightRes)
 
   --Write Spirit Name
   local _spiritName = string.sub(_baseRecipe.Name, 1, #_baseRecipe.Name-7)
@@ -882,7 +876,7 @@ function ItemHandler:CraftSpirits(value)
   WriteInt(_spiritAddr+_colorOffset+0x02, math.random(0x00, 0xFF)) --B
   --WriteArray(_spiritAddr+_colorOffset, {0xFF, 0xFF, 0xFF}) --White Dream Eater
   local _expOffset = 0x24
-  WriteInt(_spiritAddr+_expOffset, ReadInt(MemoryAddresses.soraExp[gameVer]))
+  WriteInt(_spiritAddr+_expOffset, Spirits:GetExp(_spiritId, _level))
 
 
 end
