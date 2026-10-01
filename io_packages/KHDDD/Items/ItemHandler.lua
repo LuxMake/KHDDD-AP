@@ -35,7 +35,9 @@ ItemHandler.State = {
   HasBat = false,
   HasEmblems = false,
   Emblems = 0,
-  ReceivedIndex=0
+  ReceivedIndex=0,
+  ExpTableSet = false, --Slot data has applied the exp multiplier to the game's exp table
+  PendingSpiritExp = {} --Spirit slots crafted before that, whose exp is redone once it has
 }
 
 --TODO: Lord Kyroo rewards for Sora sent to AP only after beating the world (Sora only run)
@@ -876,9 +878,28 @@ function ItemHandler:CraftSpirits(value)
   WriteInt(_spiritAddr+_colorOffset+0x02, math.random(0x00, 0xFF)) --B
   --WriteArray(_spiritAddr+_colorOffset, {0xFF, 0xFF, 0xFF}) --White Dream Eater
   local _expOffset = 0x24
-  WriteInt(_spiritAddr+_expOffset, Spirits:GetExp(_spiritId, _level))
+  WriteInt(_spiritAddr+_expOffset, self:SpiritExp(_spiritId, _level))
+  if not self.State.ExpTableSet then
+    table.insert(self.State.PendingSpiritExp, _spiritAddr)
+  end
 
 
+end
+
+--Exp at the start of level, from the in-memory exp table that ConfigTask:WriteExpTable scales
+function ItemHandler:SpiritExp(id, level)
+  if level <= 1 then
+    return 0
+  end
+  return ReadInt(MemoryAddresses.expTable[gameVer]+(level-2)*4)*SpiritStats[id].exp // 100
+end
+
+function ItemHandler:SetPendingSpiritExp()
+  for _, _spiritAddr in ipairs(self.State.PendingSpiritExp) do
+    WriteInt(_spiritAddr+0x24, self:SpiritExp(ReadByte(_spiritAddr), ReadByte(_spiritAddr+0x03)))
+  end
+  self.State.PendingSpiritExp = {}
+  self.State.ExpTableSet = true
 end
 
 -- ############################################################
