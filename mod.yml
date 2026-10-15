@@ -95,6 +95,10 @@ assets:
   method: copy
   source:
   - name: io_packages/KHDDD/Locations/lboard.lua
+- name: scripts/io_packages/KHDDD/Locations/LBoard_Finder.lua
+  method: copy
+  source:
+  - name: io_packages/KHDDD/Locations/LBoard_Finder.lua
 - name: game/de/bin/lboard.bin
   method: copy
   source:

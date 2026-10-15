@@ -26,6 +26,7 @@ WorldHandler = require("KHDDD.Locations.WorldHandler")
 PatchTask = require("KHDDD.Tasks.PatchTask")
 local AsmEdits = require("KHDDD.Tools.AsmEdits")
 LBoard = require("KHDDD.Locations.lboard")
+LBoardFinder = require("KHDDD.Locations.Lboard_Finder")
 
 LUAGUI_NAME = "DDD AP Connector [Socket]"
 LUAGUI_AUTH = "Lux"

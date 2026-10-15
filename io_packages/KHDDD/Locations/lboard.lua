@@ -345,16 +345,13 @@ function LBoard:OnSpiritChange()
 	writeTxtToGame(_commandFooter[gameVer], "Grants you the item shown.", 2)
 end
 
-function LBoard:OnBoardEnter()
-	--Do some stuff after entering the board
-end
-
 --Icon of a node's reward slot (0-based) as an f_de505.txa anim index, 0x00-0x15 in the order of AsmEdits:LinkBoardIcons'
 --name table (7 PRIZE, 14 ?B, 15 ?Y), or nil for the game's own. Shows on the next board open or L/R spirit switch.
 function LBoard:SetNodeIcon(spirit, slot, icon)
 	WriteByte(GetPointer(_lbtList[gameVer], 0x10 + spirit*0xC0 + slot*12 + 3), icon and (0x80 | icon) or 0, true)
 end
 
+local _lboardAddr = nil
 
 local _inMenu = false
 function LBoard:Update()
@@ -367,8 +364,13 @@ function LBoard:Update()
 		return
 	end
 	if _inMenu == false then
-		self:OnBoardEnter()
 		_inMenu = true
+	end
+
+	--Make sure lboard exists before doing anything else
+	LBoardFinder:FinderUpdate()
+	if LBoardFinder.LBoard == nil then
+		return
 	end
 
 	_pos = self:CheckCursorPos()
