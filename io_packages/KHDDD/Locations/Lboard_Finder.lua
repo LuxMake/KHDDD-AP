@@ -40,16 +40,6 @@ function Lboard_Addr()
 	return nil
 end
 
-function toHex(str)
-  return string.format("%X", str)
-end
-
-function _OnInit()
-	if GameVersion() then
-		canExecute = true
-	end
-end
-
 --Only run function if we can be confident the board is actually loaded
 local _activeBoard = {0x9E9A40, 0x9E9A30}
 local _activeBoardOffset = 0x490
