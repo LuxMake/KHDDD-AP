@@ -372,7 +372,7 @@ function LBoard:Update()
 	if LBoardFinder.LBoard == nil then
 		return
 	end
-
+	--LBoardFinder:PatchBoards()
 	_pos = self:CheckCursorPos()
 	self:CheckSpiritChange()
 	self:ChangeItemNames()

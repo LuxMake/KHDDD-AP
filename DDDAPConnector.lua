@@ -1579,6 +1579,15 @@ function toBits(num)
     return t
 end
 
+function toByte(bit_list)
+    --Combine bits into a single integer
+    local integer_value = 0
+    for bit=1, #bit_list do
+        integer_value = (integer_value << 1) | bit_list[bit]
+    end
+    return integer_value
+end
+
 function compareArrays(arr1, arr2)
   if #arr1 ~= #arr2 then
     return false
