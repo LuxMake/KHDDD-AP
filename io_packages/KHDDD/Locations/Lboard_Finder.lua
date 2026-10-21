@@ -710,7 +710,7 @@ function LBoardFinder:PatchBoards() --TODO: Only mod boards of spirits in party
 						--Write item requirement details
 						WriteByte(ind+0x09, 0x08, true) 				--Item category
 						WriteByte(ind+0x08, 0x01+gateNum, true) --Item ID
-						WriteByte(ind+0x0A, 0x07, true) 				--Num Required
+						WriteByte(ind+0x0A, 0x0A, true) 				--Num Required
 
 						gateNum = gateNum + 1
 

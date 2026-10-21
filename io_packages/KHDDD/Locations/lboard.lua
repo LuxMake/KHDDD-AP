@@ -392,6 +392,8 @@ function LBoard:Update()
 end
 
 function LBoard:Exit() --Player left the link board
+	WriteArray(_checkItem1[gameVer], {0x00, 0x00, 0x00})
+	WriteArray(_checkItem2[gameVer], {0x00, 0x00, 0x00})
 	self:WriteFillerNames()
 end
 

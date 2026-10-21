@@ -1793,7 +1793,7 @@ function updateRoomInfo()
 end
 
 --This function is needed for room save to work
-function sendToInv(itemId)
+function sendToInv(itemId, currentIndex)
   local _item = getItemById(itemId)
   if _item.Type == "Support" or _item.Type == "Spirit" then --Ability redeemed
     ItemHandler:GiveAbility(itemId, true)
@@ -1802,7 +1802,7 @@ function sendToInv(itemId)
   elseif _item.Type == "Recipe" then --Recipes don't need to be re-added to our state
     ItemHandler:RecipeToInv(itemId)
   else
-    ItemHandler:Receive(_item.Type, itemId, ReadShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07))
+    ItemHandler:Receive(_item.Type, itemId, RoomSaveTask.State.RestoreIndex+currentIndex, false, true)
   end
 end
 

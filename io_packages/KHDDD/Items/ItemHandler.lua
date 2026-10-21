@@ -51,7 +51,7 @@ function ItemHandler:Reset()
   ConsolePrint("Item Handler Reset")
 end
 
-function ItemHandler:Receive(type, value, cnt, isLocal)
+function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
   ConsolePrint("Received " .. type .. " with value " .. value .. ". Local: " .. tostring(isLocal))
 
   local _ahead = true
@@ -112,7 +112,7 @@ function ItemHandler:Receive(type, value, cnt, isLocal)
   if cnt then
     self:SaveLatestIndex(cnt)
   end
-  if _ahead then
+  if _ahead and not skipRoomSave then
     RoomSaveTask:StoreItem(value)
   end
 end

@@ -20,7 +20,8 @@ ConfigTask.SlotDataTypes = {
   RemoteItemNotifs = 11,
   PatchInfo = 12,
   VanillaLevels = 13,
-  EmblemReqs = 14
+  EmblemReqs = 14,
+  GateReqs = 15
 }
 
 function ConfigTask:ParseSlotData(slotType, msgVal)
@@ -54,7 +55,16 @@ function ConfigTask:ParseSlotData(slotType, msgVal)
     	self:SetVanillaLevels(msgVal)
     elseif slotType == self.SlotDataTypes.EmblemReqs then
     	self:SetEmblemReq(msgVal)
+    elseif slotType == self.SlotDataTypes.GateReqs then
+    	self:SetGateReqs(msgVal)
     end
+end
+
+function ConfigTask:SetGateReqs(msgVals)
+	LBoard:ChangeGateReqs(tonumber(msgVals[1]), 1, tonumber(msgVals[2]), tonumber(msgVals[3]))
+	if #msgVals > 3 then --2nd gate specified
+		LBoard:ChangeGateReqs(tonumber(msgVals[1]), 2, tonumber(msgVals[2]), tonumber(msgVals[4]))
+	end
 end
 
 function ConfigTask:SaveKeybladeStats(msgVals)

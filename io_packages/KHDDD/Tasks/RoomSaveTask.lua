@@ -8,7 +8,8 @@ RoomSaveTask.State = {
 	ItemIds = {},
 	Exp = 0,
 	ChestsSora = {},
-	ChestsRiku = {}
+	ChestsRiku = {},
+	RestoreIndex = 0
 }
 
 RoomSaveTask.ValidTypes = {"Command", "Recipe", "Consumable", "Support", "Spirit", "World"}
@@ -35,6 +36,7 @@ function RoomSaveTask:OnRoomChange()
 		self:RestoreItems()
 		self.PrepareLoad = false
 	end
+	self.State.RestoreIndex = ItemHandler.State.ReceivedIndex
 	self.State.Exp = 0
 	self.State.ItemIds = {} --Vanilla room save occurred; clear list
 	self.State.ChestsSora = {}
@@ -108,8 +110,9 @@ function RoomSaveTask:RestoreChests()
 end
 
 function RoomSaveTask:RestoreItems() --Put items likely lost to death back into inventory
+	ItemHandler.State.ReceivedIndex = self.State.RestoreIndex
 	for i=1, #self.State.ItemIds do
-		sendToInv(self.State.ItemIds[i])
+		sendToInv(self.State.ItemIds[i], i)
 	end
 	ConsolePrint("Restoring EXP")
 	if self.State.Exp > ReadInt(MemoryAddresses.soraExp[gameVer]) then
