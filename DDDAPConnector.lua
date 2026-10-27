@@ -2,14 +2,8 @@
 ------ Kingdom Hearts Dream Drop Distance AP ------
 ------                by Lux                 ------
 ---------------------------------------------------
------- Special Thanks to Sonicshadowsilver2, Meebo, & Krujo
+------ Special Thanks to Delilah, Sonicshadowsilver2, Meebo, & Krujo
 ---------------------------------------------------
-
---LOCAL TESTING NOTES:
---Deck Up Riku item in-game rewards Strength Up Riku in AP
---Hide world and stat key item descriptions when not paused
---Sora level 8 did not display level up text (Faith)
---Maybe read level text on the actual prompt to determine which rewards to display?
 
 local socket = require("socket")
 ItemHandler = require("KHDDD.Items.ItemHandler")
@@ -1406,6 +1400,14 @@ function HandleMessage(msg)
           --TODO: Still perform special functions like world unlocking
           --TODO: Directly invoking room save like this might result in duped items
           --      when re-receiving all from server
+
+          --Receive Air Slide remote regardless, as it seems to try to slot to specific index
+          if tonumber(_msg) == 2681084 then
+            ItemHandler:Receive(_itemType, tonumber(_msg), tonumber(msg.values[#msg.values])+_totReceived, false)
+            _skipNext = true
+            return
+          end
+
           ItemHandler:Receive(_itemType, tonumber(_msg), tonumber(msg.values[#msg.values])+_totReceived, true)
           --ReceiveLocalItem(tonumber(_msg), tonumber(msg.values[#msg.values])+_totReceived)
           --RoomSaveTask:StoreItem(tonumber(_msg))
