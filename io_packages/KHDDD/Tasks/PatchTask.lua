@@ -527,6 +527,11 @@ function PatchTask:ShouldReward()
 	if ReadByte(MemoryAddresses.enablePause[gameVer]) > 0x00 then
 		local _sep = 24
 		for i=0, 3 do
+			if ReadByte(_rewardAddr[gameVer]-(_sep*i)+1) == 0x09 then
+				--Tutorial reward; replace with dummy item
+				WriteArray(_rewardAddr[gameVer]-(_sep*i), {0x29, 0x01}) --HP Prize S as dummy
+			end
+
 			if ReadByte(_rewardAddr[gameVer]-(_sep*i)) == 0x01 then
 				if ReadByte(_rewardAddr[gameVer]-(_sep*i)+1) == 0x08 then
 					_rew = i

@@ -209,7 +209,8 @@ ItemOverwrite = {
   linkBoardTxt = {0x10B7D4DC, 0x10B7CD5C},
   glossaryAddr = {0xA52049, 0xA518C9},
   glossaryName = {0x109443FA, 0x10943C7A},
-  glossaryDesc = {0xF8FF05C, 0xF8FE8DC}
+  glossaryDesc = {0xF8FF05C, 0xF8FE8DC},
+  HPPrizeSName = {0x1096A7BE, 0x1096A03E}
 }
 
 KHSCII = {
@@ -1002,6 +1003,9 @@ function makeDummyItem()
   --Toy 14
   writeTxtToGame(ItemOverwrite.toy14NameAddr[gameVer], "Lucky Emblem", 3)
   --writeTxtToGame(ItemOverwrite.toy14DescAddr[gameVer], "", 3)
+
+  --Write tutorial dummmy item to HP Prize S
+  writeTxtToGame(ItemOverwrite.HPPrizeSName[gameVer], "Tutorial", 2)
 
   --Replace chest data with this item
   for i=0, 226 do
