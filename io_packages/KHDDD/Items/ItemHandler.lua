@@ -605,7 +605,7 @@ function ItemHandler:GiveAbility(value, addToTable, isAhead)
       _equipVal = _equipVal + _equipBytes[_amtHave+1]
       WriteArray(_addr, {_currAbl+_equipVal, _currAbl+_equipVal}) --Equip for both Sora and Riku
       WriteByte(_addr+0x02, 0x05)
-    else if not isAhead then
+    elseif isAhead then
       WriteByte(_addr, _currAbl+_equipVal)
       WriteByte(_addr+0x02, 0x05)
     end
