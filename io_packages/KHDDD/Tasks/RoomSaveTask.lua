@@ -74,7 +74,6 @@ function RoomSaveTask:CheckPlayerState() --See if player has died
 			if not Configs.VanillaLevels then
 				ItemHandler:RebuildStats()
 			end
-  			ItemHandler:RebuildAbilities()
 			self.PrepareLoad = false
 		end
 	end
