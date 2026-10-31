@@ -104,9 +104,7 @@ function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
   elseif type == "Key" then
     self:GiveKeyItem(value, _ahead, isLocal)
   elseif type == "Stat" or type == "Support" or type == "Spirit" then
-    if _ahead then
-      self:GiveAbility(value, true)
-    end
+      self:GiveAbility(value, true, _ahead)
   else
     self:GiveMiscItem(value, type)
   end
@@ -592,7 +590,7 @@ end
 --Byte 1: Riku Count/Equip (Stat abilities only)
 --Byte 2: Visible (not sure what values greater than 5 mean)
 
-function ItemHandler:GiveAbility(value, addToTable)
+function ItemHandler:GiveAbility(value, addToTable, isAhead)
   local _ability = getAbilityById(value)
   local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
 
@@ -607,8 +605,7 @@ function ItemHandler:GiveAbility(value, addToTable)
       _equipVal = _equipVal + _equipBytes[_amtHave+1]
       WriteArray(_addr, {_currAbl+_equipVal, _currAbl+_equipVal}) --Equip for both Sora and Riku
       WriteByte(_addr+0x02, 0x05)
-      --WriteByte(_addr+0x01+math.abs(getCharacter()-1), 0x05)
-    else
+    else if not isAhead then
       WriteByte(_addr, _currAbl+_equipVal)
       WriteByte(_addr+0x02, 0x05)
     end
