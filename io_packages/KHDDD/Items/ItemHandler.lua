@@ -104,7 +104,9 @@ function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
   elseif type == "Key" then
     self:GiveKeyItem(value, _ahead, isLocal)
   elseif type == "Stat" or type == "Support" or type == "Spirit" then
-    self:GiveAbility(value, true)
+    if _ahead then
+      self:GiveAbility(value, true)
+    end
   else
     self:GiveMiscItem(value, type)
   end
@@ -594,40 +596,28 @@ function ItemHandler:GiveAbility(value, addToTable)
   local _ability = getAbilityById(value)
   local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
 
-  local _equipBytes = {0x08, 0x10, 0x20, 0x40, 0x80}
+  local _currAbl = ReadByte(_addr)
+  local _amtBits = toBits(_currAbl) --First 3 bits is amt obtained; last 5 are equip status
+  local _amtHave = toByte({_amtBits[1], _amtBits[2], _amtBits[3]})
 
-  if _ability.Type == "Stat" then --Auto-equip
-    --Calculate expected value from item state
-    local _amtObtained = 0
-    local _equipVal = 0
-    for i=1, #self.State.Abilities.Shared do
-      if self.State.Abilities.Shared[i] == value then
-        _amtObtained = _amtObtained+1
-        if _amtObtained > #_equipBytes then
-          _equipVal = _equipBytes[#_equipBytes]
-        else
-          _equipVal = _equipVal+_equipBytes[_amtObtained]
-        end
-      end
-    end
-    _equipVal = _equipVal + _amtObtained
-
-    local _isSoraOrRiku = getCharacter()
-    _addr = _addr+_isSoraOrRiku --Stat abilities for Riku are offset by 1
-    WriteByte(_addr, _equipVal)
-    WriteByte(_addr+1+math.abs(_isSoraOrRiku-1), 0x05)
-  else --Toggleable ability
-    if addToTable then --Only write toggleables on intial add
-      local _currByte = ReadByte(_addr)
-      WriteByte(_addr, _currByte+1)
+  if _amtHave < _ability.Stacks then --Another can be added
+      local _equipVal = 0x01 --Makes ability visible
+    if _ability.Type == "Stat" then --Needs to be autoequipped
+      local _equipBytes = {0x08, 0x10, 0x20, 0x40, 0x80}
+      _equipVal = _equipVal + _equipBytes[_amtHave+1]
+      WriteArray(_addr, {_currAbl+_equipVal, _currAbl+_equipVal}) --Equip for both Sora and Riku
+      WriteByte(_addr+0x02, 0x05)
+      --WriteByte(_addr+0x01+math.abs(getCharacter()-1), 0x05)
+    else
+      WriteByte(_addr, _currAbl+_equipVal)
       WriteByte(_addr+0x02, 0x05)
     end
   end
 
-  --TODO: Write stat ups to sora/riku specific table
-  if addToTable then
+  if addToTable then --This might be deprecated
     table.insert(self.State.Abilities.Shared, value)
   end
+
 end
 
 function ItemHandler:RemoveAbilityFromStock()
@@ -643,45 +633,6 @@ function ItemHandler:RemoveAbilityFromStock()
       if ReadByte(_currAddr+1) == 0x01 then
         WriteArray(_currAddr, {0x00, 0x00})
       end
-    end
-  end
-end
-
-function ItemHandler:RebuildAbilities()
-  --Reset status of all Stat abilities
-  for i=1, #self.State.Abilities.Shared do
-    local _ability = getAbilityById(self.State.Abilities.Shared[i])
-    local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
-    if _ability.Type == "Stat" then --Stat ups need to be re-equipped
-      WriteByte(_addr, 0x00)
-    end
-    if _ability.Type == "Support" or _ability.Type == "Spirit" then
-      local _abVal = ReadByte(_addr)
-
-      --Check for first equip bit
-      local _abBits = toBits(_abVal)
-      local _bitTbl = {0x08, 0x10, 0x20, 0x40, 0x80}
-      for j=1, #_bitTbl do
-        if _abBits[3+j] == 1 then --Equipped; remove from this check
-          _abVal = _abVal-_bitTbl[j]
-        end
-      end
-
-      local _checkVal = _abVal%10 --Get number unlocked
-
-      if countValues(self.State.Abilities.Shared, _ability.ID) > _checkVal then
-        WriteByte(_addr, _abVal+0x01) --Re-enable ability
-        ConsolePrint("Re-enabling ability")
-      end
-    end
-  end
-
-  --Re-equip all Stat abilities
-  for i=1, #self.State.Abilities.Shared do
-    local _ability = getAbilityById(self.State.Abilities.Shared[i])
-    local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
-    if _ability.Type == "Stat" then --Stat ups need to be re-equipped
-      self:GiveAbility(_ability.ID, false)
     end
   end
 end

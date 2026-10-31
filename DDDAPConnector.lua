@@ -940,7 +940,7 @@ function onPauseChange()
   if not Configs.VanillaLevels then
     ItemHandler:RebuildStats()
   end
-  ItemHandler:RebuildAbilities()
+  --ItemHandler:RebuildAbilities()
 
   if roomInfo[1] == 0x0B then
     --Accounts for being warped to world map from a room index of 01
@@ -962,7 +962,7 @@ function onRoomChange()
   if not Configs.VanillaLevels then
     ItemHandler:RebuildStats()
   end
-  ItemHandler:RebuildAbilities()
+  --ItemHandler:RebuildAbilities()
   ItemHandler:RebuildFlowmotion()
   PatchTask:WriteBonusRewards()
   PatchTask:ResetRewards()
