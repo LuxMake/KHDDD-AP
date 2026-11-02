@@ -123,6 +123,10 @@ assets:
   method : copy
   source:
   - name: io_packages/KHDDD/Tasks/PatchTask.lua
+- name: game/de/bin/spcom.bin
+  method : copy
+  source:
+  - name: game/de/bin/spcom.bin
 - name: setdata/jp/bin/di/di05set.bin
   method : copy
   source:
@@ -299,54 +303,6 @@ assets:
   method : copy
   source:
   - name: mission/jp/bin/mission.mis
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_gage_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_gage_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_cnt_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/US_cnt_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_gage_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_gage_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_cnt_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/FR_cnt_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_gage_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_gage_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_cnt_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/GR_cnt_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_gage_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_gage_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_cnt_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/IT_cnt_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_gage_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_gage_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_cnt_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/JP_cnt_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_gage_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_gage_000.png
-- name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_cnt_000.png
-  method : copy
-  source:
-  - name: remastered/menu/en/ckpt/gage/hp_p/bin/gage_000_n.l2d/SP_cnt_000.png
 - name: remastered/menu/en/camp/ablink/bin/numeric.ctt/US_numeric.dds
   method : copy
   source:

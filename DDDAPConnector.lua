@@ -210,7 +210,8 @@ ItemOverwrite = {
   glossaryAddr = {0xA52049, 0xA518C9},
   glossaryName = {0x109443FA, 0x10943C7A},
   glossaryDesc = {0xF8FF05C, 0xF8FE8DC},
-  HPPrizeSName = {0x1096A7BE, 0x1096A03E}
+  HPPrizeSName = {0x1096A7BE, 0x1096A03E},
+  malleableFantasy = {0x10944608, 0x10943E88}
 }
 
 KHSCII = {
@@ -1007,6 +1008,9 @@ function makeDummyItem()
   --Write tutorial dummmy item to HP Prize S
   writeTxtToGame(ItemOverwrite.HPPrizeSName[gameVer], "Tutorial", 2)
 
+  --Scattered dream replaces malleable fantasy
+  writeTxtToGame(ItemOverwrite.malleableFantasy[gameVer], "Scattered Dream", 2)
+
   --Replace chest data with this item
   for i=0, 226 do
     WriteArray(MemoryAddresses.chestDataS[gameVer]+0x1A+(8*i), ItemOverwrite.dummyId)
@@ -1185,23 +1189,46 @@ end
 function ManageDrop()
 
   if keepDropActive > -1 then --We are not disabling the drop right now
+
+    --Bytes to check to ensure we can force a drop
+    local _pauseType = ReadByte(MemoryAddresses.pauseType[gameVer])
+    local _cutscenePauseType = ReadByte(MemoryAddresses.cutscenePauseType[gameVer])
+    local _canPause = ReadByte(MemoryAddresses.enablePause[gameVer])
+
+    if keepDropActive == getCharacter() and _pauseType == 0x00 and _cutscenePauseType == 0x00 and _canPause == 0x00 then
+      --We can drop
+      local _ptr = GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset)
+      WriteByte(_ptr, 4, true)
+    end
+
     if keepDropActive ~= getCharacter() then
       keepDropActive = -1
     end
     return
   end
 
-  --Trying an alternate method to manage drop meter
   local _dropVal = ReadByte(MemoryAddresses.dropEnabler[gameVer])
-  if _dropVal ~= 0x00 then
-    WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x00, 0x00})
+  if ReadByte(MemoryAddresses.pauseType[gameVer]) > 0x00 then --Paused; enable drop
+    if _dropVal ~= 0x00 then
+      WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x00, 0x00})
+    end
+  else                                                        --Unpaused; disable drop
+    if _dropVal == 0x00 then 
+      WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x04, 0xC0})
+    end
   end
 
-  local _dropGaugeAddr = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
+  --Trying an alternate method to manage drop meter
+  --local _dropVal = ReadByte(MemoryAddresses.dropEnabler[gameVer])
+  --if _dropVal ~= 0x00 then
+  --  WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x00, 0x00})
+  --end
+
+  --local _dropGaugeAddr = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
   --Keep gauge full
-  WriteByte(_dropGaugeAddr+0x01, 0xFF, true)
-  WriteByte(_dropGaugeAddr+0x02, 0x47, true)
-  WriteByte(_dropGaugeAddr+0x03, 0x47, true)
+  --WriteByte(_dropGaugeAddr+0x01, 0xFF, true)
+  --WriteByte(_dropGaugeAddr+0x02, 0x47, true)
+  --WriteByte(_dropGaugeAddr+0x03, 0x47, true)
 end
 
 local _fixPause = false
@@ -1294,11 +1321,14 @@ function forceDrop()
 
   --Quickly re-enable dropping
   --WriteArray(MemoryAddresses.dropEnabler, {0x00, 0x00})
+  
+  --Manage drop function will trigger the force drop
   keepDropActive = getCharacter()
 
   --Force the drop; set related gauge and bonus time bytes to 0
-  WriteArray(ptr+0x01, {0x00, 0x00, 0x00}, true) --Gauge value
-  WriteArray(ptr+0x0A, {0x00, 0x00, 0x00, 0x00}, true) --Bonus time value
+  --WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x00, 0x00})
+  --WriteArray(ptr+0x01, {0x00, 0x00, 0x00}, true) --Gauge value
+  --WriteArray(ptr+0x0A, {0x00, 0x00, 0x00, 0x00}, true) --Bonus time value
 
 end
 
@@ -1841,8 +1871,6 @@ function main()
 
   updateCharacter()
 
-  ManageDrop() --Disabled dropping
-
   RoomSaveTask:StoreExp()
 
   ItemHandler:RebuildFlowmotion()
@@ -1966,6 +1994,8 @@ function _OnFrame()
     APCommunication()
     main()
   end
+
+  ManageDrop() --Disabled dropping
 
   --Skip Dream Eater Tutorial
   SkipDETutorial()
