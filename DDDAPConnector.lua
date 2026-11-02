@@ -146,6 +146,7 @@ Configs = {
   FastGoMode = false,
   ExpMult = 10,
   StatBonus = 2,
+  EnableDrop = false
 
   --AP Settings
   Character = 0, --0 for both; 1 for Sora Only; 2 for Riku Only
@@ -1212,7 +1213,7 @@ function ManageDrop()
     if _dropVal ~= 0x00 then
       WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x00, 0x00})
     end
-  else                                                        --Unpaused; disable drop
+  elseif not Configs.EnableDrop then                          --Unpaused; disable drop
     if _dropVal == 0x00 then 
       WriteArray(MemoryAddresses.dropEnabler[gameVer], {0x04, 0xC0})
     end

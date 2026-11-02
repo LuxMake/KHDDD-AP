@@ -21,7 +21,8 @@ ConfigTask.SlotDataTypes = {
   PatchInfo = 12,
   VanillaLevels = 13,
   EmblemReqs = 14,
-  GateReqs = 15
+  GateReqs = 15,
+  DropGage = 16
 }
 
 function ConfigTask:ParseSlotData(slotType, msgVal)
@@ -57,7 +58,16 @@ function ConfigTask:ParseSlotData(slotType, msgVal)
     	self:SetEmblemReq(msgVal)
     elseif slotType == self.SlotDataTypes.GateReqs then
     	self:SetGateReqs(msgVal)
+    elseif slotType == self.SlotDataTypes.DropGage then
+    	self:SetDrop(msgVal)
     end
+end
+
+function ConfigTask:SetDrop()
+	if msgVal[1] == "1" then
+		Configs.EnableDrop = true
+		ConsolePrint("Enabled drop")
+	end
 end
 
 function ConfigTask:SetGateReqs(msgVals)
