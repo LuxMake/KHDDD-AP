@@ -22,6 +22,7 @@ local AsmEdits = require("KHDDD.Tools.AsmEdits")
 LBoard = require("KHDDD.Locations.lboard")
 LBoardFinder = require("KHDDD.Locations.Lboard_Finder")
 EnergyLinkTask = require("KHDDD.Tasks.EnergyLinkTask")
+TrapTask = require("KHDDD.Tasks.TrapTask")
 
 LUAGUI_NAME = "DDD AP Connector [Socket]"
 LUAGUI_AUTH = "Lux"
@@ -484,7 +485,8 @@ MessageTypes = {
   Closed = 20,
 
   RequestingEnergy=21,
-  SendingEnergy=22
+  SendingEnergy=22,
+  MultTrap=23
 }
 HandshakeSent = false
 HandshakeReceived = false
@@ -1153,10 +1155,6 @@ function ReceiveDeathlink(dateTime) --For receiving deathlink
   end
 end
 
-function DropTrap()
-  holdDropTrap = true
-end
-
 function DeliverDrop()
   if holdDropTrap then
     --Make sure player can drop
@@ -1566,6 +1564,8 @@ function HandleMessage(msg)
 
   elseif msg.type == MessageTypes.RequestingEnergy then
     EnergyLinkTask:EnergyFromServer(tonumber(msg.values[1]))
+  elseif msg.type == MessageTypes.MultTrap then
+    TrapTask:MultTrap(tonumber(msg.values[1]))
   end
 
 
@@ -2056,6 +2056,9 @@ function _OnFrame()
 
   --Run link board scripts that need to update every frame
   LBoard:Update()
+
+  --Maintain certain traps
+  TrapTask:Update()
 
   --Is player in report
   if ReadByte(MemoryAddresses.subMenu[gameVer]) == 0x07 then --Reports are open

@@ -8,6 +8,7 @@ function ItemDefs:DefineItems()
 
     --Traps
     { ID = 2621001, Name = "Instant Drop", Usefulness = item_usefulness.trap, Type="Trap"},
+    { ID = 2621002, Name = "Drop Multiplier +0.5", Usefulness = item_usefulness.trap, Type="Trap"},
 
     --Key Items
     { ID = 2801001, Name = "Recusant Sigil", Usefulness = item_usefulness.progression_useful, Type="Key", Bytes = {0x1D, 0x04}, Offset=58}, --28

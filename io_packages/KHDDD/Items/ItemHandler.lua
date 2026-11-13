@@ -77,7 +77,8 @@ function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
   if value < 2630000 then --Trap received
     ConsolePrint("Sending drop trap")
     if _ahead then
-      DropTrap()
+      local _trapId = value - 2621000
+      TrapTask:TrapReceived(_trapId)
     end
     return
   end
