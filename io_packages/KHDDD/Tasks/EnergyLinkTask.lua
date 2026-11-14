@@ -73,7 +73,7 @@ function EnergyLinkTask:Update()
 		self:OnDrop()
 	end
 
-	if (_dropGauge > 0 or inBonusTime()) and self.DropToWrite > -1 and _charState ~= 0x04 and not self.NaturalDrop then --We have energy to write to the drop gauge
+	if (_dropGauge > 0 or inBonusTime()) and self.DropToWrite > -1 and _charState ~= 0x04 and self.RestoreGauge == -1 and not self.NaturalDrop then --We have energy to write to the drop gauge
 		self:GotEnergy(self.DropToWrite)
 		self.DropToWrite = -1
 	end
