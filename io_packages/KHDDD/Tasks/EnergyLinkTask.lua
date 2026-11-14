@@ -177,7 +177,7 @@ function EnergyLinkTask:Dropped()
 		if ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true) > 0 then
 			self.ActiveCharacter = getCharacter()
 			if self.NaturalDrop then
-				self:SetGauge(self.DropToWrite)
+				self:SetGauge(math.max(self.DropToWrite, 24000)) --One bar of the HUD gauge even with an empty bank; not taken from the bank
 				self.DropToWrite = -1
 				self.NaturalDrop = false
 				ConsolePrint("Restored using write amount")
