@@ -13,6 +13,11 @@ EnergyLinkTask.UsingItem = false
 
 EnergyLinkTask.NaturalDrop = false
 
+--A death reload restores the game's post-drop refill, not what Dropped wrote, until the next room change
+EnergyLinkTask.EntryGauge = nil
+EnergyLinkTask.EntryRoom = {}
+EnergyLinkTask.Died = false
+
 local _dp = {0xA98024} --TODO: EGS
 --Get DP: ReadShort(_dp[gameVer])
 
@@ -52,6 +57,10 @@ function EnergyLinkTask:Update()
 
 	local _charState = ReadByte(GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset), true)
 	local _dropGauge = ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true) --+0x0C for bonus time
+
+	if self.EntryGauge then
+		self:KeepEntryGauge(_charState)
+	end
 
 	if ReadByte(MemoryAddresses.pauseType[gameVer]) == 0x03 then --We need to preserve the current gauge value
 		self:SaveGauge() --We need to preserve the current gauge value
@@ -187,8 +196,25 @@ function EnergyLinkTask:Dropped()
 				ConsolePrint("Restored using saved amount")
 			end
 			self.RestoreGauge = -1
+			self.EntryGauge = ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true)
+			self.EntryRoom = {roomInfo[1], roomInfo[2]}
+			self.Died = false
 			ConsolePrint("SUCCESS")
 		end
+	end
+end
+
+function EnergyLinkTask:KeepEntryGauge(charState)
+	if charState == 0x03 then
+		self.Died = true
+	elseif self.Died then
+		if (charState == 0x01 or charState == 0x02) and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 then
+			self:SetGauge(self.EntryGauge)
+			self.Died = false
+			ConsolePrint("Restored post-drop gauge after death")
+		end
+	elseif roomInfo[1] ~= self.EntryRoom[1] or roomInfo[2] ~= self.EntryRoom[2] then
+		self.EntryGauge = nil
 	end
 end
 
@@ -200,6 +226,7 @@ function EnergyLinkTask:OnDrop()
 	
 	--TODO: Detect if gauge timed out naturally
 	self.RestoreGauge = getCharacter()
+	self.EntryGauge = nil
 
 	if ReadFloat(_bar+0x0C, true) == 0 or inBonusTime() then --Timer expired naturally, or dropped manually in bonus time
 		ConsolePrint("Player dropped naturally")
