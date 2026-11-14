@@ -62,8 +62,8 @@ MemoryAddresses = { --Primary memory addresses to reference
   keyblades = {0xA4C264, 0xA4BAE4},
   --rikuKeyblades = {0xA4C2A2, 0xA4BB22},
   rikuKeyblades = {0xA4C284, 0xA4BB04},
-  commandStockStart = {0xA4C6D4, 0xA4BF44},
-  commandStock = {0xA4C77C, 0xA4BFEC},
+  commandStockStart = {0xA4C6D4, 0xA4BF54},
+  commandStock = {0xA4C77C, 0xA4BFFC},
   commandDeckPopup = {0xA4C404, 0xA4BC84},
   equippedCommands = {0xA4D9D8, 0xA4D258},
   dodgeRollStock = {0xA4C70C, 0xA4BF8C},
@@ -1965,13 +1965,13 @@ function OnGameStart()
     --Nop functions that prevent AP stuff from working correctly
 
     --Prevents abilities from overwriting
-    local _abFunc = {0x376EB5, 0x376EA4}
-    local _worldChest = {0x271A43, 0x271A33}
-    local _abChest = {0x271956, 0x271946}
-    local _btlFunc = {0x23A980, 0x23A970}
-    WriteArray(_abFunc[gameVer], {0x90, 0x90, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
+    local _abFunc = {0x376EB5, 0x376D25}
+    local _worldChest = {0x271A43, 0x2719E3}
+    local _abChest = {0x271956, 0x2718F6}
+    local _btlFunc = {0x23A980, 0x23A9F0}
+    WriteArray(_abFunc[gameVer], {0x90, 0x90, 0x90, 0x90, 0x90})
     --Make world item chests open-able
-    WriteArray(_worldChest[gameVer], {0x39, 0xC0, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
+    WriteArray(_worldChest[gameVer], {0x39, 0xC0, 0x90, 0x90, 0x90})
     --Make recipe chests open-able
     --WriteArray(0x2719FA, {0x39, 0xC0, 0x90, 0x90, 0x90})
     --Make ability chests open-able
