@@ -19,6 +19,10 @@ local _dp = {0xA98024} --TODO: EGS
 local _bonusFlagByte = 0x1D --Flag word follows the dropPtr global
 local _bonusFlag = 0x40
 
+local function inBonusTime()
+	return ReadByte(MemoryAddresses.dropPtr[gameVer]+_bonusFlagByte) & _bonusFlag ~= 0
+end
+
 local function equippedItemBoosts()
 	local _abl = ReadByte(MemoryAddresses.supportAbilities[gameVer]-0x42+getCharacter()) --Item Boost; one byte per character
 	local _count = 0
@@ -69,7 +73,7 @@ function EnergyLinkTask:Update()
 		self:OnDrop()
 	end
 
-	if _dropGauge > 0 and self.DropToWrite > -1 and _charState ~= 0x04 and not self.NaturalDrop then --We have energy to write to the drop gauge
+	if (_dropGauge > 0 or inBonusTime()) and self.DropToWrite > -1 and _charState ~= 0x04 and not self.NaturalDrop then --We have energy to write to the drop gauge
 		self:GotEnergy(self.DropToWrite)
 		self.DropToWrite = -1
 	end
@@ -148,7 +152,7 @@ end
 
 function EnergyLinkTask:SaveGauge()
 	local _readBar = ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true)
-	if _readBar > 0 then
+	if _readBar > 0 or inBonusTime() then
 		self.GaugeValue = _readBar
 	end
 end
@@ -197,7 +201,7 @@ function EnergyLinkTask:OnDrop()
 	--TODO: Detect if gauge timed out naturally
 	self.RestoreGauge = getCharacter()
 
-	if ReadFloat(_bar+0x0C, true) == 0 then --Timer expired naturally
+	if ReadFloat(_bar+0x0C, true) == 0 or inBonusTime() then --Timer expired naturally, or dropped manually in bonus time
 		ConsolePrint("Player dropped naturally")
 		self.GaugeValue = 0
 		self:RequestAllEnergy()
