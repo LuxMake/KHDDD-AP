@@ -95,6 +95,9 @@ function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
     if _ahead and not isLocal then
       self:GiveCommand(value)
     end
+    if _ahead and (value == 2641024 or value == 2641025) then --Drop-Me-Not/Never; the AP client banks the refill
+      SendToApClient(MessageTypes.DepositingEnergy, {tostring(value)})
+    end
   elseif type == "World" then
     --self:GiveWorld(value, true)
     self:GiveWorld(value)
