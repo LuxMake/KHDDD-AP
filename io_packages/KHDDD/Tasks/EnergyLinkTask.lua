@@ -16,6 +16,9 @@ EnergyLinkTask.NaturalDrop = false
 local _dp = {0xA98024} --TODO: EGS
 --Get DP: ReadShort(_dp[gameVer])
 
+local _bonusFlagByte = 0x1D --Flag word follows the dropPtr global
+local _bonusFlag = 0x40
+
 local function equippedItemBoosts()
 	local _abl = ReadByte(MemoryAddresses.supportAbilities[gameVer]-0x42+getCharacter()) --Item Boost; one byte per character
 	local _count = 0
@@ -121,10 +124,21 @@ function EnergyLinkTask:RequestAllEnergy()
 	SendToApClient(MessageTypes.RequestingEnergy, {tostring(72000)})
 end
 
+--Mirrors the game's refill: clamp to max, stop bonus time and reset it.
+--At 0 the game restarts bonus time next frame, so an empty gauge drops after bonus time instead of at once.
+function EnergyLinkTask:SetGauge(amt)
+	local _bar = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
+	local _flags = MemoryAddresses.dropPtr[gameVer]+_bonusFlagByte
+	WriteFloat(_bar, math.max(0, math.min(amt, 72000)), true)
+	WriteFloat(_bar+0x08, 1920, true) --Bonus time in frames
+	WriteInt(_bar+0x0C, 32, true) --Bonus time in seconds
+	WriteByte(_flags, ReadByte(_flags) & ~_bonusFlag)
+end
+
 function EnergyLinkTask:GotEnergy(amt) --Energy reponse received from server
 	_barAddr = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
 	local _currentEnergy = ReadFloat(_barAddr, true)
-	WriteFloat(_barAddr, _currentEnergy+amt, true)
+	self:SetGauge(_currentEnergy+amt)
 	ConsolePrint("Added to energy")
 end
 
@@ -159,12 +173,12 @@ function EnergyLinkTask:Dropped()
 		if ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true) > 0 then
 			self.ActiveCharacter = getCharacter()
 			if self.NaturalDrop then
-				WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.DropToWrite, true)
+				self:SetGauge(self.DropToWrite)
 				self.DropToWrite = -1
 				self.NaturalDrop = false
 				ConsolePrint("Restored using write amount")
 			else
-				WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.GaugeValue, true)
+				self:SetGauge(self.GaugeValue)
 				self.GaugeValue = -1
 				ConsolePrint("Restored using saved amount")
 			end
