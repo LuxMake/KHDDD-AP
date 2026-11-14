@@ -1965,13 +1965,13 @@ function OnGameStart()
     --Nop functions that prevent AP stuff from working correctly
 
     --Prevents abilities from overwriting
-    local _abFunc = {0x376EB5, 0x376EA4}
-    local _worldChest = {0x271A43, 0x271A33}
-    local _abChest = {0x271956, 0x271946}
-    local _btlFunc = {0x23A980, 0x23A970}
-    WriteArray(_abFunc[gameVer], {0x90, 0x90, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
+    local _abFunc = {0x376EB5, 0x376D25}
+    local _worldChest = {0x271A43, 0x2719E3}
+    local _abChest = {0x271956, 0x2718F6}
+    local _btlFunc = {0x23A980, 0x23A9F0}
+    WriteArray(_abFunc[gameVer], {0x90, 0x90, 0x90, 0x90, 0x90})
     --Make world item chests open-able
-    WriteArray(_worldChest[gameVer], {0x39, 0xC0, 0x90, 0x90, 0x90}) --TODO: Get EGS Address
+    WriteArray(_worldChest[gameVer], {0x39, 0xC0, 0x90, 0x90, 0x90})
     --Make recipe chests open-able
     --WriteArray(0x2719FA, {0x39, 0xC0, 0x90, 0x90, 0x90})
     --Make ability chests open-able
