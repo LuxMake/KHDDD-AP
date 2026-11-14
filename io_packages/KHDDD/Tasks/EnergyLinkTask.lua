@@ -16,6 +16,17 @@ EnergyLinkTask.NaturalDrop = false
 local _dp = {0xA98024} --TODO: EGS
 --Get DP: ReadShort(_dp[gameVer])
 
+local function equippedItemBoosts()
+	local _abl = ReadByte(MemoryAddresses.supportAbilities[gameVer]-0x42+getCharacter()) --Item Boost; one byte per character
+	local _count = 0
+	for i = 0, (_abl & 0x07)-1 do --Low 3 bits: copies owned; one equip bit per copy from bit 3
+		if _abl & (0x08 << i) ~= 0 then
+			_count = _count + 1
+		end
+	end
+	return _count
+end
+
 function EnergyLinkTask:Init()
 	--Nop drop me not restoration
 	local _dropMeNop = {0x2DE409} --TODO: EGS
@@ -88,14 +99,18 @@ function EnergyLinkTask:Update()
 end
 
 function EnergyLinkTask:RequestEnergy(itemUsed)
-	local _energyToRequest = {24000, 48000}
+	local _itemPercent = {[0x7A] = 50, [0x7B] = 100} --Same as the game's Drop-Me-Not code at 0x2DE360
 	local _maxEnergy = 72000
 
 	local _currentEnergy = ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true)
-	local _requestedEnergy = _energyToRequest[itemUsed-0x79]
+	local _percent = _itemPercent[itemUsed] * (100 + 10*equippedItemBoosts()) // 100 --Each Item Boost adds 10% of the base
+	local _requestedEnergy = _percent * 0.01 * _maxEnergy
 	if _requestedEnergy + _currentEnergy > _maxEnergy then --Should not request more than maximum drop
 		local _amtOver = (_requestedEnergy + _currentEnergy) - _maxEnergy
 		_requestedEnergy = _requestedEnergy - _amtOver
+	end
+	if _requestedEnergy <= 0 then --Full gauge; a 0 request makes the client log "Not enough energy"
+		return
 	end
 
 	--Send the request
