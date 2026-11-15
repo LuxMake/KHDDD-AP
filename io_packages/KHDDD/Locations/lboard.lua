@@ -310,6 +310,11 @@ function LBoard:WorldsBeaten(character)
 				_worldsBeaten = _worldsBeaten + 1
 			end
 		end
+
+		--Manual Check for TT2
+		if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04) >= 0x3F then
+			_worldsBeaten = _worldsBeaten + 1
+		end
 	else --Tally Riku worlds
 		local _rikuFlags = {
 			ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]),
@@ -324,6 +329,11 @@ function LBoard:WorldsBeaten(character)
 			if value > 0x10 then
 				_worldsBeaten = _worldsBeaten + 1
 			end
+		end
+
+		--Manual check for TT2
+		if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) >= 0x01 then
+			_worldsBeaten = _worldsBeaten + 1
 		end
 	end
 	return _worldsBeaten
