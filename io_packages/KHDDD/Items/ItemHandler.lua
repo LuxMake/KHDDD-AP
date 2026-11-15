@@ -369,10 +369,12 @@ function ItemHandler:GiveCommand(value)
       local _emptySlotAddr = self:FindEmptyStockSlot()
       if _emptySlotAddr then
         WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00})
+        self:MarkConsumableObtained(_cmd.Bytes[1])
       end
     else
       local _currStock = ReadByte(_hasItem+0x05)
       WriteByte(_hasItem+0x05, _currStock+0x01)
+      self:MarkConsumableObtained(_cmd.Bytes[1])
     end
 
   elseif _cmd.Type == "Command" then
@@ -380,6 +382,22 @@ function ItemHandler:GiveCommand(value)
     if _emptySlotAddr then
       WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
     end
+  end
+end
+
+--The game stacks a consumable only once its obtained flag (bits 0x300) is set; otherwise its own pickup makes a new entry.
+--Set it only with a stock entry present: with the flag and no entry, the game writes to entry -1.
+--Mirrors the game's first pickup (0x371650): flag bits, low-byte count and the item tally counters (consumables are category 2).
+function ItemHandler:MarkConsumableObtained(id)
+  local _base = MemoryAddresses.commandStockStart[gameVer]
+  local _flagAddr = _base+0x1024+(id*2)
+  local _flags = ReadShort(_flagAddr)
+  if _flags & 0x0300 ~= 0 then
+    return
+  end
+  WriteShort(_flagAddr, (_flags & 0xDD00) | 0x1100 | ((_flags+1) & 0xFF))
+  for _, _counter in ipairs({0x1012, 0x101E, 0x1022}) do
+    WriteShort(_base+_counter, ReadShort(_base+_counter)+1)
   end
 end
 
