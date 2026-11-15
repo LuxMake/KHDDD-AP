@@ -1880,7 +1880,7 @@ end
 
 function dataStorage()
   --Send some info to the server for data storage
-  SendToApClient(MessageTypes.DataStorage, {tostring(roomInfo[1]), tostring(roomInfo[2]), tostring(getCharacter())})
+  SendToApClient(MessageTypes.DataStorage, {tostring(roomInfo[1]), tostring(roomInfo[2]), tostring(getCharacter()), LBoardFinder:InSpiritMenu() and "1" or "0"})
 end
 
 -- ############################################################
