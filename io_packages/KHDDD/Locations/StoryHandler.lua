@@ -5,14 +5,6 @@ function StoryHandler:OverwriteStoryVars()
   local _currWorld = ReadByte(MemoryAddresses.world[gameVer])
   local _currRoom = ReadByte(MemoryAddresses.room[gameVer])
 
-  --See if menu fix should be re-enabled
-  if menuFixApplied == 2 then
-    if getCharacter() == 1 and not fixPause or _currRoom ~= 0x02 and not fixPause or _currWorld ~= 0x03 and not fixPause then
-      --Reapply the menu fix
-      fixMenuOptions()
-    end
-  end
-
   --Skip DI if applicable
   if _currWorld == 0x01 then
     if Configs.SkipDI and ReadByte(WorldFlags.destinyIslands.sora.story[gameVer]) == 0x00 then
@@ -56,21 +48,6 @@ function StoryHandler:OverwriteStoryVars()
       WriteByte(MemoryAddresses.map[gameVer], 0x04)
       WriteByte(MemoryAddresses.btl[gameVer], 0x02)
       WriteByte(MemoryAddresses.evt[gameVer], 0x04)
-    end
-
-    --Menu fix stuff
-    if _currRoom == 0x02 and menuFixApplied == 1 and getCharacter() == 0 and not fixPause then --Reset some story vals for sora to progress normally
-      WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01, 0x03)
-      menuFixApplied = 2
-    end
-    if menuFixApplied == 2 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01) > 0x11 and not fixPause then
-      menuFixApplied = 0 --Menu fix no longer needed
-    end 
-
-    --Attempt to correct menu fix when it is no longer relevant
-    if menuFixApplied == 0 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x02) > 0x03 then
-      menuFixApplied = 2
-      fixPause = false
     end
     
   end

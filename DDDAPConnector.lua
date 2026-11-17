@@ -521,18 +521,6 @@ holdDeathlink = false
 
 holdDropTrap = false
 
-menuFixApplied = 0 --Tracks if story vals need to be reset for sora TT1
---0: Menu fix did not get applied or no longer needs to
---1: Menu fix was applied and sora's story needs to be corrected later
---2: Menu fix temporarily disabled; awaiting sora's events to finish
-
-rikuSpiritFix = 0 --Tracks if story vals need to be reset for riku TT1
---0: Menu fix did not get applied or no longer needs to
---1: Menu fix was applied and riku's story needs to be corrected
---2: Menu fix disabled
-
-activeCharacter = 0
-
 roomInfo = {0x00, 0x00, 0x00} --[world, room, map/btl/evt]
 
 --currentReceivedIndex = 0 --Updates when a new item is obtained and is saved to the medals value on change
@@ -889,34 +877,11 @@ function removeInitialMovement()
 end
 
 function fixMenuOptions()
-  --Reveal Commmand Deck and Spirit menu options at the start of the playthrough
-  local _soraProg = ReadArray(WorldFlags.traverseTown.sora.story[gameVer], 0x08)
-  local _rikuProg = ReadArray(WorldFlags.traverseTown.riku.story[gameVer], 0x08)
-
   --Prevent tutorial message from popping up for the command deck
   WriteArray(MemoryAddresses.commandDeckPopup[gameVer], {0x10, 0x0A, 0x11, 0x0A}) --Wipes command and potion tutorial
   --Remove tutorial messages for world map and drop
   local mapDropTutorial = {0xA4C3F2, 0xA4BC72}
   WriteArray(mapDropTutorial[gameVer], {0x07, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x0A})
-
-  if _soraProg[3] <= 0x01 then --Player has not advanced far enough into TT
-    WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01, 0xF1) --Unveils spirit and command options
-    menuFixApplied = 1
-  else --Player has progressed far enough to keep this disabled
-    menuFixApplied = 0
-  end
-
-  if _rikuProg[2] < 0x1F and rikuSpiritFix == 0 then
-    ConsolePrint("Fixing riku menu")
-    WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01, 0x1F) --Unveils spirit option for riku
-    rikuSpiritFix = 1
-  end
-  if _rikuProg[2] == 0x1F and rikuSpiritFix == 0 then
-    if _rikuProg[3] == 0x00 then
-      rikuSpiritFix = 1
-    end
-  end
-
 end
 
 function onCharacterChange()
@@ -1838,14 +1803,7 @@ function writeTxtToGame(startAddr, txt, fillerCnt)
 end
 
 function getCharacter() --Returns 0 for sora, 1 for riku
-  return activeCharacter
-end
-
-function updateCharacter()
-  if ReadByte(MemoryAddresses.character[gameVer]) ~= activeCharacter then
-    activeCharacter = ReadByte(MemoryAddresses.character[gameVer])
-    onCharacterChange()
-  end
+  return ReadByte(MemoryAddresses.character[gameVer])
 end
 
 function updateRoomInfo()
@@ -1882,7 +1840,13 @@ end
 -- ######################  Game Setup  ########################
 -- ############################################################
 
+local _activeCharacter = 0
 function main()
+  if ReadByte(MemoryAddresses.character[gameVer]) ~= _activeCharacter then
+    _activeCharacter = ReadByte(MemoryAddresses.character[gameVer])
+    onCharacterChange()
+  end
+
   updateRoomInfo()
 
   MessageHandler:runItemQueue()
@@ -1899,8 +1863,6 @@ function main()
   killPlayer() --Check if deathlink is received
 
   removeDummyItem()
-
-  updateCharacter()
 
   RoomSaveTask:StoreExp()
 

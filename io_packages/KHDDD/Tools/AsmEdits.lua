@@ -19,6 +19,16 @@ function AsmEdits:Init()
 	self:OpenAllChests()
 	self:IconReplace()
   self:LinkBoardIcons()
+  self:MenuFix()
+end
+
+function AsmEdits:MenuFix()
+  local _cmdMenuCheck = {0x239355, 0x2393C5} --Always reveals command menu regardless of TT progression
+  WriteArray(_cmdMenuCheck[gameVer], {0x90, 0x90, 0x90}) --Nop the whole function
+  local _spiritMenuCheckS = {0x2393DE, 0x23944E} --Always reveal spirit menu for Sora regardless of TT progression
+  WriteArray(_spiritMenuCheckS[gameVer], {0xB8, 0x01, 0x00, 0x00, 0x00, 0x90}) --Always return true
+  local _spiritMenuCheckR = {0x2393CA, 0x23943A} --Always reveal spirit menu for Riku regardless of TT progression
+  WriteArray(_spiritMenuCheckR[gameVer], {0xB8, 0x01, 0x00, 0x00, 0x00, 0x90}) --Always return true
 end
 
 --Change/Nop functions that would prevent chests from opening
