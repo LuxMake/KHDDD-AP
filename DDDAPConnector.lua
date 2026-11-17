@@ -15,6 +15,7 @@ local StoryHandler = require("KHDDD.Locations.StoryHandler")
 local ConfigTask = require("KHDDD.Tasks.ConfigTask")
 RoomSaveTask = require("KHDDD.Tasks.RoomSaveTask")
 local SoftlockTask = require("KHDDD.Tasks.SoftlockTask")
+local ResetTask = require("KHDDD.Tasks.ResetTask")
 local MessageHandler = require("KHDDD.Items.MessageHandler")
 WorldHandler = require("KHDDD.Locations.WorldHandler")
 PatchTask = require("KHDDD.Tasks.PatchTask")
@@ -486,7 +487,8 @@ MessageTypes = {
 
   RequestingEnergy=21,
   SendingEnergy=22,
-  MultTrap=23
+  MultTrap=23,
+  DepositingEnergy=24
 }
 HandshakeSent = false
 HandshakeReceived = false
@@ -1496,6 +1498,9 @@ function HandleMessage(msg)
           Configs.Deathlink = false
         end
       end
+    elseif _cmdId == 4 then --Reset decks and movement from received AP ids once the game is in a safe state
+      ResetTask.Pending = msg.values[2] or ""
+      ConsolePrint("Movement reset queued; runs when no menu, cutscene or respawn is active")
     end
   elseif msg.type == MessageTypes.Deathlink then
     local _deathTime = msg.values[1]
@@ -1833,7 +1838,7 @@ end
 
 function dataStorage()
   --Send some info to the server for data storage
-  SendToApClient(MessageTypes.DataStorage, {tostring(roomInfo[1]), tostring(roomInfo[2]), tostring(getCharacter())})
+  SendToApClient(MessageTypes.DataStorage, {tostring(roomInfo[1]), tostring(roomInfo[2]), tostring(getCharacter()), LBoardFinder:InSpiritMenu() and "1" or "0"})
 end
 
 -- ############################################################
@@ -2009,6 +2014,8 @@ function _OnFrame()
   --Room Save
   RoomSaveTask:GetRoomChange()
   RoomSaveTask:CheckPlayerState()
+
+  ResetTask:RunPending()
 
   --Prevent potential softlocks
   SoftlockTask:PreventSoftlocks()

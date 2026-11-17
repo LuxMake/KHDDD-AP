@@ -95,6 +95,9 @@ function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
     if _ahead and not isLocal then
       self:GiveCommand(value)
     end
+    if _ahead and (value == 2641024 or value == 2641025) then --Drop-Me-Not/Never; the AP client banks the refill
+      SendToApClient(MessageTypes.DepositingEnergy, {tostring(value)})
+    end
   elseif type == "World" then
     --self:GiveWorld(value, true)
     self:GiveWorld(value)
@@ -357,26 +360,61 @@ end
 -- ######################  Commands  ##########################
 -- ############################################################
 function ItemHandler:GiveCommand(value)
-  local _cmdAddr = MemoryAddresses.commandStock[gameVer]
   local _cmd = getItemById(value)
 
   if _cmd.Type == "Consumable" then
     --Scan to see if consumable exists
     local _hasItem = self:FindExistingSlot(MemoryAddresses.consumableStart[gameVer], 500, _cmd.Bytes, 0x08, 0x00)
     if _hasItem == 0x00 or _hasItem == nil then
-      local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 500, 0x08, 0x00)
-      WriteByte(_emptySlotAddr, _cmd.Bytes[1])
-      WriteByte(_emptySlotAddr+0x05, 0x01)
+      local _emptySlotAddr = self:FindEmptyStockSlot()
+      if _emptySlotAddr then
+        WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00})
+        self:MarkConsumableObtained(_cmd.Bytes[1])
+      end
     else
       local _currStock = ReadByte(_hasItem+0x05)
       WriteByte(_hasItem+0x05, _currStock+0x01)
+      self:MarkConsumableObtained(_cmd.Bytes[1])
     end
 
   elseif _cmd.Type == "Command" then
-    local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 1000, 0x08, 0x00)
-
-    WriteByte(_emptySlotAddr, _cmd.Bytes[1])
+    local _emptySlotAddr = self:FindEmptyStockSlot()
+    if _emptySlotAddr then
+      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+    end
   end
+end
+
+--The game stacks a consumable only once its obtained flag (bits 0x300) is set; otherwise its own pickup makes a new entry.
+--Set it only with a stock entry present: with the flag and no entry, the game writes to entry -1.
+--Mirrors the game's first pickup (0x371650): flag bits, low-byte count and the item tally counters (consumables are category 2).
+function ItemHandler:MarkConsumableObtained(id)
+  local _base = MemoryAddresses.commandStockStart[gameVer]
+  local _flagAddr = _base+0x1024+(id*2)
+  local _flags = ReadShort(_flagAddr)
+  if _flags & 0x0300 ~= 0 then
+    return
+  end
+  WriteShort(_flagAddr, (_flags & 0xDD00) | 0x1100 | ((_flags+1) & 0xFF))
+  for _, _counter in ipairs({0x1012, 0x101E, 0x1022}) do
+    WriteShort(_base+_counter, ReadShort(_base+_counter)+1)
+  end
+end
+
+--Stock entries are 8 bytes; entry 511 starts the next table (0xA4D6CC on Steam), and the decks follow it
+ItemHandler.StockEntries = 511
+
+--The game treats id 0 as free, but zeroed entries can keep a stale count at +0x05, so callers write all 8 bytes
+function ItemHandler:FindEmptyStockSlot()
+  local _start = MemoryAddresses.commandStockStart[gameVer]
+  for i=(MemoryAddresses.commandStock[gameVer]-_start)//0x08, self.StockEntries-1 do
+    local _addr = _start+(i*0x08)
+    if ReadShort(_addr) == 0x00 and ReadShort(_addr+0x02) == 0x00 then
+      return _addr
+    end
+  end
+  ConsolePrint("Command stock is full")
+  return nil
 end
 
 --TODO: Designate first several command stock slots to action commands prone to glitching
@@ -504,27 +542,31 @@ function ItemHandler:FlowmotionItem(flowmotion, isRestored)
   end
 
   --Add to inventory
-  if _item > 0 then
+  if flowmotion == 2661006 then --All flowmotion received; its own itemized id (2661012) is not a flowmotion command
+
+    for x=2661007, 2661011 do
+      local _cmd = getItemById(x)
+      local _emptySlotAddr = self:FindEmptyStockSlot()
+      if _emptySlotAddr then
+        WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07, 0x00, 0x00, 0x00, 0x00})
+      end
+      if not isRestored then
+        RoomSaveTask:StoreItem(x)
+      end
+    end
+
+  elseif _item > 0 then
     if not isRestored then
       RoomSaveTask:StoreItem(_item)
     end
 
     local _cmd = getItemById(_item)
-    local _emptySlotAddr = self:FindEmptySlot(MemoryAddresses.commandStock[gameVer], 1000, 0x08, 0x00)
+    local _emptySlotAddr = self:FindEmptyStockSlot()
 
-    WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07})
-    RoomSaveTask:StoreItem(flowmotion)
-
-  elseif flowmotion == 2661006 then --All flowmotion received
-
-    for x=2661007, 2661011 do
-      local _cmd = getItemById(x)
-      local _emptySlotAddr = self:FindEmptySlot(MemoryAddresses.commandStock[gameVer], 1000, 0x08, 0x00)
-      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07})
-      if not isRestored then
-        RoomSaveTask:StoreItem(x)
-      end
+    if _emptySlotAddr then
+      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07, 0x00, 0x00, 0x00, 0x00})
     end
+    RoomSaveTask:StoreItem(flowmotion)
   end
 end
 

@@ -432,6 +432,8 @@ function ItemDefs:DefineItems()
 
     { ID = 2641001, Name = "Potion", Type="Consumable", Bytes={0x77} },
     { ID = 2641005, Name = "Hi-Potion", Type="Consumable", Bytes={0x78}},
+    { ID = 2641024, Name = "Drop-Me-Not", Type="Consumable", Bytes={0x7A}},
+    { ID = 2641025, Name = "Drop-Me-Never", Type="Consumable", Bytes={0x7B}},
 
   }
 
