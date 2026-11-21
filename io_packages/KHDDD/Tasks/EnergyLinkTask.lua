@@ -36,6 +36,17 @@ local _dp = {0xA98024} --TODO: EGS
 local _bonusFlagByte = 0x1D --Flag word follows the dropPtr global
 local _bonusFlag = 0x40
 
+local function equippedItemBoosts()
+	local _abl = ReadByte(MemoryAddresses.supportAbilities[gameVer]-0x42+getCharacter()) --Item Boost; one byte per character
+	local _count = 0
+	for i = 0, (_abl & 0x07)-1 do --Low 3 bits: copies owned; one equip bit per copy from bit 3
+		if _abl & (0x08 << i) ~= 0 then
+			_count = _count + 1
+		end
+	end
+	return _count
+end
+
 function EnergyLinkTask:Init()
 	--Nop drop me not restoration
 	local _dropMeNop = {0x2DE409} --TODO: EGS
@@ -171,6 +182,9 @@ function EnergyLinkTask:RequestEnergy(amt)
 		local _amtOver = (amt + _currEnergy) - self.MAX_ENERGY
 		amt = amt - _amtOver
 	end
+	if amt <= 0 then --Full gauge
+		return
+	end
 
 	--Send the request
 	SendToApClient(MessageTypes.RequestingEnergy, {tostring(amt)})
@@ -210,9 +224,13 @@ end
 
 --Drop-Me-Nop used
 function EnergyLinkTask:ItemUsed(itemId)
-	local _requestAmts = {24000, 48000}
-	local _energyToRequest = _requestAmts[itemId-0x79]
-	self:RequestEnergy(_energyToRequest)
+	local _itemPercent = {[0x7A] = 50, [0x7B] = 100} --Same as the game's Drop-Me-Not code at 0x2DE360
+	local _currentEnergy = self:GetCurrentEnergy()
+
+	local _percent = _itemPercent[itemId] * (100 + 10*equippedItemBoosts()) // 100 --Each Item Boost adds 10% of the base
+	local _requestedEnergy = _percent * 0.01 * _maxEnergy
+
+	self:RequestEnergy(_requestedEnergy)
 end
 
 function EnergyLinkTask:DropMeNopCheck()
