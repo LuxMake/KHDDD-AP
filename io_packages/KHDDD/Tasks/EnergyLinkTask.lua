@@ -33,6 +33,8 @@ EnergyLinkTask.BankedEnergy = 0
 EnergyLinkTask.UsingItem = false
 
 local _dp = {0xA98024} --TODO: EGS
+local _bonusFlagByte = 0x1D --Flag word follows the dropPtr global
+local _bonusFlag = 0x40
 
 function EnergyLinkTask:Init()
 	--Nop drop me not restoration
@@ -140,12 +142,22 @@ function EnergyLinkTask:HasDropped()
 end
 
 --Energy manip functions
+function EnergyLinkTask:SetGauge(amt)
+	local _bar = GetPointer(MemoryAddresses.dropPtr, MemoryAddresses.dropOffset)
+	local _flags = MemoryAddresses.dropPtr[gameVer]+_bonusFlagByte
+	WriteFloat(_bar, math.max(0, math.min(amt, 72000)), true)
+	WriteFloat(_bar+0x08, 1920, true) --Bonus time in frames
+	WriteInt(_bar+0x0C, 32, true) --Bonus time in seconds
+	WriteByte(_flags, ReadByte(_flags) & ~_bonusFlag)
+end
+
 function EnergyLinkTask:GetCurrentEnergy()
 	return ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true)
 end
 
 function EnergyLinkTask:UseStoredEnergy()
-	WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.StoredGauge, true)
+	--WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.StoredGauge, true)
+	self:SetGauge(self.StoredGauge)
 	self.StoredGauge = -1
 end
 
