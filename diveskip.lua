@@ -170,13 +170,13 @@ function WorldStart()
 	local _char = ReadByte(Character[_gameVer])
 	if _worldId == 0x03 then --TT; for open world support
 		if _char == 0x00 then --Sora
-			if ReadByte(Story.TT.Sora[_gameVer]+0x01) == 0xF1 then --Check for F1 as it's used for extra menu options
+			if ReadByte(Story.TT.Sora[_gameVer]+0x01) == 0x01 then --Check for F1 as it's used for extra menu options
 				_map = 0x01
 				_evtVals = 0x36
 				WriteByte(Story.TT.Sora[_gameVer]+0x01, 0x01) --Ensure progression is stable
 			end
 		else --Riku
-			if ReadByte(Story.TT.Riku[_gameVer]+0x01) == 0x1F then
+			if ReadByte(Story.TT.Riku[_gameVer]+0x01) == 0x01 then
 				_map = 0x03
 				_evtVals = 0x41
 				WriteByte(Story.TT.Riku[_gameVer]+0x01, 0x01) --Ensure progression is stable
