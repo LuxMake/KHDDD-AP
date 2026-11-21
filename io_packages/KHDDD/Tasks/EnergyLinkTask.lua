@@ -8,9 +8,11 @@ EnergyLinkTask.POST_DROP_ENERGY = 24000 --How much drop gauge should player have
 
 --Variables
 EnergyLinkTask.IsActive = false
+EnergyLinkTask.EnergyInitialized = false --Has initial energy been logged
+
 EnergyLinkTask.ActiveCharacter = 0
 
-EnergyLinkTask.StoredGauge = -1
+EnergyLinkTask.StoredGauge = self.MAX_ENERGY
 EnergyLinkTask.LastGauge = 0
 EnergyLinkTask.LastDP = 0
 
@@ -41,6 +43,14 @@ function EnergyLinkTask:Update()
 
 	local _charState = ReadByte(GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset), true)
 
+	if not self.EnergyInitialized then
+		if _charState == 0x01 or _charState == 0x02 then
+			self.StoredGauge = self:GetCurrentEnergy()
+			self.EnergyInitialized = true
+		end
+	end
+
+
 	if self:HasDropped() then --Character has changed
 		if self.StoredGauge < 0 then --Player had a natural drop
 			--Empty gauge since player has changed
@@ -64,7 +74,7 @@ function EnergyLinkTask:Update()
 		self.AwaitingDrop = true
 	end
 
-	if _charState ~= 0x01 and _charState ~= 0x02 then --Player is not in a state where the drop gauge should be manipulated
+	if not self.EnergyInitialized or _charState ~= 0x01 and _charState ~= 0x02 then --Player is not in a state where the drop gauge should be manipulated
 		if self:IsPaused() then
 			self.StoredGauge = self.LastGauge
 		end
