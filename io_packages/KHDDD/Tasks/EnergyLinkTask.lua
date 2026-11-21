@@ -15,9 +15,15 @@ EnergyLinkTask.EnergyInitialized = false --Has initial energy been logged
 
 EnergyLinkTask.ActiveCharacter = 0
 
+--Tracking
 EnergyLinkTask.StoredGauge = self.MAX_ENERGY
 EnergyLinkTask.LastGauge = 0
 EnergyLinkTask.LastDP = 0
+
+--Death handling
+EnergyLinkTask.EntryGauge = nil
+EnergyLinkTask.EntryRoom = {}
+EnergyLinkTask.Died = false
 
 
 EnergyLinkTask.AwaitingDrop = false
@@ -53,6 +59,10 @@ function EnergyLinkTask:Update()
 		end
 	end
 
+	if self.EntryGauge then
+		self:KeepEntryGauge(_charState)
+	end
+
 
 	if self:HasDropped() then --Character has changed
 		if self.StoredGauge < 0 then --Player had a natural drop
@@ -65,6 +75,11 @@ function EnergyLinkTask:Update()
 			--Send request to refill gauge
 			self:RequestEnergy(self.MAX_ENERGY)
 		end
+
+		--Update death tracking
+		self.EntryGauge = self:GetCurrentEnergy()
+		self.EntryRoom = {roomInfo[1], roomInfo[2]}
+		self.Died = false
 
 		self.AwaitingDrop = false
 	end
@@ -202,6 +217,21 @@ function EnergyLinkTask:DropMeNopCheck()
 		if _animQueueVal ~= 0x7B and _animQueueVal ~= 0x7A then --Animation ended
 			self.UsingItem = false
 		end
+	end
+end
+
+--Death handling
+function EnergyLinkTask:KeepEntryGauge(charState)
+	if charState == 0x03 then
+		self.Died = true
+	elseif self.Died then
+		if (charState == 0x01 or charState == 0x02) and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 then
+			self:SetGauge(self.EntryGauge)
+			self.Died = false
+			ConsolePrint("Restored post-drop gauge after death")
+		end
+	elseif roomInfo[1] ~= self.EntryRoom[1] or roomInfo[2] ~= self.EntryRoom[2] then
+		self.EntryGauge = nil
 	end
 end
 
