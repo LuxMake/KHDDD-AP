@@ -339,3 +339,11 @@ assets:
   method: copy
   source:
   - name: io_packages/KHDDD/f_de505_b.dds
+- name: remastered/chara/f_obj/f_de50/mig/1/bin/f_de501.txa/f_de501_a.dds
+  method: copy
+  source:
+  - name: remastered/chara/f_obj/f_de50/mig/1/bin/f_de501.txa/f_de501_a.dds
+- name: remastered/chara/f_obj/f_de50/mig/1/bin/f_de501.pmo/f_de501_00.dds
+  method: copy
+  source:
+  - name: remastered/chara/f_obj/f_de50/mig/1/bin/f_de501.pmo/f_de501_00.dds
