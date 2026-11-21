@@ -16,7 +16,7 @@ EnergyLinkTask.EnergyInitialized = false --Has initial energy been logged
 EnergyLinkTask.ActiveCharacter = 0
 
 --Tracking
-EnergyLinkTask.StoredGauge = self.MAX_ENERGY
+EnergyLinkTask.StoredGauge = EnergyLinkTask.MAX_ENERGY
 EnergyLinkTask.LastGauge = 0
 EnergyLinkTask.LastDP = 0
 
