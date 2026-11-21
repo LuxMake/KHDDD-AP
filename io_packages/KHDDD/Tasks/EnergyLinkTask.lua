@@ -6,6 +6,9 @@ EnergyLinkTask = {}
 EnergyLinkTask.MAX_ENERGY = 72000
 EnergyLinkTask.POST_DROP_ENERGY = 24000 --How much drop gauge should player have with no banked energy
 
+EnergyLinkTask.DROP_ME_NOT = 24000 --How much energy do the gauge refill items deposit/request
+EnergyLinkTask.DROP_ME_NEVER = 48000
+
 --Variables
 EnergyLinkTask.IsActive = false
 EnergyLinkTask.EnergyInitialized = false --Has initial energy been logged
@@ -171,6 +174,11 @@ function EnergyLinkTask:SendEnergyToServer()
 	ConsolePrint("Sending energy to server")
 	SendToApClient(MessageTypes.SendingEnergy, {tostring(self.LastDP)})
 	self.LastDP = 0
+end
+
+function EnergyLinkTask:DirectDeposit(amt)
+	--Send energy to server; bypassing dp conversion
+	
 end
 
 --Drop-Me-Nop used

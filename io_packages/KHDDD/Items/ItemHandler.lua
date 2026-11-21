@@ -95,6 +95,12 @@ function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
     if _ahead and not isLocal then
       self:GiveCommand(value)
     end
+    if _ahead and (value == 2641024 or value == 2641025) then
+      if EnergyLinkTask.IsActive then
+        local _depVals = {EnergyLinkTask.DROP_ME_NOT, EnergyLinkTask.DROP_ME_NEVER}
+        EnergyLinkTask:DirectDeposit(_depVals[value-2641023])
+      end
+    end
   elseif type == "World" then
     --self:GiveWorld(value, true)
     self:GiveWorld(value)

@@ -486,7 +486,8 @@ MessageTypes = {
 
   RequestingEnergy=21,
   SendingEnergy=22,
-  MultTrap=23
+  MultTrap=23,
+  DepositingEnergy=24
 }
 HandshakeSent = false
 HandshakeReceived = false
