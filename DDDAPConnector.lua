@@ -1315,7 +1315,7 @@ function forceDrop()
   keepDropActive = getCharacter()
 
   if EnergyLinkTask.IsActive then
-    EnergyLinkTask:SaveGauge()
+    EnergyLinkTask:StoreCurrentEnergy()
   end
 
   --Force the drop; set related gauge and bonus time bytes to 0
@@ -1528,7 +1528,7 @@ function HandleMessage(msg)
     PatchTask:RemoteBoardRewards(msg.values[1], msg.values[2], msg.values[3], msg.values[4])
 
   elseif msg.type == MessageTypes.RequestingEnergy then
-    EnergyLinkTask:EnergyFromServer(tonumber(msg.values[1]))
+    EnergyLinkTask:ReceivedBankEnergy(tonumber(msg.values[1]))
   elseif msg.type == MessageTypes.MultTrap then
     TrapTask:MultTrap(tonumber(msg.values[1]))
   end
@@ -1840,10 +1840,10 @@ end
 -- ######################  Game Setup  ########################
 -- ############################################################
 
-local _activeCharacter = 0
+activeCharacter = 0
 function main()
-  if ReadByte(MemoryAddresses.character[gameVer]) ~= _activeCharacter then
-    _activeCharacter = ReadByte(MemoryAddresses.character[gameVer])
+  if ReadByte(MemoryAddresses.character[gameVer]) ~= activeCharacter then
+    activeCharacter = ReadByte(MemoryAddresses.character[gameVer])
     onCharacterChange()
   end
 

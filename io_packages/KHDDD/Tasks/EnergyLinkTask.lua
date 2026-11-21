@@ -1,20 +1,27 @@
+--EnergyLinkTaskRewrite
+
 EnergyLinkTask = {}
 
-EnergyLinkTask.IsActive = false
+--Constants
+EnergyLinkTask.MAX_ENERGY = 72000
+EnergyLinkTask.POST_DROP_ENERGY = 24000 --How much drop gauge should player have with no banked energy
 
-EnergyLinkTask.GaugeValue = -1 --Updates on pause or world map to track manual drops
-EnergyLinkTask.DPValue = 0 --For when dropping on world map
-EnergyLinkTask.RestoreGauge = -1 --0 if sora had dropped and 1 if riku had dropped
+--Variables
+EnergyLinkTask.IsActive = false
 EnergyLinkTask.ActiveCharacter = 0
 
-EnergyLinkTask.DropToWrite = -1
+EnergyLinkTask.StoredGauge = -1
+EnergyLinkTask.LastGauge = 0
+EnergyLinkTask.LastDP = 0
+
+
+EnergyLinkTask.AwaitingDrop = false
+
+EnergyLinkTask.BankedEnergy = 0
 
 EnergyLinkTask.UsingItem = false
 
-EnergyLinkTask.NaturalDrop = false
-
 local _dp = {0xA98024} --TODO: EGS
---Get DP: ReadShort(_dp[gameVer])
 
 function EnergyLinkTask:Init()
 	--Nop drop me not restoration
@@ -33,146 +40,150 @@ function EnergyLinkTask:Update()
 	end
 
 	local _charState = ReadByte(GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset), true)
-	local _dropGauge = ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true) --+0x0C for bonus time
 
-	if ReadByte(MemoryAddresses.pauseType[gameVer]) == 0x03 then --We need to preserve the current gauge value
-		self:SaveGauge() --We need to preserve the current gauge value
-	end
+	if self:HasDropped() then --Character has changed
+		if self.StoredGauge < 0 then --Player had a natural drop
+			--Empty gauge since player has changed
+			--WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.POST_DROP_ENERGY, true)
+			self.StoredGauge = self.POST_DROP_ENERGY
 
-	if roomInfo[1] == 0x0B then --Need to preserve DP on world map since we can't reliably detect dropping here
-		self.DPValue = ReadShort(_dp[gameVer])
+			self:SendEnergyToServer()
 
-		if self.ActiveCharacter ~= getCharacter() then --A drop occurred
-			if self.RestoreGauge == -1 then
-				self.RestoreGauge = math.abs(getCharacter()-1) --Was it Sora or Riku
-				self:SendDP(self.DPValue)
-				self.DPValue = 0
-			end
+			--Send request to refill gauge
+			self:RequestEnergy(self.MAX_ENERGY)
 		end
+
+		self.AwaitingDrop = false
 	end
 
-	if _charState == 0x04 and self.RestoreGauge == -1 then --We have dropped
-		self:OnDrop()
-	end
-
-	if _dropGauge > 0 and self.DropToWrite > -1 and _charState ~= 0x04 and not self.NaturalDrop then --We have energy to write to the drop gauge
-		self:GotEnergy(self.DropToWrite)
-		self.DropToWrite = -1
-	end
-
-	if _charState ~= 0x04 and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 and roomInfo[1] ~= 0x0B then
-		if self.RestoreGauge > -1 then
-			self:Dropped()
+	if _charState == 0x04 then --Player is currently in dropped state
+		if not self.AwaitingDrop then
+			self.LastDP = ReadShort(_dp[gameVer])
+			self:SendEnergyToServer()
 		end
+		self.AwaitingDrop = true
+	end
+
+	if _charState ~= 0x01 and _charState ~= 0x02 then --Player is not in a state where the drop gauge should be manipulated
+		if self:IsPaused() then
+			self.StoredGauge = self.LastGauge
+		end
+		return
+	end
+
+	if self:IsPaused() or ReadByte(MemoryAddresses.world[gameVer]) == 0x0B then --Log DP
+		self.LastDP = ReadShort(_dp[gameVer])
+	end
+
+	self.LastGauge = self:GetCurrentEnergy()
+
+	if self:IsPaused() and self.LastGauge > 0 then --If we have gauge we need to record it in case of manual drop
+		self:StoreCurrentEnergy()
+	elseif self.StoredGauge >= 0 and keepDropActive == -1 then --May need a timer to prevent this from triggering too soon
+		self:UseStoredEnergy()
+		self.StoredGauge = -1
 	end
 
 
-	--Detect if Drop-Me-Not/Never was used
-	if ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 then
-		--Can reference animation queue to determine if drop me not/never is used
-		local _animPtr = {0xA37DB8} --TODO: EGS
-		local _animQueueVal = ReadByte(GetPointer(_animPtr[gameVer], 0x570)+0x142, true)
-		if not self.UsingItem then
-			if _animQueueVal == 0x7A or _animQueueVal == 0x7B then
-				--Player has used a drop-me-not
-				self:RequestEnergy(_animQueueVal)
-				self.UsingItem = true
-			end
-		else
-			if _animQueueVal ~= 0x7B and _animQueueVal ~= 0x7A then --Animation ended
-				self.UsingItem = false
-			end
-		end
+	--Check if drop-me-nop item used to request energy
+	self:DropMeNopCheck()
+
+	--Check if we need to consume banked energy received from server
+	if self.BankedEnergy > 0 then
+		self:ConsumeBankedEnergy()
 	end
 
 end
 
-function EnergyLinkTask:RequestEnergy(itemUsed)
-	local _energyToRequest = {24000, 48000}
-	local _maxEnergy = 72000
+function EnergyLinkTask:IsPaused()
+	if ReadByte(MemoryAddresses.pauseType[gameVer]) > 0x00 then
+		return true
+	end
+	return false
+end
 
-	local _currentEnergy = ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true)
-	local _requestedEnergy = _energyToRequest[itemUsed-0x79]
-	if _requestedEnergy + _currentEnergy > _maxEnergy then --Should not request more than maximum drop
-		local _amtOver = (_requestedEnergy + _currentEnergy) - _maxEnergy
-		_requestedEnergy = _requestedEnergy - _amtOver
+function EnergyLinkTask:HasDropped()
+	local _char = getCharacter()
+	if getCharacter() ~= self.ActiveCharacter then --Player has changed characters
+		self.ActiveCharacter = getCharacter()
+		return true
+	end
+	return false
+end
+
+--Energy manip functions
+function EnergyLinkTask:GetCurrentEnergy()
+	return ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true)
+end
+
+function EnergyLinkTask:UseStoredEnergy()
+	WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.StoredGauge, true)
+	self.StoredGauge = -1
+end
+
+function EnergyLinkTask:StoreCurrentEnergy()
+	self.StoredGauge = self:GetCurrentEnergy()
+end
+
+function EnergyLinkTask:RequestEnergy(amt)
+	local _currEnergy = self:GetCurrentEnergy()
+	if amt + _currEnergy > self.MAX_ENERGY then --Should not request more than maximum
+		local _amtOver = (amt + _currEnergy) - self.MAX_ENERGY
+		amt = amt - _amtOver
 	end
 
 	--Send the request
-	SendToApClient(MessageTypes.RequestingEnergy, {tostring(_requestedEnergy)})
+	SendToApClient(MessageTypes.RequestingEnergy, {tostring(amt)})
 end
 
-function EnergyLinkTask:RequestAllEnergy()
-	SendToApClient(MessageTypes.RequestingEnergy, {tostring(72000)})
+function EnergyLinkTask:ReceivedBankEnergy(amt) --Energy received from server; renamed from gotenergy
+	self.BankedEnergy = self.BankedEnergy + amt --Save to a banked energy var in case we can't instantly consume it
+	ConsolePrint("Banking energy")
 end
 
-function EnergyLinkTask:GotEnergy(amt) --Energy reponse received from server
+function EnergyLinkTask:ConsumeBankedEnergy()
 	_barAddr = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
 	local _currentEnergy = ReadFloat(_barAddr, true)
-	WriteFloat(_barAddr, _currentEnergy+amt, true)
-	ConsolePrint("Added to energy")
-end
-
-function EnergyLinkTask:EnergyFromServer(amt)
-	self.DropToWrite = amt
-end
-
-function EnergyLinkTask:SaveGauge()
-	local _readBar = ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true)
-	if _readBar > 0 then
-		self.GaugeValue = _readBar
+	local _amtToAdd = _currentEnergy + self.BankedEnergy
+	if _amtToAdd > self.MAX_ENERGY then --More banked energy than we can otherwise have
+		self.BankedEnergy = self.BankedEnergy - self.MAX_ENERGY
+		_amtToAdd = self.MAX_ENERGY
+	else
+		self.BankedEnergy = 0
 	end
+	WriteFloat(_barAddr, _amtToAdd, true)
 end
 
-function EnergyLinkTask:OnPause()
-	if roomInfo[1] ~= 0x0B then
-		self:SaveGauge()
-	end
-	self.DPValue = ReadShort(_dp[gameVer])
-end
-
-function EnergyLinkTask:SendDP(dpAmt)
-	if dpAmt <= 0 then --Don't need to send a message with 0 dp
+function EnergyLinkTask:SendEnergyToServer()
+	if self.LastDP == 0 then
 		return
 	end
-	ConsolePrint("Sending DP to server")
-	SendToApClient(MessageTypes.SendingEnergy, {tostring(dpAmt)})
+	ConsolePrint("Sending energy to server")
+	SendToApClient(MessageTypes.SendingEnergy, {tostring(self.LastDP)})
+	self.LastDP = 0
 end
 
-function EnergyLinkTask:Dropped()
-	if not timedout then --Player manually dropped and drop gauge needs to be transferred
-		if ReadFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), true) > 0 then
-			self.ActiveCharacter = getCharacter()
-			if self.NaturalDrop then
-				WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.DropToWrite, true)
-				self.DropToWrite = -1
-				self.NaturalDrop = false
-				ConsolePrint("Restored using write amount")
-			else
-				WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.GaugeValue, true)
-				self.GaugeValue = -1
-				ConsolePrint("Restored using saved amount")
-			end
-			self.RestoreGauge = -1
-			ConsolePrint("SUCCESS")
+--Drop-Me-Nop used
+function EnergyLinkTask:ItemUsed(itemId)
+	local _requestAmts = {24000, 48000}
+	local _energyToRequest = _requestAmts[itemId-0x79]
+	self:RequestEnergy(_energyToRequest)
+end
+
+function EnergyLinkTask:DropMeNopCheck()
+	local _animPtr = {0xA37DB8} --TODO: EGS
+	local _animQueueVal = ReadByte(GetPointer(_animPtr[gameVer], 0x570)+0x142, true)
+	if not self.UsingItem then
+		if _animQueueVal == 0x7A or _animQueueVal == 0x7B then
+			--Player has used a drop-me-not
+			--self:RequestEnergy(_animQueueVal)
+			self:ItemUsed(_animQueueVal)
+			self.UsingItem = true
 		end
-	end
-end
-
-function EnergyLinkTask:OnDrop()
-	self.DPValue = ReadShort(_dp[gameVer])
-	self:SendDP(self.DPValue)
-	self.DPValue = 0
-	local _bar = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
-	
-	--TODO: Detect if gauge timed out naturally
-	self.RestoreGauge = getCharacter()
-
-	if ReadFloat(_bar+0x0C, true) == 0 then --Timer expired naturally
-		ConsolePrint("Player dropped naturally")
-		self.GaugeValue = 0
-		self:RequestAllEnergy()
-		self.NaturalDrop = true
+	else
+		if _animQueueVal ~= 0x7B and _animQueueVal ~= 0x7A then --Animation ended
+			self.UsingItem = false
+		end
 	end
 end
 

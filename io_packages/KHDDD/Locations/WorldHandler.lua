@@ -99,6 +99,7 @@ function WorldHandler:ObtainWorld(world)
 					self.WorldsUnlocked.Sora[self.Worlds.TT] = _soraIndex
 				end
 			else
+				ConsolePrint("INSERTING WORLD")
 				self.WorldsUnlocked.Sora[x] = _soraIndex
 			end
 			return
@@ -135,11 +136,13 @@ end
 --------------------------------------------------------- 
 
 function WorldHandler:CheckWorlds()
+	ConsolePrint("Checking worlds")
 	if activeCharacter == 0 then
 		--Verify Sora World Access
 		for x=1, #self.WorldsUnlocked.Sora do
 			if self.WorldsUnlocked.Sora[x] > 0 then
-				--ConsolePrint("Found Sora World")
+				ConsolePrint("Sora world status for "..tostring(x)..": "..tostring(self.WorldsUnlocked.Sora[x]))
+				ConsolePrint("SORA WORLD FOUND")
 				self:UnlockWorld(self.WorldIds.Sora[x])
 			else
 				if x ~= self.Worlds.TT2 then
@@ -173,6 +176,7 @@ function WorldHandler:LockWorld(worldId)
 end
 
 function WorldHandler:UnlockWorld(worldId)
+	ConsolePrint("UNLOCKING WORLD")
 	--Extract world info
 	local _world = getItemById(worldId)
 	local _unlocked = _world.Bytes[1]
@@ -442,11 +446,6 @@ function WorldHandler:ApplyScaling()
 end
 
 function WorldHandler:FixMenu()
-	--Re-enable command menu if player leaves TT1 for some reason
-	if getCharacter() == 0 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01) < 0xF1 then
-		WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01, 0xF1)
-	end
-
 	--Force reveal world map if not there
 	if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) < 0x11 then
 		WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
