@@ -1827,6 +1827,8 @@ function sendToInv(itemId, currentIndex)
     ItemHandler:PlaceWorldItem(itemId)
   elseif _item.Type == "Recipe" then --Recipes don't need to be re-added to our state
     ItemHandler:RecipeToInv(itemId)
+  elseif _item.Type == "Keyblades [Sora]" or _item.Type == "Keyblades [Riku]" then --Always receive keyblades
+    ItemHandler:GiveKeyblade(value)
   else
     ItemHandler:Receive(_item.Type, itemId, RoomSaveTask.State.RestoreIndex+currentIndex, false, true)
   end
