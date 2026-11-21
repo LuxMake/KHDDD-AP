@@ -178,7 +178,7 @@ end
 
 function EnergyLinkTask:DirectDeposit(amt)
 	--Send energy to server; bypassing dp conversion
-	
+	SendToApClient(MessageTypes.DepositingEnergy, {tostring(amt)})
 end
 
 --Drop-Me-Nop used
