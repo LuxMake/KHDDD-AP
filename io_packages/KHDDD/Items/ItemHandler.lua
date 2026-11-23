@@ -393,7 +393,7 @@ end
 --The game stacks a consumable only once its obtained flag (bits 0x300) is set; otherwise its own pickup makes a new entry.
 --Set it only with a stock entry present: with the flag and no entry, the game writes to entry -1.
 --Mirrors the game's first pickup (0x371650): flag bits, low-byte count and the item tally counters (consumables are category 2).
-function ItemHandler:MarkConsumableObtained()
+function ItemHandler:MarkConsumableObtained(id)
   local _base = MemoryAddresses.commandStockStart[gameVer]
   local _flagAddr = _base+0x1024+(id*2)
   local _flags = ReadShort(_flagAddr)
