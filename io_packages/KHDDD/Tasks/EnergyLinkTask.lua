@@ -19,6 +19,8 @@ EnergyLinkTask.ActiveCharacter = 0
 EnergyLinkTask.StoredGauge = EnergyLinkTask.MAX_ENERGY
 EnergyLinkTask.LastGauge = 0
 EnergyLinkTask.LastDP = 0
+EnergyLinkTask.FieldGauge = 0 --Last gauge outside the world map, for world map drops
+EnergyLinkTask.FromMap = false --On the world map, or loading out of it
 
 --Death handling
 EnergyLinkTask.EntryGauge = nil
@@ -28,6 +30,10 @@ EnergyLinkTask.PostDrop = false --The entry gauge is taken once the stored gauge
 
 
 EnergyLinkTask.AwaitingDrop = false
+EnergyLinkTask.DropState = false
+EnergyLinkTask.TrapDrop = false
+EnergyLinkTask.AwaitingDraw = false --The client doesn't reply when the bank is empty
+EnergyLinkTask.FloorGift = 0 --Part of the post-drop floor that the bank's reply pays back
 
 EnergyLinkTask.BankedEnergy = 0
 
@@ -78,17 +84,27 @@ function EnergyLinkTask:Update()
 	end
 
 
+	if roomInfo[1] == 0x0B then
+		self.FromMap = true
+	end
+
 	if self:HasDropped() then --Character has changed
+		if self.FromMap then --A world map drop never enters the drop state; main() moves roomInfo in the same pass
+			self.StoredGauge = self.FieldGauge
+		end
 		if self.StoredGauge < 0 then --Player had a natural drop
 			--Empty gauge since player has changed
 			--WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.POST_DROP_ENERGY, true)
-			self.StoredGauge = self.POST_DROP_ENERGY
-
-			self:SendEnergyToServer()
-
-			--Send request to refill gauge
-			self:RequestEnergy(self.MAX_ENERGY)
+			self.StoredGauge = 0
 		end
+
+		self:SendEnergyToServer()
+
+		if not self.TrapDrop then --An Instant Drop trap only swaps the gauge
+			--Send request to refill gauge
+			self:RequestDropEnergy()
+		end
+		self.TrapDrop = false
 
 		--Death tracking restarts in UseStoredEnergy, once the post-drop gauge is written
 		self.EntryGauge = nil
@@ -97,16 +113,20 @@ function EnergyLinkTask:Update()
 		self.AwaitingDrop = false
 	end
 
-	if _charState == 0x04 then --Player is currently in dropped state
-		if not self.AwaitingDrop then
-			self.LastDP = ReadShort(_dp[gameVer])
-			self:SendEnergyToServer()
-		end
+	if _charState == 0x04 and not self.DropState then --First frame of the drop state; HasDropped can clear AwaitingDrop before it ends
+		self.LastDP = ReadShort(_dp[gameVer])
+		self:SendEnergyToServer()
+		self.TrapDrop = holdDropTrap == true --DeliverDrop clears holdDropTrap after this frame
 		self.AwaitingDrop = true
+	end
+	self.DropState = _charState == 0x04
+
+	if _charState ~= 0x04 and ReadByte(MemoryAddresses.enablePause[gameVer]) == 0x00 and roomInfo[1] ~= 0x0B then
+		self.FromMap = false
 	end
 
 	if not self.EnergyInitialized or _charState ~= 0x01 and _charState ~= 0x02 then --Player is not in a state where the drop gauge should be manipulated
-		if self:IsPaused() then
+		if self:IsPaused() and not self.PostDrop then --Keep the drop's gauge until UseStoredEnergy writes it
 			self.StoredGauge = self.LastGauge
 		end
 		return
@@ -117,10 +137,13 @@ function EnergyLinkTask:Update()
 	end
 
 	self.LastGauge = self:GetCurrentEnergy()
+	if roomInfo[1] ~= 0x0B and not self.PostDrop then
+		self.FieldGauge = self.LastGauge
+	end
 
-	if self:IsPaused() and self.LastGauge > 0 then --If we have gauge we need to record it in case of manual drop
+	if self:IsPaused() and self.LastGauge > 0 and not self.PostDrop then --If we have gauge we need to record it in case of manual drop
 		self:StoreCurrentEnergy()
-	elseif self.StoredGauge >= 0 and keepDropActive == -1 then --May need a timer to prevent this from triggering too soon
+	elseif self.StoredGauge >= 0 and keepDropActive == -1 and not self.FromMap and not self.AwaitingDrop then --May need a timer to prevent this from triggering too soon
 		self:UseStoredEnergy()
 		self.StoredGauge = -1
 	end
@@ -130,7 +153,7 @@ function EnergyLinkTask:Update()
 	self:DropMeNopCheck()
 
 	--Check if we need to consume banked energy received from server
-	if self.BankedEnergy > 0 then
+	if self.BankedEnergy > 0 and self.StoredGauge < 0 then --UseStoredEnergy would overwrite it
 		self:ConsumeBankedEnergy()
 	end
 
@@ -192,11 +215,36 @@ function EnergyLinkTask:RequestEnergy(amt)
 		return
 	end
 
+	--Replies come in order, so a drop request still unanswered found the bank empty
+	self.AwaitingDraw = false
+
 	--Send the request
 	SendToApClient(MessageTypes.RequestingEnergy, {tostring(amt)})
 end
 
+--The game covers what the bank can't, up to POST_DROP_ENERGY
+function EnergyLinkTask:RequestDropEnergy()
+	local _carried = self.StoredGauge
+	self.FloorGift = math.max(self.POST_DROP_ENERGY - _carried, 0)
+	self.StoredGauge = _carried + self.FloorGift
+	if _carried >= self.MAX_ENERGY then
+		return
+	end
+
+	--Not RequestEnergy: it clamps against the game's post-drop refill
+	self.AwaitingDraw = true
+	SendToApClient(MessageTypes.RequestingEnergy, {tostring(self.MAX_ENERGY - _carried)})
+end
+
 function EnergyLinkTask:ReceivedBankEnergy(amt) --Energy received from server; renamed from gotenergy
+	if self.AwaitingDraw then --A drop's top-off; the floor already paid FloorGift of it
+		self.AwaitingDraw = false
+		amt = amt - self.FloorGift
+		self.FloorGift = 0
+		if amt <= 0 then
+			return
+		end
+	end
 	self.BankedEnergy = self.BankedEnergy + amt --Save to a banked energy var in case we can't instantly consume it
 	ConsolePrint("Banking energy")
 end
