@@ -363,17 +363,15 @@ end
 -- ######################  Commands  ##########################
 -- ############################################################
 function ItemHandler:GiveCommand(value)
-  local _cmdAddr = MemoryAddresses.commandStock[gameVer]
   local _cmd = getItemById(value)
 
   if _cmd.Type == "Consumable" then
     --Scan to see if consumable exists
     local _hasItem = self:FindExistingSlot(MemoryAddresses.consumableStart[gameVer], 500, _cmd.Bytes, 0x08, 0x00)
     if _hasItem == 0x00 or _hasItem == nil then
-      local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 500, 0x08, 0x00)
+      local _emptySlotAddr = self:FindEmptyStockSlot()
       if _emptySlotAddr then
-        WriteByte(_emptySlotAddr, _cmd.Bytes[1])
-        WriteByte(_emptySlotAddr+0x05, 0x01)
+        WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00})
         self:MarkConsumableObtained(_cmd.Bytes[1])
       end
     else
@@ -383,9 +381,10 @@ function ItemHandler:GiveCommand(value)
     end
 
   elseif _cmd.Type == "Command" then
-    local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 1000, 0x08, 0x00)
-
-    WriteByte(_emptySlotAddr, _cmd.Bytes[1])
+    local _emptySlotAddr = self:FindEmptyStockSlot()
+    if _emptySlotAddr then
+      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+    end
   end
 end
 
@@ -404,6 +403,20 @@ function ItemHandler:MarkConsumableObtained(id)
   for _, _counter in ipairs({0x1012, 0x101E, 0x1022}) do
     WriteShort(_base+_counter, ReadShort(_base+_counter)+1)
   end
+end
+
+ItemHandler.StockEntries = 511 --Slots in the command stock
+
+function ItemHandler:FindEmptyStockSlot() --Returns address of first empty stock slot; write all 8 bytes
+  local _start = MemoryAddresses.commandStockStart[gameVer]
+  for i=(MemoryAddresses.commandStock[gameVer]-_start)//0x08, self.StockEntries-1 do
+    local _addr = _start+(i*0x08)
+    if ReadShort(_addr) == 0x00 and ReadShort(_addr+0x02) == 0x00 then
+      return _addr
+    end
+  end
+  ConsolePrint("Command stock is full")
+  return nil
 end
 
 --TODO: Designate first several command stock slots to action commands prone to glitching
@@ -537,17 +550,21 @@ function ItemHandler:FlowmotionItem(flowmotion, isRestored)
     end
 
     local _cmd = getItemById(_item)
-    local _emptySlotAddr = self:FindEmptySlot(MemoryAddresses.commandStock[gameVer], 1000, 0x08, 0x00)
+    local _emptySlotAddr = self:FindEmptyStockSlot()
 
-    WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07})
+    if _emptySlotAddr then
+      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07, 0x00, 0x00, 0x00, 0x00})
+    end
     RoomSaveTask:StoreItem(flowmotion)
 
   elseif flowmotion == 2661006 then --All flowmotion received
 
     for x=2661007, 2661011 do
       local _cmd = getItemById(x)
-      local _emptySlotAddr = self:FindEmptySlot(MemoryAddresses.commandStock[gameVer], 1000, 0x08, 0x00)
-      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07})
+      local _emptySlotAddr = self:FindEmptyStockSlot()
+      if _emptySlotAddr then
+        WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07, 0x00, 0x00, 0x00, 0x00})
+      end
       if not isRestored then
         RoomSaveTask:StoreItem(x)
       end

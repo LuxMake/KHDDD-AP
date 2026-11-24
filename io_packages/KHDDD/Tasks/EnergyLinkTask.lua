@@ -6,8 +6,8 @@ EnergyLinkTask = {}
 EnergyLinkTask.MAX_ENERGY = 72000
 EnergyLinkTask.POST_DROP_ENERGY = 24000 --How much drop gauge should player have with no banked energy
 
-EnergyLinkTask.DROP_ME_NOT = 24000 --How much energy do the gauge refill items deposit/request
-EnergyLinkTask.DROP_ME_NEVER = 48000
+EnergyLinkTask.DROP_ME_NOT = 36000 --How much energy do the gauge refill items deposit; the game's 50% and 100%, as ItemUsed requests
+EnergyLinkTask.DROP_ME_NEVER = 72000
 
 --Variables
 EnergyLinkTask.IsActive = false
@@ -24,6 +24,7 @@ EnergyLinkTask.LastDP = 0
 EnergyLinkTask.EntryGauge = nil
 EnergyLinkTask.EntryRoom = {}
 EnergyLinkTask.Died = false
+EnergyLinkTask.PostDrop = false --The entry gauge is taken once the stored gauge is written
 
 
 EnergyLinkTask.AwaitingDrop = false
@@ -89,10 +90,9 @@ function EnergyLinkTask:Update()
 			self:RequestEnergy(self.MAX_ENERGY)
 		end
 
-		--Update death tracking
-		self.EntryGauge = self:GetCurrentEnergy()
-		self.EntryRoom = {roomInfo[1], roomInfo[2]}
-		self.Died = false
+		--Death tracking restarts in UseStoredEnergy, once the post-drop gauge is written
+		self.EntryGauge = nil
+		self.PostDrop = true
 
 		self.AwaitingDrop = false
 	end
@@ -154,7 +154,7 @@ end
 
 --Energy manip functions
 function EnergyLinkTask:SetGauge(amt)
-	local _bar = GetPointer(MemoryAddresses.dropPtr, MemoryAddresses.dropOffset)
+	local _bar = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
 	local _flags = MemoryAddresses.dropPtr[gameVer]+_bonusFlagByte
 	WriteFloat(_bar, math.max(0, math.min(amt, 72000)), true)
 	WriteFloat(_bar+0x08, 1920, true) --Bonus time in frames
@@ -170,6 +170,12 @@ function EnergyLinkTask:UseStoredEnergy()
 	--WriteFloat(GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset), self.StoredGauge, true)
 	self:SetGauge(self.StoredGauge)
 	self.StoredGauge = -1
+	if self.PostDrop then
+		self.EntryGauge = self:GetCurrentEnergy()
+		self.EntryRoom = {roomInfo[1], roomInfo[2]}
+		self.Died = false
+		self.PostDrop = false
+	end
 end
 
 function EnergyLinkTask:StoreCurrentEnergy()
@@ -196,16 +202,17 @@ function EnergyLinkTask:ReceivedBankEnergy(amt) --Energy received from server; r
 end
 
 function EnergyLinkTask:ConsumeBankedEnergy()
-	_barAddr = GetPointer(MemoryAddresses.dropPtr[gameVer], MemoryAddresses.dropOffset)
-	local _currentEnergy = ReadFloat(_barAddr, true)
-	local _amtToAdd = _currentEnergy + self.BankedEnergy
-	if _amtToAdd > self.MAX_ENERGY then --More banked energy than we can otherwise have
-		self.BankedEnergy = self.BankedEnergy - self.MAX_ENERGY
-		_amtToAdd = self.MAX_ENERGY
-	else
-		self.BankedEnergy = 0
+	local _currentEnergy = self:GetCurrentEnergy()
+	local _room = self.MAX_ENERGY - _currentEnergy
+	if _room <= 0 then --Full gauge; the rest stays banked until there is room
+		return
 	end
-	WriteFloat(_barAddr, _amtToAdd, true)
+	local _amtToAdd = math.min(self.BankedEnergy, _room)
+	self.BankedEnergy = self.BankedEnergy - _amtToAdd
+	self:SetGauge(_currentEnergy + _amtToAdd) --Stops bonus time, as the game's own refill does
+	if self.EntryGauge then --A death reload must not lose what the bank paid in
+		self.EntryGauge = math.min(self.EntryGauge + _amtToAdd, self.MAX_ENERGY)
+	end
 end
 
 function EnergyLinkTask:SendEnergyToServer()
@@ -228,7 +235,7 @@ function EnergyLinkTask:ItemUsed(itemId)
 	local _currentEnergy = self:GetCurrentEnergy()
 
 	local _percent = _itemPercent[itemId] * (100 + 10*equippedItemBoosts()) // 100 --Each Item Boost adds 10% of the base
-	local _requestedEnergy = _percent * 0.01 * _maxEnergy
+	local _requestedEnergy = _percent * 0.01 * self.MAX_ENERGY
 
 	self:RequestEnergy(_requestedEnergy)
 end
