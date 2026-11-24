@@ -70,6 +70,10 @@ function RoomSaveTask:CheckPlayerState() --See if player has died
 		self:RestoreChests() --Chests need to be restored before player state can update
 		if ReadByte(_ptr, true) == 0x01 or ReadByte(_ptr, true) == 0x02 then --Player respawned
 			ConsolePrint("Restoring items")
+
+			local _charLvl = ReadByte(levels.addr[gameVer])
+  			PatchTask:WriteLevelReward(_charLvl+0x01, getCharacter())
+
 			self:RestoreItems()
 			if not Configs.VanillaLevels then
 				ItemHandler:RebuildStats()
