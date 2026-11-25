@@ -768,22 +768,25 @@ function ItemHandler:CheckMacguffins()
       _hasMacguffin = true
 
       --Unlock fast go save points
-      local _fastGoSora = {0x1097913E, 0x109789BE}
-      WriteArray(_fastGoSora[gameVer], {0x0A, 0x03, 0x57})
+      if Configs.FastGoMode then
+        local _fastGoSora = {0x1097913E, 0x109789BE}
+        WriteArray(_fastGoSora[gameVer], {0x0A, 0x03, 0x57})
 
-      --Unlock for Riku
-      local _fastGoRiku = {0x109791AA, 0x10978A2A}
-      WriteArray(_fastGoRiku[gameVer], {0x0A, 0x0D})
+        --Unlock for Riku
+        local _fastGoRiku = {0x109791AA, 0x10978A2A}
+        WriteArray(_fastGoRiku[gameVer], {0x0A, 0x0D})
+      end
 
       --Set world status to reveal points
       local _statusS = ReadByte(MemoryAddresses.worldStatusS[gameVer]+0x02)
       if _statusS < 0x80 then
         WriteByte(MemoryAddresses.worldStatusS[gameVer]+0x02, _statusS+0x80)
       end
-      if ReadByte(MemoryAddresses.worldStatusR[gameVer]+0x03) == 0x00 then
+      if ReadByte(MemoryAddresses.worldStatusR[gameVer]+0x03) == 0x00 and Configs.FastGoMode then
         WriteByte(MemoryAddresses.worldStatusR[gameVer]+0x03, 0x01)
         --WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
       end
+
       if ReadInt(MemoryAddresses.worldStatusR[gameVer]+0xCC) > 0 then
         WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
       end

@@ -256,9 +256,6 @@ function LocationHandler:CheckStory()
             return
           end
         end
-        if worldEvents[i].ID == 2670249 and ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01) == 0x1F and rikuSpiritFix == 1 then --Do not send out Komory Bat check prematurely
-          return
-        end
         table.insert(_storiesFound, tostring(worldEvents[i].ID))
         worldEvents[i].sent = true --Prevents this story point from being checked repeatedly
       end

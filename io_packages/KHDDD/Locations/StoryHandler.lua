@@ -124,6 +124,13 @@ function StoryHandler:OverwriteStoryVars()
 
   end
 
+  if ReadByte(DropAddresses.riku.world[gameVer]) == 0x0A then
+    if ReadByte(DropAddresses.riku.room[gameVer]) == 0x0D then --Move player to world map in case they got here early
+      WriteByte(DropAddresses.riku.world[gameVer], 0x0B)
+      WriteByte(DropAddresses.riku.room[gameVer], 0x01)
+    end
+  end
+
   if ReadByte(DropAddresses.sora.world[gameVer]) == 0x0A then
     if ReadByte(DropAddresses.sora.evt[gameVer]) == 0x34 and ReadByte(DropAddresses.sora.room[gameVer]) == 0x0C then
       --Player tried to do the xemnas fight

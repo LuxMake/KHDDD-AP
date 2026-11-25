@@ -1283,7 +1283,6 @@ function SetStartingLocation() --Sends player to the world map
   fixMenuOptions()
   WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
   WriteByte(WorldFlags.traverseTown.riku.story[gameVer], 0x31)
-  WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x01, 0x1F) --Force enable the menu fix for riku initially
   WriteByte(MemoryAddresses.world[gameVer], 0x0B)
   WriteByte(MemoryAddresses.room[gameVer], 0x01)
   WriteByte(DropAddresses.riku.world[gameVer], 0x0B)

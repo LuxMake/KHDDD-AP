@@ -7,6 +7,20 @@ function SoftlockTask:PreventSoftlocks()
 	--self:LeaveMT()
 	--self:EscapePurgatory()
 	self:MontSaintMichel()
+	self:LockSkyscraper()
+end
+
+function SoftlockTask:LockSkyscraper()
+	if roomInfo[2] == 0x0D then
+		if not Configs.FastGoMode and roomInfo[1] == 0x0A then
+			--Skyscraper visited; move player elsewhere
+			if ReadByte(WorldFlags.theWorldThatNeverWas.riku.story[gameVer]+0x02) < 0x03 then --Not far enough; lock
+				if getCharacter() == 1 then
+					forceDrop()
+				end
+			end
+		end
+	end
 end
 
 function SoftlockTask:BeagleBoys()
