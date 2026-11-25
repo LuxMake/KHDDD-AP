@@ -217,6 +217,7 @@ ItemOverwrite = {
   glossaryName = {0x109443FA, 0x10943C7A},
   glossaryDesc = {0xF8FF05C, 0xF8FE8DC},
   HPPrizeSName = {0x1096A7BE, 0x1096A03E},
+  HPPrizeLName = {0x1096A7D4, 0x1096A054},
   malleableFantasy = {0x10944608, 0x10943E88}
 }
 
@@ -1001,6 +1002,8 @@ function makeDummyItem()
 
   --Write tutorial dummmy item to HP Prize S
   writeTxtToGame(ItemOverwrite.HPPrizeSName[gameVer], "Tutorial", 2)
+  --Write trap dummy item to HP Prize L
+  writeTxtToGame(ItemOverwrite.HPPrizeLName[gameVer], "Trap", 2)
 
   --Scattered dream replaces malleable fantasy
   writeTxtToGame(ItemOverwrite.malleableFantasy[gameVer], "Scattered Dream", 2)
