@@ -347,3 +347,7 @@ assets:
   method: copy
   source:
   - name: remastered/chara/f_obj/f_de50/mig/1/bin/f_de501.pmo/f_de501_00.dds
+- name: remastered/item/jp/bin/it060c.ctt/it060c.dds
+  method: copy
+  source:
+  - name: remastered/item/jp/bin/it060c.ctt/it060c.dds

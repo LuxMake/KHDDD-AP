@@ -153,6 +153,7 @@ Configs = {
   --AP Settings
   Character = 0, --0 for both; 1 for Sora Only; 2 for Riku Only
   Deathlink = false,
+  Droplink = false,
   RecipeReqs = 0, --Additional recipes needed to win the seed (Meow Wow and Komory Bat are always required)
   Goal = 0, --0: Final Boss; 1: Super Boss
   FightKyroo = 0,
@@ -488,7 +489,8 @@ MessageTypes = {
   RequestingEnergy=21,
   SendingEnergy=22,
   MultTrap=23,
-  DepositingEnergy=24
+  DepositingEnergy=24,
+  Droplink = 25
 }
 HandshakeSent = false
 HandshakeReceived = false
@@ -1179,6 +1181,21 @@ function CheckDeathlink() --For sending deathlink
 
 end
 
+local _droplinkSent = false
+function CheckDroplink() --TODO: Might be able to combine state check with deathlink's for better performance with both enabled
+  local _charState = ReadByte(GetPointer(MemoryAddresses.deathPtr[gameVer], MemoryAddresses.deathOffset), true)
+  if _charState == 0x04 then --Player dropped
+    if not _droplinkSent then
+      ConsolePrint("Player dropped; sending droplink")
+      dropDate = os.date("!%Y%m%d%H%M%S")
+      SendToApClient(MessageTypes.Droplink, {tostring(dropDate)})
+      _droplinkSent = true
+    end
+  else
+    _droplinkSent = false
+  end
+end
+
 function ManageDrop()
 
   if keepDropActive > -1 then --We are not disabling the drop right now
@@ -1499,11 +1516,22 @@ function HandleMessage(msg)
           Configs.Deathlink = false
         end
       end
+    elseif _cmdId == 4 then --Droplink Toggle
+      if msg.values[2] ~= nil then
+        if msg.values[2] == "True" then
+          ConsolePrint("Enabling Droplink")
+          Configs.Droplink = true
+        else
+          ConsolePrint("Disabling Droplink")
+          Configs.Droplink = false
+        end
+      end
     end
   elseif msg.type == MessageTypes.Deathlink then
     local _deathTime = msg.values[1]
     ReceiveDeathlink(_deathTime)
-
+  elseif msg.type == MessageTypes.Droplink then --Should only receive this if outside 90-second grace
+    forceDrop()
   elseif msg.type == MessageTypes.SendSlotData then
     local _slotType = tonumber(msg.values[1])
     local _sentVals = {}
@@ -2034,5 +2062,8 @@ function _OnFrame()
 
   if Configs.Deathlink then
     CheckDeathlink()
+  end
+  if Configs.Droplink then
+    CheckDroplink()
   end
 end
