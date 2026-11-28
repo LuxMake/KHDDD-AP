@@ -2,9 +2,7 @@
 
 --Standalone mod to skip dives in Kingdom Hearts Dream Drop Distance
 
---Investigate world+0x10 for flick rush?
-
-DockPoints = { --TODO: Calc EGS Addresses
+DockPoints = {
 	TT = {Sora = {0x109790E2, 0x10978962}, Riku={0x1097914A, 0x109789CA}},
 	LCDC = {Sora = {0x109790EE, 0x1097896E}, Riku = {0x10979176, 0x109789F6}},
 	TG = {Sora = {0x109790F6, 0x10978976}, Riku = {0x10979162, 0x109789E2}},
@@ -14,7 +12,7 @@ DockPoints = { --TODO: Calc EGS Addresses
 	TWTNW = {Sora = {0x1097913A, 0x109789BA}, Riku={0x1097919E, 0x10978A1E}}
 }
 
-Story = { --TODO: Calc EGS Addresses
+Story = {
 	TT = {Sora={0xA41DA4, 0xA41624}, Riku={0xA445BC, 0xA43E3C}},
 	LCDC = {Sora={0xA41DCC, 0xA4164C}, Riku={0xA445E4, 0xA43E64}},
 	TG = {Sora={0xA41DD4, 0xA41654}, Riku = {0xA445EC, 0xA43E6C}},
@@ -172,13 +170,13 @@ function WorldStart()
 	local _char = ReadByte(Character[_gameVer])
 	if _worldId == 0x03 then --TT; for open world support
 		if _char == 0x00 then --Sora
-			if ReadByte(Story.TT.Sora[_gameVer]+0x01) == 0xF1 then --Check for F1 as it's used for extra menu options
+			if ReadByte(Story.TT.Sora[_gameVer]+0x01) == 0x01 then --Check for F1 as it's used for extra menu options
 				_map = 0x01
 				_evtVals = 0x36
 				WriteByte(Story.TT.Sora[_gameVer]+0x01, 0x01) --Ensure progression is stable
 			end
 		else --Riku
-			if ReadByte(Story.TT.Riku[_gameVer]+0x01) == 0x1F then
+			if ReadByte(Story.TT.Riku[_gameVer]+0x01) == 0x01 then
 				_map = 0x03
 				_evtVals = 0x41
 				WriteByte(Story.TT.Riku[_gameVer]+0x01, 0x01) --Ensure progression is stable

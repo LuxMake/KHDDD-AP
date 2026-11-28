@@ -8,7 +8,8 @@ RoomSaveTask.State = {
 	ItemIds = {},
 	Exp = 0,
 	ChestsSora = {},
-	ChestsRiku = {}
+	ChestsRiku = {},
+	RestoreIndex = 0
 }
 
 RoomSaveTask.ValidTypes = {"Command", "Recipe", "Consumable", "Support", "Spirit", "World"}
@@ -20,8 +21,8 @@ function RoomSaveTask:Init()
 end
 
 function RoomSaveTask:GetRoomChange() --Determine if the room has changed
-	local _currRoom = ReadByte(MemoryAddresses.room[gameVer])
-	local _currEvt = ReadByte(MemoryAddresses.evt[gameVer])
+	local _currRoom = roomInfo[2]
+	local _currEvt = roomInfo[3]
 	if self.State.Room ~= _currRoom or self.State.Evt ~= _currEvt then
 		ConsolePrint("Room changed")
 		self:OnRoomChange()
@@ -35,6 +36,7 @@ function RoomSaveTask:OnRoomChange()
 		self:RestoreItems()
 		self.PrepareLoad = false
 	end
+	self.State.RestoreIndex = ItemHandler.State.ReceivedIndex
 	self.State.Exp = 0
 	self.State.ItemIds = {} --Vanilla room save occurred; clear list
 	self.State.ChestsSora = {}
@@ -68,9 +70,14 @@ function RoomSaveTask:CheckPlayerState() --See if player has died
 		self:RestoreChests() --Chests need to be restored before player state can update
 		if ReadByte(_ptr, true) == 0x01 or ReadByte(_ptr, true) == 0x02 then --Player respawned
 			ConsolePrint("Restoring items")
+
+			local _charLvl = ReadByte(levels.addr[gameVer])
+  			PatchTask:WriteLevelReward(_charLvl+0x01, getCharacter())
+
 			self:RestoreItems()
-			ItemHandler:RebuildStats()
-  			ItemHandler:RebuildAbilities()
+			if not Configs.VanillaLevels then
+				ItemHandler:RebuildStats()
+			end
 			self.PrepareLoad = false
 		end
 	end
@@ -106,8 +113,9 @@ function RoomSaveTask:RestoreChests()
 end
 
 function RoomSaveTask:RestoreItems() --Put items likely lost to death back into inventory
+	ItemHandler.State.ReceivedIndex = self.State.RestoreIndex
 	for i=1, #self.State.ItemIds do
-		sendToInv(self.State.ItemIds[i])
+		sendToInv(self.State.ItemIds[i], i)
 	end
 	ConsolePrint("Restoring EXP")
 	if self.State.Exp > ReadInt(MemoryAddresses.soraExp[gameVer]) then
