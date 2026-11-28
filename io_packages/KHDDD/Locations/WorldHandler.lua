@@ -26,7 +26,7 @@ WorldHandler.BattleLevels = {0x03, 0x08, 0x0E, 0x12, 0x14, 0x1A, 0x22, 0x26}
 
 
 --Can force disable world save bytes to bring up visit prompt
-WorldHandler.Saves = { --{StatusOffsset, Bit}
+WorldHandler.Saves = { --{StatusOffset, Bit}
 	Sora = {
 					TT={{0x00, 0x01}, {0x00, 0x02}, {0x01, 0x04}}, 
 					LCDC={{0x00, 0x04}, {0x00, 0x08}, {0x01, 0x08}, {0x01, 0x10}},
@@ -75,18 +75,17 @@ end
 
 function WorldHandler:ObtainWorld(world)
 	--Set world value in unlock table to sum of obtained world
-	ConsolePrint("Obtained a world")
 	--Calculate new world index
-	local _soraIndex = 1
-	local _rikuIndex = 1
+	local _soraIndex = 0
+	local _rikuIndex = 0
 	for x=1, #self.WorldsUnlocked.Sora do
-		if self.WorldsUnlocked.Sora[x] > 0 then
-			_soraIndex = _soraIndex + 1
+		if self.WorldsUnlocked.Sora[x] >= _soraIndex then
+			_soraIndex = self.WorldsUnlocked.Sora[x] + 1
 		end
 	end
 	for x=1, #self.WorldsUnlocked.Riku do
-		if self.WorldsUnlocked.Riku[x] > 0 then
-			_rikuIndex = _rikuIndex + 1
+		if self.WorldsUnlocked.Riku[x] >= _rikuIndex then
+			_rikuIndex = self.WorldsUnlocked.Riku[x] + 1
 		end
 	end
 
@@ -139,7 +138,6 @@ function WorldHandler:CheckWorlds()
 		--Verify Sora World Access
 		for x=1, #self.WorldsUnlocked.Sora do
 			if self.WorldsUnlocked.Sora[x] > 0 then
-				--ConsolePrint("Found Sora World")
 				self:UnlockWorld(self.WorldIds.Sora[x])
 			else
 				if x ~= self.Worlds.TT2 then
@@ -196,7 +194,7 @@ function WorldHandler:CheckTT2() --Check for each character's respective TT2 acc
 	if getCharacter() == 0 then --Grant access to Sora TT2 if needed
 		local _soraTT2Val = ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03)
 		if self.WorldsUnlocked.Sora[self.Worlds.TT2] > 0 and _soraTT2Val ~= 0x72 then
-			if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) ~= 0x31 and _soraTT2Val >= 0x11 then --Player has not beaten tt2
+			if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) ~= 0x31 and _soraTT2Val >= 0x11 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04) == 0x00 then --Player has not beaten tt2
 				WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03, 0x72)
 				--Reset status as well
 				--WriteInt(MemoryAddresses.worldStatusS[gameVer]+self.StatusOffsets.Sora.TT, 0xFFFFFFFD)
@@ -208,7 +206,7 @@ function WorldHandler:CheckTT2() --Check for each character's respective TT2 acc
 		end
 	else --Grant Riku access to TT2 if needed
 		local _rikuTT2Val = ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03)
-		if self.WorldsUnlocked.Riku[self.Worlds.TT2] > 0 and _rikuTT2Val == 0x00 then
+		if self.WorldsUnlocked.Riku[self.Worlds.TT2] > 0 and _rikuTT2Val == 0x00 or _rikuTT2Val == 0x03 then --0x03 check fixes story break
 			if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x02) >= 0x7F then --TT1 cleared
 				WriteByte(WorldFlags.traverseTown.riku.story[gameVer]+0x03, 0x01)
 			end
@@ -442,11 +440,6 @@ function WorldHandler:ApplyScaling()
 end
 
 function WorldHandler:FixMenu()
-	--Re-enable command menu if player leaves TT1 for some reason
-	if getCharacter() == 0 and ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01) < 0xF1 then
-		WriteByte(WorldFlags.traverseTown.sora.story[gameVer]+0x01, 0xF1)
-	end
-
 	--Force reveal world map if not there
 	if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]) < 0x11 then
 		WriteByte(WorldFlags.traverseTown.sora.story[gameVer], 0x11)
@@ -454,6 +447,62 @@ function WorldHandler:FixMenu()
 	if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]) < 0x31 then
 		WriteByte(WorldFlags.traverseTown.riku.story[gameVer], 0x31)
 	end
+end
+
+function WorldHandler:RestoreWorldKeyTxt()
+	writeTxtToGame(ItemOverwrite.keyItemNames[gameVer], "TWTNW Sora", 0) --Key Item 2 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer], "The World That Never Was for Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*2), "TWTNW Riku", 0) --Key Item 4 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+(38*2), "World That Never Was for Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*4), "TT Sora", 2) --Key Item 6 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+140, "Traverse Town for Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*6), "TT Riku", 2) --Key Item 8 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+204, "Traverse Town for Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+(22*8), "LCdC Sora", 2) --Key Item 10 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+268, "La Cite des Cloches for Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+224, "LCdC Riku", 2) --Key Item 12 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+336, "La Cite des Cloches for Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+272, "TG Sora", 2) --Key Item 14 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+404, "The Grid for Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+320, "TG Riku", 2) --Key Item 16 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+472, "The Grid for Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+368, "PP Sora", 2) --Key Item 18 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+540, "Pranksters Paradise for Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+416, "PP Riku", 2) --Key Item 20 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+608, "Pranksters Paradise for Riku", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+464, "CotM Sora", 2) --Key Item 22 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+676, "Country of Musketeers for Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+512, "CotM Riku", 2) --Key Item 24 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+744, "Country of Musketeers for Riku", 3)
+
+  --add 10 if wrong
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+560, "SoS Sora", 2) --Key Item 26 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+812, "Symphony of Sorcery for Sora", 3)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+608, "SoS Riku", 2) --Key Item 28 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+880, "Symphony of Sorcery for Riku", 3)
+
+  --Recusant's Sigil for additional ending condition
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+656, "Recusant Sigil", 2) --Key Item 30 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+948, "Sigil of the Recusant.", 3)
+
+  --Traverse Town 2
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+704, "TT2 Sora", 2) --Key Item 32 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1016, "Traverse Town 2nd Visit for Sora", 2)
+
+  writeTxtToGame(ItemOverwrite.keyItemNames[gameVer]+752, "TT2 Riku", 2) --Key Item 34 replacement
+  writeTxtToGame(ItemOverwrite.keyItemDescs[gameVer]+1084, "Traverse Town 2nd Visit for Riku", 2)
 end
 
 return WorldHandler

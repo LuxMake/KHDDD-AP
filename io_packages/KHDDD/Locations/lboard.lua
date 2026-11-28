@@ -1,0 +1,413 @@
+local LBoard = {}
+
+--Items used for gate requirements
+local _checkItem1 = {0xA4C538, 0xA4BDB8} --First blank toy for spirit board
+local _checkItem2 = {0xA4C53C, 0xA4BDBC} --Second blank toy for spirit board
+local _prizeIdNameStart = {0x1096A9B8, 0x1096A238} --34 bytes per name
+local _commandHeader = {0x10B7D624, 0x10B7CEA4}
+--local _footerTxt = {0x1191A370}
+local _commandFooter = {0x10B7D376, 0x10B7CBF6}
+local _itemGateFooter = {0x10B7D54C, 0x10B7CDCC}
+local _checkpointTxt = {0x10B7D70E, 0x10B7CF8E}
+local _itemsCheckpointTxt = {0x10B7D73C, 0x10B7CFBC}
+
+local _lbtList = {0xA3D000, 0xA3C880} --Pointer to lbt_list.bin, the loaded reward table; spirit blocks of 0xC0 at +0x10
+
+--Board object fields
+local _spiritIdOffset = 0x330
+local _cursorPosOffset = 0x1F0
+--+0 is x pos, +4 is y pos
+
+LBoard.GateCoords = {
+	--First and Second indexes are coordinates for the gates
+	--Third index is the type of gate (1 or 2 for Sora or Riku world)
+	--Fourth index is the number of items needed to fulfill
+	{{2, 0, 0, 10}, {2, 2, 0, 10}}, --Meow Wow
+	{{3, 1, 0, 10}, {1, 3, 0, 10}}, --Tama Sheep
+	{{3,1,0,10}, {1,3,0,10}}, 	  	--Yoggy Ram
+	{{2,1,0,10}, {3,2,0,10}},		--Komory Bat
+	{{2,3,0,10}, {1,4,0,10}},		--Pricklemane
+	{{2,2,0,10}},					--Hebby Repp
+	{{4,1,0,10}, {1,4,0,10}},		--Sir Kyroo
+	{{3,2,0,10}},					--Toximander
+	{{2,2,0,10}, {1,4,0,10}},		--Fin Fatale
+	{{2,4,0,10}},					--Tatsu Steed
+	{{3,3,0,10}},					--Necho Cat
+	{{3,1,0,10}},					--Thunderaffe
+	{{2,1,0,10}, {1,4,0,10}},		--Kooma Panda
+	{{2,1,0,10}, {2,3,0,10}},		--Pegaslick
+	{{3,1,0,10}},					--Iceguin Ace
+	{{3,0,0,10}},					--Peepsta Hoo
+	{{4,3,0,10}},					--Escarglow
+	{{1,1,0,10}, {3,2,0,10}},		--KO Kabuto
+	{{3,4,0,10}},					--Wheeflower
+	{{3,0,0,10}, {3,3,0,10}},		--Ghostabocky
+	{{3,3,0,10}},					--Zolephant
+	{{2,3,0,10}, {4,3,0,10}},		--Juggle Pup
+	{{2,3,0,10}, {4,4,0,10}},		--Halbird
+	{{3,2,0,10}},					--Staggerceps
+	{{2,2,0,10}},					--Fishbone
+	{{1,2,0,10}, {2,2,0,10}},		--Flowbermeow
+	{{3,1,0,10}},					--Cyber Yog
+	{{1,1,0,10}, {3,5,0,10}},		--Chef Kyroo
+	{{1,3,0,10}, {3,3,0,10}},		--Lord Kyroo
+	{{3,1,0,10}, {3,4,0,10}},		--Tatsu Blaze
+	{{4,1,0,10}, {4,3,0,10}},		--Electricorn
+	{{2,2,0,10}},					--Woeflower
+	{{1,1,0,10}, {0,3,0,10}},		--Jestabocky
+	{{3,1,0,10}},					--Eaglider
+	{{2,1,0,10}, {2,3,0,10}},		--Me Me Bunny
+	{{4,1,0,10}},					--Drill Sye
+	{{5,1,0,10}, {1,2,0,10}},		--Tyranto Rex
+	{{1,3,0,10}, {2,4,0,10}},		--Majik Lapin
+	{{1,2,0,10}, {3,3,0,10}},		--Cera Terror
+	{{4,2,0,10}, {1,4,0,10}},		--Skelterwild
+	{{7,3,0,10}, {1,7,0,10}},		--Ducky Goose
+	{{2,3,0,10}},					--Aura Lion
+	{{2,1,0,10}},					--Ryu Dragon
+	{{7,0,0,10}, {0,7,0,10}},		--Drak Quack
+	{{1,0,0,10}},					--Keeba Tiger
+	{{2,1,0,10}, {2,3,0,10}},		--Meowjesty
+	{{3,1,0,10}},					--Sudo Neku
+	{{2,1,0,10}, {0,4,0,10}},		--Frootz Cat
+	{{1,2,0,10}, {3,2,0,10}},		--Ursa Circus
+	{{4,0,0,10}, {0,3,0,10}},		--Kab Kannon
+	{{4,1,0,10}, {3,4,0,10}},		--R & R Seal
+	{{2,1,0,10}, {1,6,0,10}},		--Catanuki
+	{{4,3,0,10}},					--Beatalike
+	{{0,1,0,10}, {6,2,0,10}},		--Tubguin Ace
+}
+
+LBoard.SpiritItems = {}
+
+local _pos = {}
+
+function LBoard:FillBoardRewards() --Fill board nodes with generic item
+	local _padding = 12
+	local _rewardCnt = 864
+	for i=1, _rewardCnt do
+		--Replace all items with PRIZE_ID_Dream10
+		local _base = 0x3B
+		local _mod = (i-1) % 16
+
+		WriteArray(MemoryAddresses.boardRewards[gameVer]+(_padding*(i-1)), {0x3B+_mod, 0x01, 0x3B+_mod, 0x01, 0x3B+_mod, 0x01, 0x3B+_mod, 0x01, 0x01, 0x00, 0x00}) --Last few bytes are for disposition?
+	end
+	self:WriteFillerNames()
+end
+
+function LBoard:WriteFillerNames()
+	local _numOfItems = 15
+	local _padding = 34
+	for i=0, _numOfItems do
+		writeTxtToGame(_prizeIdNameStart[gameVer]+(i*_padding), "Archipelago Item", 3)
+	end
+end
+
+function LBoard:WriteBoardReward(spirit, id, nodeNum) --Assign a specific reward to node
+	local _padding = 12
+	local _initialSpot = (spirit-1)*16
+	local _nodeToChange = _initialSpot+(nodeNum)
+	ConsolePrint("Writing Board Reward for spirit "..tostring(spirit).." and node "..tostring(nodeNum))
+	WriteArray(MemoryAddresses.boardRewards[gameVer]+(_padding*_nodeToChange), {id[1], id[2], id[1], id[2], id[1], id[2], id[1], id[2]})
+end
+
+function LBoard:ChangeGateReqs(spirit, gateNum, gateType, cnt)
+	--Spirit: Which spirit to change the gate for
+	--GateNum: Whether Gate 1 or Gate 2 are being changed
+	--GateType: 1 for Sora Worlds Cleared, 2 for Riku Worlds Cleared
+	--Cnt: How many worlds are needed to clear
+
+	self.GateCoords[spirit][gateNum][3] = gateType
+	self.GateCoords[spirit][gateNum][4] = cnt
+end
+
+function LBoard:CheckCursorPos() --Returns x and y coordinates of cursor on the link board
+	local _cursorAddr = LBoardFinder.Board+_cursorPosOffset
+	return {ReadByte(_cursorAddr, true), ReadByte(_cursorAddr+0x04, true)}
+end
+
+function LBoard:ActiveSpirit()
+	if LBoardFinder.Board == nil then
+		return nil
+	end
+	return ReadByte(LBoardFinder.Board+_spiritIdOffset, true)
+end
+
+function LBoard:ChangeItemNames()
+	self:WriteFillerNames()
+	local _spiritId = self:ActiveSpirit()
+
+	if self.SpiritItems[_spiritId] ~= nil then
+		for x=1, 16 do
+			if self.SpiritItems[_spiritId][x] ~= nil then
+				local _padding = 34
+				writeTxtToGame(_prizeIdNameStart[gameVer]+(_padding*(x-1)), self.SpiritItems[_spiritId][x], 2)
+			end
+		end
+	end
+end
+
+boardVals = {}
+local _spiritInv = {0xA45A70, 0xA452F0}
+function LBoard:CheckRedeems()
+	local _partyLimit = 102
+	local _redeemOffset = 0x56 --86
+	for x=0, _partyLimit do
+		if boardVals[x+1] == nil then --Set board vals if not already defined
+			boardVals[x+1] = ReadArray(_spiritInv[gameVer]+(x*0x100)+_redeemOffset, 2)
+		end
+		local _boardVal = boardVals[x+1]
+		local _currVal = ReadArray(_spiritInv[gameVer]+(x*0x100)+_redeemOffset, 2)
+		if _currVal[1] > _boardVal[1] then --One of the first 8 nodes redeemed
+			_bitTbl = toBits(_currVal[1] - _boardVal[1])
+			for bit=1, #_bitTbl do
+				if _bitTbl[bit] == 1 then
+					self:RedeemNode(ReadByte(_spiritInv[gameVer]+(x*0x100)), bit)
+				end
+			end
+		end
+		if _currVal[2] > _boardVal[2] then --One of the last 8 nodes redeemed
+			_bitTbl = toBits(_currVal[2] - _boardVal[2])
+			for bit=1, #_bitTbl do
+				if _bitTbl[bit] == 1 then
+					self:RedeemNode(ReadByte(_spiritInv[gameVer]+(x*0x100)), bit+8)
+				end
+			end
+		end
+
+		--Update board vals
+		boardVals[x+1] = _currVal
+	end
+end
+
+function LBoard:RedeemNode(spiritId, nodeNum)
+	SendToApClient(MessageTypes.NodeChecked, {tostring(spiritId), tostring(nodeNum)})
+end
+
+function LBoard:NameToBoard(spiritId, nodeNum, pName)
+	ConsolePrint("Attempting to write name")
+	local _addToBoard = Boards[spiritId]
+	if _addToBoard ~= nil then
+		for y=1, #_addToBoard do
+			for x=1, #_addToBoard[y] do
+				if _addToBoard[y][x][1] == nodeNum then
+					table.insert(_addToBoard[y][x], pName)
+				end
+			end
+		end
+	else
+		ConsolePrint("Failed to write requested name")
+	end
+end
+
+function LBoard:ChangeFooter()
+	--Change footer based on item details
+	local _gates = self.GateCoords[current_spirit]
+	if _gates == nil then
+		return
+	end
+
+	local _x = _pos[1]
+	local _y = _pos[2]
+
+	--36 characters for footer
+	local _writeStr = "Opens after clearing specified worlds."
+	writeTxtToGame(_itemGateFooter[gameVer], _writeStr, 2)
+	
+	--Write owned variable details
+	--WriteArray(_itemGateFooter[gameVer]+(string.len(_writeStr)*2)-1, {0x00, 0x24, 0x00, 0x6E, 0x00, 0x28, 0xE0, 0x00, 0x00})
+	
+	if _gates[1][1] == _x and _gates[1][2] == _y then --Gate active; write to headers
+		local _char = "Sora"
+		if _gates[1][3] == 2 then
+			_char = "Riku"
+		end
+		local _amtRemaining = math.max(_gates[1][4]-self:WorldsBeaten(_gates[1][3]), 0)
+		writeTxtToGame(_checkpointTxt[gameVer], _char.." World", 2)
+		writeTxtToGame(_itemsCheckpointTxt[gameVer], tostring(_amtRemaining), 2)
+	elseif _gates[2] ~= nil then
+		if _gates[2][1] == _x and _gates[2][2] == _y then
+		local _char = "Sora"
+		if _gates[2][3] == 2 then
+			_char = "Riku"
+		end
+		local _amtRemaining = math.max(_gates[2][4]-self:WorldsBeaten(_gates[2][3]), 0)
+		writeTxtToGame(_checkpointTxt[gameVer], _char.." World", 2)
+		writeTxtToGame(_itemsCheckpointTxt[gameVer], tostring(_amtRemaining), 2)
+		end
+	end
+end
+
+function LBoard:DisplayOwningPlayer()
+	local _nameWritten = false
+
+	--local _pos = self:CheckCursorPos()
+	local _x = _pos[1]
+	local _y = _pos[2]
+
+	local _brdScan = Boards[self:ActiveSpirit()]
+
+	if _brdScan ~= nil then
+		if _brdScan[_y+1] ~= nil then
+			if _brdScan[_y+1][_x+1] ~= nil then
+				if #_brdScan[_y+1][_x+1] > 1 then --Name present in node
+					writeTxtToGame(_commandHeader[gameVer], _brdScan[_y+1][_x+1][2], 1)
+					_nameWritten = true
+				end
+			end
+		end
+	end
+		
+
+	if _nameWritten == false then
+		writeTxtToGame(_commandHeader[gameVer], "Command", 1)
+	end
+
+end
+
+function LBoard:CheckGateReqs()
+
+	--For setting required items
+	local _maxReq = 7 ----At least 7 items are needed
+	local _baseItm = 10-_maxReq
+
+	--Are we hovering over a gate
+	if self.GateCoords[current_spirit] == nil then
+		return
+	end
+
+	--Function is called whenever spiritId changes
+
+	--Gate 1 conditions are tied to amount of blank item 1
+	--Gate 2 conditions are tied to amount of blank item 2
+
+	local _blank1Amt = _baseItm+(self:WorldsBeaten(self.GateCoords[current_spirit][1][3]))+(_maxReq-self.GateCoords[current_spirit][1][4])
+	local _blank2Amt = 0
+	if self.GateCoords[current_spirit][2] ~= nil then --Spirit has 2 gates
+		_blank2Amt = _baseItm+(self:WorldsBeaten(self.GateCoords[current_spirit][2][3]))+(_maxReq-self.GateCoords[current_spirit][2][4])
+	end
+
+	WriteArray(_checkItem1[gameVer], {0x01, 0x08, _blank1Amt})
+	if _blank2Amt > 0 then
+		WriteArray(_checkItem2[gameVer], {0x02, 0x08, _blank2Amt})
+	end
+end
+
+function LBoard:WorldsBeaten(character)
+	local _worldsBeaten = 0
+	if character == 1 then --Tally Sora worlds
+		local _soraFlags = {
+			ReadByte(WorldFlags.laCiteDesCloches.sora.story[gameVer]),
+			ReadByte(WorldFlags.theGrid.sora.story[gameVer]),
+			ReadByte(WorldFlags.prankstersParadise.sora.story[gameVer]),
+			ReadByte(WorldFlags.countryOfMusketeers.sora.story[gameVer]),
+			ReadByte(WorldFlags.symphonyOfSorcery.sora.story[gameVer]),
+			ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x03),
+			ReadByte(WorldFlags.theWorldThatNeverWas.sora.story[gameVer])
+		}
+		for index, value in ipairs(_soraFlags) do
+			if value > 0x10 then
+				_worldsBeaten = _worldsBeaten + 1
+			end
+		end
+
+		--Manual Check for TT2
+		if ReadByte(WorldFlags.traverseTown.sora.story[gameVer]+0x04) >= 0x3F then
+			_worldsBeaten = _worldsBeaten + 1
+		end
+	else --Tally Riku worlds
+		local _rikuFlags = {
+			ReadByte(WorldFlags.laCiteDesCloches.riku.story[gameVer]),
+			ReadByte(WorldFlags.theGrid.riku.story[gameVer]),
+			ReadByte(WorldFlags.prankstersParadise.riku.story[gameVer]),
+			ReadByte(WorldFlags.countryOfMusketeers.riku.story[gameVer]),
+			ReadByte(WorldFlags.symphonyOfSorcery.riku.story[gameVer]),
+			ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x02),
+			ReadByte(WorldFlags.theWorldThatNeverWas.riku.story[gameVer]+0x01) --For defeating ansem
+		}
+		for index, value in ipairs(_rikuFlags) do
+			if value > 0x10 then
+				_worldsBeaten = _worldsBeaten + 1
+			end
+		end
+
+		--Manual check for TT2
+		if ReadByte(WorldFlags.traverseTown.riku.story[gameVer]+0x04) >= 0x01 then
+			_worldsBeaten = _worldsBeaten + 1
+		end
+	end
+	return _worldsBeaten
+end
+
+current_spirit = 0
+function LBoard:CheckSpiritChange()
+	local _activeSpirit = self:ActiveSpirit()
+
+	if _activeSpirit > 0 and _activeSpirit < 55 then
+		if _activeSpirit ~= current_spirit then
+			current_spirit = _activeSpirit
+			self:OnSpiritChange()
+		end
+	end
+end
+
+function LBoard:OnSpiritChange()
+	self:CheckGateReqs()
+	self:ChangeItemNames()
+	writeTxtToGame(_commandFooter[gameVer], "Grants you the item shown.", 2)
+end
+
+--Icon of a node's reward slot (0-based) as an f_de505.txa anim index, 0x00-0x15 in the order of AsmEdits:LinkBoardIcons'
+--name table (7 PRIZE, 14 ?B, 15 ?Y), or nil for the game's own. Shows on the next board open or L/R spirit switch.
+function LBoard:SetNodeIcon(spirit, slot, icon)
+	WriteByte(GetPointer(_lbtList[gameVer], 0x10 + spirit*0xC0 + slot*12 + 3), icon and (0x80 | icon) or 0, true)
+end
+
+local _lboardAddr = nil
+
+local _inMenu = false
+local _boardLoaded = false
+
+--local _inLinkBoard = {0x14DCBB18}
+function LBoard:Update()
+	--Check if player is in the spirit menu
+	if not LBoardFinder:InSpiritMenu() then
+		if _inMenu then
+			self:Exit()
+			_inMenu = false
+			dataStorage()
+		end
+		return
+	end
+	if _inMenu == false then
+		self:ChangeItemNames() --Ensure updated item names are used
+		_inMenu = true
+		dataStorage()
+	end
+
+	--Patch lboard.bin as soon as file is loaded
+	LBoardFinder:FinderUpdate()
+	if LBoardFinder.Board == nil then
+		_boardLoaded = false
+		return
+	end
+	if not _boardLoaded then
+		self:ChangeItemNames()
+		_boardLoaded = true
+	end
+
+	_pos = self:CheckCursorPos()
+	self:CheckSpiritChange()
+	self:CheckRedeems()
+	self:DisplayOwningPlayer()
+	self:ChangeFooter()
+end
+
+function LBoard:Exit() --Player left the spirit menu
+	WriteArray(_checkItem1[gameVer], {0x00, 0x00, 0x00})
+	WriteArray(_checkItem2[gameVer], {0x00, 0x00, 0x00})
+	self:WriteFillerNames()
+	current_spirit = 0
+end
+
+return LBoard

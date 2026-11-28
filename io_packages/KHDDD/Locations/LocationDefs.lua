@@ -19,7 +19,7 @@ function LocationDefs:DefineWorldEvents()
     --Meow Wow Recipe: FF11
     --Post Dream Eater Tutorial: 1FF11
     --Post Riku Drop: 7FF11
-    {ID=2670201, StoryBit = {0x1F, 0x1F, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x01, char=0, sent = false}, --Ursula Slot
+    {ID=2670201, StoryBit = {0x1F, 0x1F, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x01, char=0, sent = false}, --Ursula Slot (HP)
     {ID=2670202, StoryBit = {0x1F, 0x1F, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x01, char=0, sent = false}, --Keyblades
     {ID=2670203, StoryBit = {0x1F, 0x1F, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x01, char=0, sent = false}, --Keyblade Masters
     {ID=2670204, StoryBit = {0x1F, 0x1F, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x01, char=0, sent = false}, --Master Xehanort
@@ -30,8 +30,8 @@ function LocationDefs:DefineWorldEvents()
     {ID=2670248, StoryBit = {0x11, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x03, char=0, sent = false}, --Meow Wow Recipe Reward
     
     
-    {ID=2670211, StoryBit = {0x11, 0xFF, 0x7F, 0x02, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=true, worldNo=0x03, char=0, sent = false}, --Hockomonkey Slot 1 [Sora]
-    {ID=2670212, StoryBit = {0x11, 0xFF, 0x7F, 0x02, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=true, worldNo=0x03, char=0, sent = false}, --Hockomonkey Slot 2 [Sora]
+    {ID=2670211, StoryBit = {0x11, 0xFF, 0x7F, 0x02, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=true, worldNo=0x03, char=0, sent = false}, --Hockomonkey Slot 1 [Sora] (HP)
+    {ID=2670212, StoryBit = {0x11, 0xFF, 0x7F, 0x02, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=true, worldNo=0x03, char=0, sent = false}, --Hockomonkey Slot 2 [Sora] (Deck)
     {ID=2670213, StoryBit = {0x11, 0xFF, 0x7F, 0x11, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x03, char=0, sent = false}, --Skull Noise [Sora]
   
     --Sora LCdC
@@ -44,8 +44,8 @@ function LocationDefs:DefineWorldEvents()
   
     --Sora TG
     {ID=2670220, StoryBit = {0x01, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x09, char=0, sent = false}, --Counter Rush [Sora]
-    {ID=2670221, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=0, sent = false}, --Rinzler fight slot 1
-    {ID=2670222, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=0, sent = false}, --Rinzler fight slot 2
+    {ID=2670221, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=0, sent = false}, --Rinzler fight slot 1 (HP)
+    {ID=2670222, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=0, sent = false}, --Rinzler fight slot 2 (Drop Bonus)
     {ID=2670223, StoryBit = {0x01, 0xFF, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=0, sent = false}, --Dual Disc
 
     --Sora PP
@@ -58,7 +58,7 @@ function LocationDefs:DefineWorldEvents()
     {ID=2670230, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x06, char=0, sent = false}, --Glossary Org XIII
     {ID=2670231, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x06, char=0, sent = false}, --Chronicle KH2
     {ID=2670232, StoryBit = {0x01, 0xFF, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x06, char=0, sent = false}, --Flashback Monstro
-    {ID=2670233, StoryBit = {0x11, 0xFF, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x06, char=0, sent = false}, --Lobster Bonus Slot 1
+    {ID=2670233, StoryBit = {0x11, 0xFF, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x06, char=0, sent = false}, --Lobster Bonus Slot 1 (Deck)
     {ID=2670234, StoryBit = {0x11, 0xFF, 0xFF, 0x3F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x06, char=0, sent = false}, --Ferris Gear
     --Lord Kyroo Lookat: 4
 
@@ -66,18 +66,18 @@ function LocationDefs:DefineWorldEvents()
     {ID=2670235, StoryBit = {0x01, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=0, sent = false}, --Flashback Overnight Musketeers
     {ID=2670236, StoryBit = {0x01, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=0, sent = false}, --Tyranto Rex Recipe
     {ID=2670237, StoryBit = {0x01, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x04, char=0, sent = false}, --Slide Roll
-    {ID=2670238, StoryBit = {0x11, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x04, char=0, sent = false}, --Pete Fight Bonus Slot
+    {ID=2670238, StoryBit = {0x11, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x04, char=0, sent = false}, --Pete Fight Bonus Slot (Deck)
     {ID=2670239, StoryBit = {0x11, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x04, char=0, sent = false}, --All for One
 
     --Sora SoS
     {ID=2670240, StoryBit = {0x01, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x05, char=0, sent = false}, --Flashback Sorcerer's Apprentice
     {ID=2670241, StoryBit = {0x01, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x05, char=0, sent = false}, --Double Impact Reward
-    {ID=2670242, StoryBit = {0x01, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=0, sent = false}, --Spellican Bonus Slot 1
-    {ID=2670243, StoryBit = {0x01, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=0, sent = false}, --Spellican Bonus Slot 2
+    {ID=2670242, StoryBit = {0x01, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=0, sent = false}, --Spellican Bonus Slot 1 (HP)
+    {ID=2670243, StoryBit = {0x01, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=0, sent = false}, --Spellican Bonus Slot 2 (Drop Bonus)
     {ID=2670244, StoryBit = {0x11, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x05, char=0, sent = false}, --Counterpoint
 
     --Sora TWTNW
-    {ID=2670245, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x0A, char=0, sent = false}, --Xemnas Bonus Slot
+    {ID=2670245, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x0A, char=0, sent = false}, --Xemnas Bonus Slot (HP)
     {ID=2670246, StoryBit = {0x01, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x0A, char=0, sent = false}, --Glossary: Recusant Sigil
     {ID=2670247, StoryBit = {0x11, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x0A, char=0, sent = false}, --Glossary: Hearts Tied to Sora/Goal
 
@@ -88,50 +88,50 @@ function LocationDefs:DefineWorldEvents()
     {ID=2670251, StoryBit = {0x11, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x03, char=1, sent = false}, --Glossary: Keyblade War
     {ID=2670252, StoryBit = {0x11, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x03, char=1, sent = false}, --Glossary: Kingdom Hearts
     {ID=2670253, StoryBit = {0x11, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x03, char=1, sent = false}, --Glossary: X-Blade
-    {ID=2670254, StoryBit = {0x11, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x03, char=1, sent = false}, --Save Shiki Bonus Slot
-    {ID=2670255, StoryBit = {0x11, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x03, char=1, sent = false}, --Hockomonkey Bonus Slot 1
-    {ID=2670256, StoryBit = {0x11, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x03, char=1, sent = false}, --Hockomonkey Bonus Slot 2
+    {ID=2670254, StoryBit = {0x11, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x03, char=1, sent = false}, --Save Shiki Bonus Slot (Drop Bonus)
+    {ID=2670255, StoryBit = {0x11, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x03, char=1, sent = false}, --Hockomonkey Bonus Slot 1 (HP)
+    {ID=2670256, StoryBit = {0x11, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x03, char=1, sent = false}, --Hockomonkey Bonus Slot 2 (Deck)
     {ID=2670257, StoryBit = {0x11, 0xFF, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x03, char=1, sent = false}, --Skull Noise Reward
 
     --Riku LCdC
     {ID=2670258, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x08, char=1, sent = false}, --Flashback: Dark Obsession Reward
     {ID=2670259, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x08, char=1, sent = false}, --Sonic Impact
-    {ID=2670260, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 1
-    {ID=2670261, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 2
+    {ID=2670260, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 1 (HP)
+    {ID=2670261, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Wargoyle Bonus Slot 2 (Drop Bonus)
     {ID=2670262, StoryBit = {0x11, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Chronicle: Kingdom Hearts
     {ID=2670263, StoryBit = {0x11, 0xFF, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x08, char=1, sent = false}, --Guardian Bell Reward
     --Lord Kyroo Lookat: 3
 
     --Riku TG
-    {ID=2670264, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x09, char=1, sent = false}, --Light Cycle Minigame Bonus Slot
+    {ID=2670264, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x09, char=1, sent = false}, --Light Cycle Minigame Bonus Slot (HP)
     {ID=2670265, StoryBit = {0x01, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x09, char=1, sent = false}, --Flashback: Father and Son
-    {ID=2670266, StoryBit = {0x01, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=1, sent = false}, --City Dream Eater Fight Bonus Slot
+    {ID=2670266, StoryBit = {0x01, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=1, sent = false}, --City Dream Eater Fight Bonus Slot (Deck)
     {ID=2670267, StoryBit = {0x01, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x09, char=1, sent = false}, --Flashback: Stolen Disk Reward
-    {ID=2670268, StoryBit = {0x01, 0xFF, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x09, char=1, sent = false}, --Commantis Bonus Slot
+    {ID=2670268, StoryBit = {0x01, 0xFF, 0xFF, 0x0F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x09, char=1, sent = false}, --Commantis Bonus Slot (HP)
     {ID=2670269, StoryBit = {0x11, 0xFF, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00}, LookAt=0x04, Popup=false, worldNo=0x09, char=1, sent = false}, --Dual Disc Reward
 
     --Riku PP
     {ID=2670270, StoryBit = {0x01, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x06, char=1, sent = false}, --Chronicle: Chain of Memories
-    {ID=2670271, StoryBit = {0x01, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x06, char=1, sent = false}, --Char Clobster Bonus Slot 1
+    {ID=2670271, StoryBit = {0x01, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x06, char=1, sent = false}, --Char Clobster Bonus Slot 1 (HP)
     {ID=2670272, StoryBit = {0x01, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x06, char=1, sent = false}, --Ocean's Rage Reward
 
     --Riku CotM
     {ID=2670273, StoryBit = {0x01, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=1, sent = false}, --Flashback: Bon Journey
     {ID=2670274, StoryBit = {0x01, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=1, sent = false}, --Stage Gadget
-    {ID=2670275, StoryBit = {0x01, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=1, sent = false}, --Holey Moley Bonus Slot 1
+    {ID=2670275, StoryBit = {0x01, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=1, sent = false}, --Holey Moley Bonus Slot 1 (HP)
     {ID=2670276, StoryBit = {0x01, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=1, sent = false}, --Shadow Slide Reward
     {ID=2670277, StoryBit = {0x01, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x04, char=1, sent = false}, --Shadow Strike Reward
     {ID=2670278, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x04, char=1, sent = false}, --All for One Reward
 
     --Riku SoS
     {ID=2670279, StoryBit = {0x01, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x02, Popup=false, worldNo=0x05, char=1, sent = false}, --Flashback: A Magical Mishap
-    {ID=2670280, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 1
-    {ID=2670281, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 2
+    {ID=2670280, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 1 (HP)
+    {ID=2670281, StoryBit = {0x11, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Chernobog Bonus Slot 2 (Deck)
     {ID=2670282, StoryBit = {0x11, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x01, Popup=false, worldNo=0x05, char=1, sent = false}, --Counterpoint Reward
     --Lord Kyroo Lookat: 3
 
     --Riku TWTNW
-    {ID=2670283, StoryBit = {0x01, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x0A, char=1, sent = false}, --Ansem Boss Gauntlet Bonus Slot
+    {ID=2670283, StoryBit = {0x01, 0xFF, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, LookAt=0x03, Popup=false, worldNo=0x0A, char=1, sent = false}, --Ansem Boss Gauntlet Bonus Slot (HP)
     {ID=2670284, StoryBit = {0x11, 0xFF, 0x7F, 0x00, 0x1F, 0x00, 0x00, 0x00}, LookAt=0x05, Popup=false, worldNo=0x0A, char=1, sent = false}, --Young Xehanort Defeated/Goal Riku
 
     --AVN
@@ -141,6 +141,8 @@ function LocationDefs:DefineWorldEvents()
     {ID=2670285, StoryBit = {0x11, 0xFF, 0x7F, 0x91, 0x03}, LookAt=0x05, Popup=false, worldNo=0x03, char=0, sent = false}, --Sliding Sidewinder
     {ID=2670286, StoryBit = {0x11, 0xFF, 0x7F, 0x91, 0x3F}, LookAt=0x05, Popup=false, worldNo=0x03, char=0, sent = false}, --Knockout Punch Reward
     {ID=2670287, StoryBit = {0x11, 0xFF, 0x7F, 0x91, 0x3F}, LookAt=0x05, Popup=false, worldNo=0x03, char=0, sent = false}, --Boss Gauntlet Bonus
+    {ID=2670298, StoryBit = {0x11, 0xFF, 0x7F, 0x91, 0x3F}, LookAt=0x05, Popup=false, worldNo=0x03, char=0, sent = false}, --Boss Gauntlet Slot 1
+    {ID=2670299, StoryBit = {0x11, 0xFF, 0x7F, 0x91, 0x3F}, LookAt=0x05, Popup=false, worldNo=0x03, char=0, sent = false}, --Boss Gauntlet Slot 2
 
     --Riku TT2
     {ID=2670288, StoryBit = {0x31, 0xFF, 0xFF, 0x7F}, LookAt=0x04, Popup=false, worldNo=0x03, char=1, sent = false}, --Cera Terror Bonus Slot 1
@@ -302,174 +304,203 @@ function LocationDefs:DefineChests()
     sora = {
     { --Sora chests 1-8 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {0, 1, 2, 3, 4, 5, 6, 7},
       offset=0x00,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650211,
     },
     { --Sora chests 9-16 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {8, 9, 10, 12, 13, 14, 19, 20},
       offset = 0x01,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650219
     },
     { --Sora chests 17-23 [Set of 7]
       bitFlags = {0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {21, 22, 34, 35, 36, 37, 38},
       offset = 0x02,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650227
     },
     { --Sora chests 24-31 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {66, 67, 68, 119, 120, 121, 122, 123},
       offset = 0x03,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650234
     },
     { --Sora chests 32-39 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {124, 125, 126, 127, 128, 129, 130, 131},
       offset = 0x04,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650242
     },
     { --Sora chests 40-47 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {132, 133, 134, 135, 136, 137, 138, 139},
       offset = 0x05,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650250
     },
     { --Sora chests 48-55 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {140, 141, 142, 143, 144, 145, 146, 147},
       offset = 0x06,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650258
     },
     { --Sora chests 56-63 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {148, 168, 169, 170, 171, 172, 173, 174},
       offset = 0x07,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650266
     },
     { --Sora chests 64-71 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {175, 176, 177, 178, 179, 180, 181, 182},
       offset = 0x08,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650274
     },
     { --Sora chests 72-79 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {183, 184, 185, 186, 187, 188, 189, 190},
       offset = 0x09,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650282
     },
     { --Sora chests 80-87 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {191, 192, 193, 194, 195, 196, 197, 198},
       offset = 0x0A,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650290
     },
     { --Sora chests 88-95 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {199, 200, 201, 202, 203, 204, 205, 206},
       offset = 0x0B,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650298
     },
     { --Sora chests 96-103 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {207, 15, 16, 17, 18, 23, 24, 25},
       offset = 0x0C,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650306
     },
     { --Sora chests 104-109 [Set of 6]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20},
+      entries = {11, 208, 209, 33, 64, 65},
       offset = 0x0D,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650314
     },
     { --Sora chests 110-117 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {26, 27, 28, 29, 30, 31, 32, 39},
       offset = 0x20,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650320
     },
     { --Sora chests 118-125 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {40, 41, 42, 43, 44, 45, 46, 47},
       offset = 0x21,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650328
     },
     { --Sora chests 126-133 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {48, 49, 50, 51, 52, 53, 54, 55},
       offset = 0x22,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650336
     },
     { --Sora chests 134-141 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {56, 57, 58, 59, 60, 61, 62, 63},
       offset = 0x23,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650344
     },
     { --Sora chests 142-149 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {69, 70, 71, 72, 73, 74, 75, 77}, --yes 76 is actually skipped
       offset = 0x24,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650352
     },
     { --Sora chests 150-157 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {78, 79, 80, 81, 82, 83, 84, 85},
       offset = 0x25,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650360
     },
     { --Sora chests 158-165 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {86, 87, 88, 89, 90, 91, 92, 93},
       offset = 0x26,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650368
     },
     { --Sora chests 166-173 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {94, 95, 96, 97, 98, 99, 100, 101},
       offset = 0x27,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650376
     },
     { --Sora chests 174-181 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {102, 103, 104, 105, 106, 107, 108, 109},
       offset = 0x28,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650384
     },
     { --Sora chests 182-189 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {110, 111, 112, 113, 114, 115, 116, 117},
       offset = 0x29,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650392
     },
     { --Sora chests 190-197 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {149, 150, 151, 152, 153, 154, 155, 156},
       offset = 0x2A,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650400
     },
     { --Sora chests 198-205 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {158, 159, 160, 161, 162, 163, 164, 165}, --157 is indeed skipped between entries
       offset = 0x2B,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650408
     },
     { --Sora chests 206-213 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {166, 167, 210, 211, 212, 213, 214, 215},
       offset = 0x2C,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650416
     },
     { --Sora chests 214-221 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {216, 217, 218, 219, 220, 221, 222, 223},
       offset = 0x2D,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650424
     },
     { --Sora chests 222-225 [Set of 4]
       bitFlags = {0x01, 0x02, 0x04, 0x08},
+      entries = {224, 118, 76, 157},
       offset = 0x2E,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650432
@@ -478,174 +509,203 @@ function LocationDefs:DefineChests()
   riku = {
     { --Riku chests 1-8 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {0, 1, 2, 3, 4, 5, 6, 7},
       offset = 0x00,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650436
     },
     { --Riku chests 9-14 [Set of 6]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20},
+      entries = {8, 9, 10, 12, 13, 14}, --11 skipped
       offset = 0x01,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650444
     },
     { --Riku chests 15-21 [Set of 7]
       bitFlags = {0x01, 0x02, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {19, 20, 32, 33, 34, 35, 36},
       offset = 0x02,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650450
     },
     { --Riku chests 22-29 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {63, 64, 65, 106, 107, 108, 109, 110},
       offset = 0x03,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650457
     },
     { --Riku chests 30-37 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {111, 112, 113, 114, 115, 116, 117, 118},
       offset = 0x04,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650465
     },
     { --Riku chests 38-45 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {119, 120, 121, 122, 123, 124, 125, 126},
       offset = 0x05,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650473
     },
     { --Riku chests 46-53 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {127, 128, 129, 130, 131, 132, 133, 134},
       offset = 0x06,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650481
     },
     { --Riku chests 54-61 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {135, 140, 141, 142, 143, 144, 145, 146},
       offset = 0x07,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650489
     },
     { --Riku chests 62-69 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {147, 148, 149, 150, 151, 152, 153, 154},
       offset = 0x08,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650497
     },
     { --Riku chests 70-77 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {155, 156, 157, 158, 159, 160, 161, 162},
       offset = 0x09,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650505
     },
     { --Riku chests 78-85 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {163, 164, 165, 166, 167, 168, 169, 170},
       offset = 0x0A,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650513
     },
     { --Riku chests 86-93 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {171, 172, 173, 174, 175, 176, 177, 178},
       offset = 0x0B,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650521
     },
     { --Riku chests 94-101 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {179, 15, 16, 17, 18, 21, 22, 23},
       offset = 0x0C,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650529
     },
     { --Riku chests 102-109 [Set of 6]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20},
+      entries = {11, 180, 181, 31, 61, 62},
       offset = 0x0D,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650537
     },
     { --Riku chests 110-117 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {24, 25, 26, 27, 28, 29, 30, 37},
       offset = 0x20,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650543
     },
     { --Riku chests 118-126 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {38, 39, 40, 41, 42, 43, 44, 45},
       offset = 0x21,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650551
     },
     { --Riku chests 127-134 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {46, 47, 48, 49, 50, 51, 52, 53},
       offset = 0x22,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650559
     },
     { --Riku chests 128-135 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {66, 67, 68, 69, 70, 71, 72, 73},
       offset = 0x23,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650567
     },
     { --Riku chests 136-143 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {74, 75, 76, 136, 137, 138, 182, 183},
       offset = 0x24,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650575
     },
     { --Riku chests 144-151 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {184, 185, 186, 187, 188, 189, 190, 193}, --191, 192 skipped
       offset = 0x25,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650583
     },
     { --Riku chests 152-159 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {194, 195, 196, 197, 198, 199, 200, 201},
       offset = 0x26,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650591
     },
     { --Riku chests 160-167 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {202, 203, 204, 84, 85, 86, 87, 88},
       offset = 0x27,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650599
     },
     { --Riku chests 168-175 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {89, 90, 91, 92, 93, 94, 95, 96},
       offset = 0x28,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650607
     },
     { --Riku chests 176-183 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {97, 98, 99, 100, 101, 102, 103, 139},
       offset = 0x29,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650615
     },
     { --Riku chests 184-191 [Set of 8]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {104, 105, 54, 55, 56, 205, 206, 207}, --Might have elixir indexes swapped
       offset = 0x2A,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650623
     },
     { --Riku chests 192-198 [Set of 7]
       bitFlags = {0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80},
+      entries = {77, 78, 79, 80, 81, 82, 83},
       offset = 0x2B,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650631
     },
     { --Riku chests 199-204 [Set of 6]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x40, 0x80},
+      entries = {57, 58, 59, 60, 208, 209}, --Might have elixir indexes swapped
       offset = 0x2C,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650638
     },
     { --Riku chests 205-209 [Set of 5]
       bitFlags = {0x01, 0x02, 0x04, 0x08, 0x10},
+      entries = {191, 192, 210, 211, 212}, --Might have elixir indexes swapped
       offset = 0x2D,
       foundChests = {false, false, false, false, false, false, false, false},
       locationIDStart = 2650644
     },
 
     --It's possible I miscounted somewhere. There should be 213 chests for Riku?
+    --Missing Chest ID 209 - One of the elixir chests
   }
 
   }

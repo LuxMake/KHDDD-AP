@@ -17,10 +17,17 @@ ConfigTask.SlotDataTypes = {
   StatBoost = 8,
   LordKyroo = 9,
   LocalItemNotifs = 10,
-  RemoteItemNotifs = 11
+  RemoteItemNotifs = 11,
+  PatchInfo = 12,
+  VanillaLevels = 13,
+  EmblemReqs = 14,
+  GateReqs = 15,
+  DropGage = 16,
+  EnergyLink = 17
 }
 
 function ConfigTask:ParseSlotData(slotType, msgVal)
+	Configs.GotSlotData = true --We know request was successful if we receive at least one config update
 	if slotType == self.SlotDataTypes.KeybladeStats then
       self:SaveKeybladeStats(msgVal)
     elseif slotType == self.SlotDataTypes.Character then
@@ -45,7 +52,41 @@ function ConfigTask:ParseSlotData(slotType, msgVal)
     	self:SetItemNotifs(msgVal)
     elseif slotType == self.SlotDataTypes.RemoteItemNotifs then
     	self:SetRemoteNotifs(msgVal)
+    elseif slotType == self.SlotDataTypes.PatchInfo then
+    	self:PatchGame(msgVal)
+    elseif slotType == self.SlotDataTypes.VanillaLevels then
+    	self:SetVanillaLevels(msgVal)
+    elseif slotType == self.SlotDataTypes.EmblemReqs then
+    	self:SetEmblemReq(msgVal)
+    elseif slotType == self.SlotDataTypes.GateReqs then
+    	self:SetGateReqs(msgVal)
+    elseif slotType == self.SlotDataTypes.DropGage then
+    	self:SetDrop(msgVal)
+    elseif slotType == self.SlotDataTypes.EnergyLink then
+    	self:SetEnergyLink(msgVal)
     end
+end
+
+function ConfigTask:SetEnergyLink(msgVal)
+	if msgVal[1] == "1" then
+		Configs.EnergyLink = true
+		ConsolePrint("Enabled energy link")
+		EnergyLinkTask:Init()
+	end
+end
+
+function ConfigTask:SetDrop(msgVal)
+	if msgVal[1] == "1" then
+		Configs.EnableDrop = true
+		ConsolePrint("Enabled drop")
+	end
+end
+
+function ConfigTask:SetGateReqs(msgVals)
+	LBoard:ChangeGateReqs(tonumber(msgVals[1]), 1, tonumber(msgVals[2]), tonumber(msgVals[3]))
+	if #msgVals > 3 then --2nd gate specified
+		LBoard:ChangeGateReqs(tonumber(msgVals[1]), 2, tonumber(msgVals[2]), tonumber(msgVals[4]))
+	end
 end
 
 function ConfigTask:SaveKeybladeStats(msgVals)
@@ -75,6 +116,82 @@ function ConfigTask:SaveKeybladeStats(msgVals)
 	end
 end
 
+function ConfigTask:PatchGame(msgVals)
+	local _soraChestRange = {2650211, 2650435}
+	local _rikuChestRange = {2650436, 2650648}
+	local _levelRange = {2660000, 2660200}
+	local _boardRange = {2690099, 2700000}
+
+	for i=1, #msgVals do
+		if i%2 == 0 then --Message pair
+			local _locId = tonumber(msgVals[i-1])
+			local _itemId = tonumber(msgVals[i]) 
+
+			--Chest Patching
+			--Each Chest entry is 8 bytes
+			--Location IDs are not logged in same order as chests appear in itemtd
+
+			if _locId >= _soraChestRange[1] and _locId <= _rikuChestRange[2] then --Location is a chest
+				local _useAddr = MemoryAddresses.chestDataR[gameVer]
+				local _useChar = 1
+				if _locId <= _soraChestRange[2] then --Sora Chest
+					_useAddr = MemoryAddresses.chestDataS[gameVer]
+					_useChar = 0
+				end
+
+				local _chestStart = _useAddr+0x1A --ID of first item
+				--local _chestOffset = _locId - _soraChestRange[1]
+				local _chestInfo = getChestById(_locId, _useChar)
+				local _chestOffset = _locId - _chestInfo.locationIDStart + 1
+
+				_itemId = PatchTask:ChangeToCompatibleItem(_itemId, true)
+
+				local _itemInfo = getItemById(_itemId)
+				local _itemBytes = _itemInfo.Bytes
+
+				--ConsolePrint("Location Offset: "..tostring(_chestOffset))
+
+				--TODO: Traverse Town Fountain Plaza Balloon [Sora] not recorded correctly
+				local _entries = _chestInfo.entries
+				local _itemDest = _chestStart+(_entries[_chestOffset]*8)
+
+				--ConsolePrint("Item Dest: "..tostring(_itemDest))
+
+
+				if #_itemBytes == 1 then
+					table.insert(_itemBytes, 0x00)
+				end
+
+				if _itemDest > 0x00 then
+					WriteArray(_itemDest, _itemBytes)
+				end
+				--WriteArray(_chestStart+_chestOffset, _itemBytes)
+				--ConsolePrint("Patched Chest")
+			elseif _locId > _levelRange[1] and _locId < _levelRange[2] then --Level
+				_itemId = PatchTask:ChangeToCompatibleItem(_itemId)
+				PatchTask:AssignLevelRewards(_locId, _itemId)
+			elseif _locId > _boardRange[1] and _locId < _boardRange[2] then --Link Board Reward
+				_itemId = PatchTask:ChangeToCompatibleItem(_itemId, true)
+				PatchTask:LinkBoardReward(_locId, _itemId)
+			else --Reward
+				if PatchTask.MissionDict[tostring(_locId)] ~= nil then
+					_itemId = PatchTask:ChangeToCompatibleItem(_itemId, false, true)
+					local _itemInfo = getItemById(_itemId)
+					PatchTask:AssignMissionRewards(_locId, _itemInfo.Bytes)
+				elseif PatchTask.BonusSlots[tostring(_locId)] ~= nil then
+					_itemId = PatchTask:ChangeToCompatibleItem(_itemId, false, false)
+					local _itemInfo = getItemById(_itemId)
+					PatchTask:AssignBonusRewards(_locId, _itemInfo.Name)
+				else
+					_itemId = PatchTask:ChangeToCompatibleItem(_itemId, false, true)
+					local _itemInfo = getItemById(_itemId)
+					PatchTask:SetRewardForLocation(_locId, _itemInfo.Bytes)
+				end
+			end
+		end
+	end
+end
+
 --Config Setters
 function ConfigTask:SetCharacter(msgVal)
 	Configs.Character = tonumber(msgVal[1])
@@ -86,6 +203,14 @@ function ConfigTask:SetRecipeReq(msgVal)
 	local _reqStr = "Required Recipes: "..msgVal[1]
 	writeTxtToGame(ItemOverwrite.recipeDescAddr[gameVer], _reqStr, 1)
 	ConsolePrint("Setting required recipes to "..msgVal[1])
+end
+
+function ConfigTask:SetEmblemReq(msgVal)
+	Configs.EmblemReqs = tonumber(msgVal[1])
+	local _reqStr = "Required: "..msgVal[1]
+	writeTxtToGame(ItemOverwrite.toy14DescAddr[gameVer], _reqStr, 1)
+	ConsolePrint("Setting required emblems to "..msgVal[1])
+	ItemHandler:CheckEmblems() --Catches a count reached before the requirement was known
 end
 
 function ConfigTask:SetGoal(msgVal)
@@ -124,6 +249,7 @@ end
 function ConfigTask:SetExpMult(msgVal)
 	Configs.ExpMult = tonumber(msgVal[1])
 	self:WriteExpTable()
+	ItemHandler:SetPendingSpiritExp()
 	ConsolePrint("Setting Exp Mult to "..msgVal[1])
 end
 
@@ -149,6 +275,15 @@ end
 function ConfigTask:SetRemoteNotifs(msgVal)
 	ConsolePrint("Setting Sent Notifications to "..msgVal[1])
 	Configs.RemoteItemNotifs = tonumber(msgVal[1])
+end
+
+function ConfigTask:SetVanillaLevels(msgVal)
+	ConsolePrint("Setting Vanilla Levels to "..msgVal[1])
+	if msgVal[1] == "1" then
+		Configs.VanillaLevels = true
+	else
+		Configs.VanillaLevels = false
+	end
 end
 
 function ConfigTask:WriteExpTable()

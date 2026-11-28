@@ -1,3 +1,5 @@
+local Spirits = require("KHDDD.Items.Spirits")
+
 local ItemHandler = {}
 
 ItemHandler.State = {
@@ -9,8 +11,8 @@ ItemHandler.State = {
   Keyblades = {Sora={},Riku={}},
 
   BonusStats = {
-    Sora = {Hp = {0x50}, Deck = {0x04}, Strength = {0x06}, Magic = {0x07}, Defense = {0x06}},
-    Riku = {Hp = {0x50}, Deck = {0x04}, Strength = {0x06}, Magic = {0x07}, Defense = {0x06}}
+    Sora = {Hp = 0x50, Deck = 0x04, Strength = 0x06, Magic = 0x07, Defense = 0x06},
+    Riku = {Hp = 0x50, Deck = 0x04, Strength = 0x06, Magic = 0x07, Defense = 0x06}
   },
   Commands = {
 
@@ -24,13 +26,21 @@ ItemHandler.State = {
   Abilities = {
     Shared = {}
   },
-  Flowmotion = {},
+  Flowmotion = {}, --Tracks obtained flowmotion
+  FlowmotionVal = 0x00, --Represents total flowmotion action value
 
   World = {sora={},riku={},ids={}},
   Recusant = false,
   HasCat = false,
-  HasBat = false
+  HasBat = false,
+  HasEmblems = false,
+  Emblems = 0,
+  ReceivedIndex=0,
+  ExpTableSet = false, --Slot data has applied the exp multiplier to the game's exp table
+  PendingSpiritExp = {} --Spirit slots crafted before that, whose exp is redone once it has
 }
+
+--TODO: Lord Kyroo rewards for Sora sent to AP only after beating the world (Sora only run)
 
 function ItemHandler:Reset()
   --self:ResetKeyblades()
@@ -41,32 +51,84 @@ function ItemHandler:Reset()
   ConsolePrint("Item Handler Reset")
 end
 
-function ItemHandler:Receive(type, value)
-  ConsolePrint("Received " .. type .. " with value " .. value)
+function ItemHandler:Receive(type, value, cnt, isLocal, skipRoomSave)
+  ConsolePrint("Received " .. type .. " with value " .. value .. ". Local: " .. tostring(isLocal))
+
+  local _ahead = true
+  local _receivedAgain = false
+
+  if cnt then
+    _ahead = cnt > lastReceivedIndex
+    if cnt > self.State.ReceivedIndex then
+      self.State.ReceivedIndex = cnt
+    elseif cnt <= self.State.ReceivedIndex then
+      _receivedAgain = true
+    end
+  end
+  if _receivedAgain then
+    return
+  end
+
+  if value == 2639999 then --Victory; Not a real item
+    GoalGame()
+    return
+  end
+
+  if value < 2630000 then --Trap received
+    ConsolePrint("Sending drop trap")
+    if _ahead then
+      local _trapId = value - 2621000
+      TrapTask:TrapReceived(_trapId)
+    end
+    return
+  end
   
   if type == "Keyblades [Sora]" or type == "Keyblades [Riku]" then
-    self:GiveKeyblade(value)
+    self:GiveKeyblade(value) --Can be given both locally and remotely fine
   elseif type == "Flowmotion" then
-    self:GiveFlowmotion(value)
+    self:GiveFlowmotion(value, (not isLocal and _ahead)) --Only itemize if not local
   elseif type == "Flowmotion Item" then
-    self:FlowmotionItem(value, true)
+    if _ahead and not isLocal then
+      self:FlowmotionItem(value, true)
+    end
   elseif type == "Command" or type == "Consumable" then
-    self:GiveCommand(value)
+    if _ahead and not isLocal then
+      self:GiveCommand(value)
+    end
+    if _ahead and (value == 2641024 or value == 2641025) then
+      if EnergyLinkTask.IsActive then
+        local _depVals = {EnergyLinkTask.DROP_ME_NOT, EnergyLinkTask.DROP_ME_NEVER}
+        EnergyLinkTask:DirectDeposit(_depVals[value-2641023])
+      end
+    end
   elseif type == "World" then
     --self:GiveWorld(value, true)
     self:GiveWorld(value)
   elseif type == "Stats [Sora]" or type == "Stats [Riku]" then
     self:GiveStatBonus(value)
   elseif type == "Recipe" then
-    self:GiveRecipe(value)
+    self:GiveRecipe(value, not _ahead)
   elseif type == "Key" then
-    self:GiveKeyItem(value)
+    self:GiveKeyItem(value, _ahead, isLocal)
   elseif type == "Stat" or type == "Support" or type == "Spirit" then
-    self:GiveAbility(value, true)
+      self:GiveAbility(value, true, _ahead)
   else
     self:GiveMiscItem(value, type)
   end
-  
+
+  if cnt then
+    self:SaveLatestIndex(cnt)
+  end
+  if _ahead and not skipRoomSave then
+    RoomSaveTask:StoreItem(value)
+  end
+end
+
+function ItemHandler:SaveLatestIndex(cnt)
+  if ReadShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07) < cnt then
+    WriteShort(WorldFlags.destinyIslands.sora.story[gameVer]+0x07, cnt)
+    receivedInit = true
+  end
 end
 
 function ItemHandler:Request()
@@ -106,13 +168,16 @@ function ItemHandler:FindExistingSlot(addrStart, invSize, bytes, byteSize, offse
   local _resAddrFound = false
 
   for i=0, invSize do
-    if ReadByte(addrStart+(i*byteSize)+offset) == bytes[1] then
+    local _foundAddr = addrStart+(i*byteSize)+offset
+    if ReadByte(_foundAddr) == bytes[1] then
+      _resAddrFound = true
       for j=2, #bytes do
-          if ReadByte(addrStart+offset+i+(j-1)) ~= bytes[j] then
+          if ReadByte(_foundAddr+(j-1)) ~= bytes[j] then
             _resAddrFound = false
             ConsolePrint("First byte matched but not following ones")
           end
       end
+      _resAddr = _foundAddr
       if _resAddrFound then
         return _resAddr
       end
@@ -123,10 +188,36 @@ end
 -- ############################################################
 -- ####################  Key Items  ###########################
 -- ############################################################
-function ItemHandler:GiveKeyItem(value)
+function ItemHandler:GiveKeyItem(value, ahead, isLocal)
   local _key = getItemById(value)
+  if _key.Name == "Lucky Emblem" then
+    if ahead and not isLocal then
+      self:GiveLuckyEmblem()
+    elseif ahead then
+      self:CheckEmblems() --The game already counted a local emblem
+    end
+    return
+  end
   WriteArray(MemoryAddresses.keyItems[gameVer]+_key.Offset, _key.Bytes)
   self.State.Recusant = true --Only key item is the recusant sigil
+end
+
+function ItemHandler:GiveLuckyEmblem()
+  if ReadByte(MemoryAddresses.emblems[gameVer]) == 0x00 then --Obtained item for the first time
+    WriteArray(MemoryAddresses.emblems[gameVer], {0x0D, 0x08})
+  end
+
+  local _currVal = ReadByte(MemoryAddresses.emblems[gameVer]+0x02)
+  _currVal = math.min(_currVal, 98)+0x01 --Don't try to receive more than we can
+  WriteByte(MemoryAddresses.emblems[gameVer]+0x02, _currVal)
+  self:CheckEmblems()
+end
+
+function ItemHandler:CheckEmblems()
+  self.State.Emblems = ReadByte(MemoryAddresses.emblems[gameVer]+0x02)
+  if self.State.Emblems >= Configs.EmblemReqs and Configs.EmblemReqs > 0 then --Send location for finding all emblems
+    SendToApClient(MessageTypes.StoryChecked, {"2670300"})
+  end
 end
 
 
@@ -149,88 +240,20 @@ function ItemHandler:GiveWorld(value)
   self:PlaceWorldItem(value)
 end
 
-function ItemHandler:GiveWorldOld(value, addToTable)
-  local _world = getItemById(value)
-  local _unlocked = _world.Bytes[1]
-  local _story = _world.Bytes[2]
-  local _select = _world.Bytes[6]
-  local _no = _world.Bytes[3]
-  local _startRoom = _world.Bytes[4]
-
-  --Enable the world for selection on the map
-  WriteArray(_select, {_no, _startRoom})
-
-  --Show that progress can be made in the world
-  if ReadByte(_unlocked+0x01) == 0x00 then
-    WriteByte(_unlocked+0x01, 0x01)
-  end
-
-
-  if value == 2691006 or value == 2691012 then --TWTNW needs docking point unlocked
-    WriteByte(_world.Bytes[7], _no)
-    if value == 2691006 then --Set unlocked flags for TWTNW [Sora]
-      WriteArray(WorldFlags.theWorldThatNeverWas.sora.unlocked[gameVer], {0x02, 0x01})
-    elseif value == 2691012 then --Set unlocked flags for TWTNW [Riku]
-      WriteArray(WorldFlags.theWorldThatNeverWas.riku.unlocked[gameVer], {0x02, 0x01})
-    end
-  end
-
-  if addToTable then
-    if _world.ID < 2691006 or _world.ID == 2691013 then --Sora world
-      table.insert(self.State.World.sora, _world)
-    elseif _world.ID > 2691006 and _world.ID < 2691012 or _world.ID == 2691014 then --Riku world
-      table.insert(self.State.World.riku, _world)
-    end
-    table.insert(self.State.World.ids, value)
-
-    --Write world to the inventory
-    self:PlaceWorldItem(value)
-  end
-
-  if Configs.WorldScaling and _world.ID < 2691006 or Configs.WorldScaling and _world.ID == 2691013 then --Don't do scaling for TWTNW
-    local _battle = _world.Bytes[5]
-    --Apply battle level to this world
-    WriteByte(_battle, self.BattleLevels[#self.State.World.sora])
-  elseif Configs.WorldScaling and _world.ID > 2691006 and _world.ID < 2691012 or Configs.WorldScaling and _world.ID == 2691014 then
-    local _battle = _world.Bytes[5]
-    WriteByte(_battle, self.BattleLevels[#self.State.World.riku])
-  end
-
-end
-
 function ItemHandler:PlaceWorldItem(value) --Places world items in designated inventory spot
   if value == 2691013 then --Check for TT2 Sora
     if WorldHandler.WorldsUnlocked.Sora[WorldHandler.Worlds.TT2] > 0 then
-      WriteArray(MemoryAddresses.keyItems[gameVer]+30, {0x1F, 0x04})
+      WriteArray(MemoryAddresses.keyItems[gameVer]+62, {0x1F, 0x04})
       return
     end
   elseif value == 2691014 then --Check for TT2 Riku
     if WorldHandler.WorldsUnlocked.Riku[WorldHandler.Worlds.TT2] > 0 then
-      WriteArray(MemoryAddresses.keyItems[gameVer]+32, {0x21, 0x04})
+      WriteArray(MemoryAddresses.keyItems[gameVer]+66, {0x21, 0x04})
       return
     end
   end
   local _worldInvItem = getItemById(value+100)
   WriteArray(MemoryAddresses.keyItems[gameVer]+_worldInvItem.Offset, _worldInvItem.Bytes)
-end
-
-function ItemHandler:RebuildWorlds()
-  --Reset world lock status
-
-  for i=2691001, 2691014 do
-    local _world = getItemById(i)
-    if ReadByte(_world.Bytes[6]) == 0x00 then --Only reset lock status if world is not selectable
-      if ReadByte(_world.Bytes[2]) < 0x11 then --Do not reset if world is cleared
-        WriteByte(_world.Bytes[1]+0x01, 0x00) 
-      end
-    end
-  end
-
-  --Reinstate worlds
-  for i=1, #self.State.World do
-    self:GiveWorld(self.State.World[i].ID, false)
-  end
-
 end
 
 -- ############################################################
@@ -246,9 +269,9 @@ function ItemHandler:GiveKeyblade(value)
   end
 
   local _keybladeSlot = _keyAddr+_keyblade.Offset
-  if _keyblade.Type == "Keyblades [Riku]" then
-    _keybladeSlot = _keyAddr-_keyblade.Offset
-  end
+  --if _keyblade.Type == "Keyblades [Riku]" then
+  --  _keybladeSlot = _keyAddr-_keyblade.Offset
+  --end
 
   WriteArray(_keybladeSlot, _keyblade.Bytes)
 
@@ -268,118 +291,71 @@ function ItemHandler:GiveStatBonus(value)
   if _stat.Type == "Stats [Sora]" then
     if string.find(_stat.Name, "HP") then
       ConsolePrint("Inserting HP increase")
-      table.insert(self.State.BonusStats.Sora.Hp, _stat.Bytes[1])
+      self.State.BonusStats.Sora.Hp = self.State.BonusStats.Sora.Hp + _stat.Bytes[1]
+      --table.insert(self.State.BonusStats.Sora.Hp, _stat.Bytes[1])
     elseif string.find(_stat.Name, "Deck") then
       ConsolePrint("Inserting deck increase")
-      table.insert(self.State.BonusStats.Sora.Deck, _stat.Bytes[1])
+      self.State.BonusStats.Sora.Deck = self.State.BonusStats.Sora.Deck + _stat.Bytes[1]
+      --table.insert(self.State.BonusStats.Sora.Deck, _stat.Bytes[1])
     elseif string.find(_stat.Name, "Strength") then
       ConsolePrint("Inserting strength increase")
-      table.insert(self.State.BonusStats.Sora.Strength, Configs.StatBonus)
+      self.State.BonusStats.Sora.Strength = self.State.BonusStats.Sora.Strength + Configs.StatBonus
+      --table.insert(self.State.BonusStats.Sora.Strength, Configs.StatBonus)
     elseif string.find(_stat.Name, "Magic") then
       ConsolePrint("Inserting magic increase")
-      table.insert(self.State.BonusStats.Sora.Magic, Configs.StatBonus)
+      self.State.BonusStats.Sora.Magic = self.State.BonusStats.Sora.Magic + Configs.StatBonus
+      --table.insert(self.State.BonusStats.Sora.Magic, Configs.StatBonus)
     elseif string.find(_stat.Name, "Defense") then
       ConsolePrint("Inserting defense increase")
-      table.insert(self.State.BonusStats.Sora.Defense, Configs.StatBonus)
+      self.State.BonusStats.Sora.Defense = self.State.BonusStats.Sora.Defense + Configs.StatBonus
+      --table.insert(self.State.BonusStats.Sora.Defense, Configs.StatBonus)
     end
   elseif _stat.Type == "Stats [Riku]" then
     if string.find(_stat.Name, "HP") then
       ConsolePrint("Inserting HP increase")
-      table.insert(self.State.BonusStats.Riku.Hp, _stat.Bytes[1])
+      self.State.BonusStats.Riku.Hp = self.State.BonusStats.Riku.Hp + _stat.Bytes[1]
+      --table.insert(self.State.BonusStats.Riku.Hp, _stat.Bytes[1])
     elseif string.find(_stat.Name, "Deck") then
       ConsolePrint("Inserting deck increase")
-      table.insert(self.State.BonusStats.Riku.Deck, _stat.Bytes[1])
+      self.State.BonusStats.Riku.Deck = self.State.BonusStats.Riku.Deck + _stat.Bytes[1]
+      --table.insert(self.State.BonusStats.Riku.Deck, _stat.Bytes[1])
     elseif string.find(_stat.Name, "Strength") then
       ConsolePrint("Inserting strength increase")
-      table.insert(self.State.BonusStats.Riku.Strength, Configs.StatBonus)
+      self.State.BonusStats.Riku.Strength = self.State.BonusStats.Riku.Strength + Configs.StatBonus
+      --table.insert(self.State.BonusStats.Riku.Strength, Configs.StatBonus)
     elseif string.find(_stat.Name, "Magic") then
       ConsolePrint("Inserting magic increase")
-      table.insert(self.State.BonusStats.Riku.Magic, Configs.StatBonus)
+      self.State.BonusStats.Riku.Magic = self.State.BonusStats.Riku.Magic + Configs.StatBonus
+      --table.insert(self.State.BonusStats.Riku.Magic, Configs.StatBonus)
     elseif string.find(_stat.Name, "Defense") then
       ConsolePrint("Inserting defense increase")
-      table.insert(self.State.BonusStats.Riku.Defense, Configs.StatBonus)
+      self.State.BonusStats.Riku.Defense = self.State.BonusStats.Riku.Defense + Configs.StatBonus
+      --table.insert(self.State.BonusStats.Riku.Defense, Configs.StatBonus)
     end
   end
 end
 
 function ItemHandler:RebuildStats()
-  --local _hpAddr = Stats.sora.maxHp
-  local _hpAddr = Stats.riku.maxHp[gameVer]
-  local _deckAddr = Stats.sora.deckSize[gameVer]
-  local _strAddrs = Stats.sora.strength[gameVer]
-  local _magAddrs = Stats.sora.magic[gameVer]
-  local _defAddrs = Stats.sora.defense[gameVer]
-
-  --Initialize intended stat values
-  local _hpVal = 0x00
-  local _deckVal = 0x00
-  local _strVal = 0x00
-  local _magVal = 0x00
-  local _defVal = 0x00
-
-  --Get bonus HP from HP Boost Ability
-  --local _hpBoostAddr = 0xA4D808 --Add 1 to check Riku
-  --local _hpBoostVals = {0x09, 0x1A, 0x3B, 0x7C, 0xFD}
-  --local _hpBoost = ReadByte(_hpBoostAddr+getCharacter())
-  --local _currBoost = 0
-  --for i=1, #_hpBoostVals do
-  --  if _hpBoost == _hpBoostVals[i] then
-  --    _currBoost = _hpBoostVals[i]
-  --  end
-  --end
-
-  --Each HP Boost gives +5% HP
-  --local _hpVal = _currBoost*0x04 --Each level of HP boost should add 4 HP
-
   --Calculate stat amounts
   if getCharacter() == 0 then
-    for i=1, #self.State.BonusStats.Sora.Hp do
-      _hpVal = _hpVal + self.State.BonusStats.Sora.Hp[i]
-    end
-    for i=1, #self.State.BonusStats.Sora.Deck do
-      _deckVal = _deckVal + self.State.BonusStats.Sora.Deck[i]
-    end
-    for i=1, #self.State.BonusStats.Sora.Strength do
-      _strVal = _strVal + self.State.BonusStats.Sora.Strength[i]
-    end
-    for i=1, #self.State.BonusStats.Sora.Magic do
-      _magVal = _magVal + self.State.BonusStats.Sora.Magic[i]
-    end
-    for i=1, #self.State.BonusStats.Sora.Defense do
-      _defVal = _defVal + self.State.BonusStats.Sora.Defense[i]
-    end
+    WriteShort(Stats.riku.maxHp[gameVer], self.State.BonusStats.Sora.Hp)
+    WriteByte(Stats.sora.deckSize[gameVer], self.State.BonusStats.Sora.Deck)
+    WriteByte(Stats.sora.strength[gameVer][1], self.State.BonusStats.Sora.Strength)
+    WriteByte(Stats.sora.strength[gameVer][2], self.State.BonusStats.Sora.Strength)
+    WriteByte(Stats.sora.magic[gameVer][1], self.State.BonusStats.Sora.Magic)
+    WriteByte(Stats.sora.magic[gameVer][2], self.State.BonusStats.Sora.Magic)
+    WriteByte(Stats.sora.defense[gameVer][1], self.State.BonusStats.Sora.Defense)
+    WriteByte(Stats.sora.defense[gameVer][2], self.State.BonusStats.Sora.Defense)
   else
-    for i=1, #self.State.BonusStats.Riku.Hp do
-      _hpVal = _hpVal + self.State.BonusStats.Riku.Hp[i]
-    end
-    for i=1, #self.State.BonusStats.Riku.Deck do
-      _deckVal = _deckVal + self.State.BonusStats.Riku.Deck[i]
-    end
-    for i=1, #self.State.BonusStats.Riku.Strength do
-      _strVal = _strVal + self.State.BonusStats.Riku.Strength[i]
-    end
-    for i=1, #self.State.BonusStats.Riku.Magic do
-      _magVal = _magVal + self.State.BonusStats.Riku.Magic[i]
-    end
-    for i=1, #self.State.BonusStats.Riku.Defense do
-      _defVal = _defVal + self.State.BonusStats.Riku.Defense[i]
-    end
+    WriteShort(Stats.riku.maxHp[gameVer], self.State.BonusStats.Riku.Hp)
+    WriteByte(Stats.sora.deckSize[gameVer], self.State.BonusStats.Riku.Deck)
+    WriteByte(Stats.sora.strength[gameVer][1], self.State.BonusStats.Riku.Strength)
+    WriteByte(Stats.sora.strength[gameVer][2], self.State.BonusStats.Riku.Strength)
+    WriteByte(Stats.sora.magic[gameVer][1], self.State.BonusStats.Riku.Magic)
+    WriteByte(Stats.sora.magic[gameVer][2], self.State.BonusStats.Riku.Magic)
+    WriteByte(Stats.sora.defense[gameVer][1], self.State.BonusStats.Riku.Defense)
+    WriteByte(Stats.sora.defense[gameVer][2], self.State.BonusStats.Riku.Defense)
   end
-
-  --Account for HP boost; should grant +5% HP per installed ability
-  --local _boostAmt = (_hpVal*0.05)*_currBoost
-
-
-  --Write stats
-  WriteShort(_hpAddr, _hpVal)
-  WriteByte(_deckAddr, _deckVal)
-
-  WriteByte(_strAddrs[1], _strVal)
-  WriteByte(_strAddrs[2], _strVal)
-  WriteByte(_magAddrs[1], _magVal)
-  WriteByte(_magAddrs[2], _magVal)
-  WriteByte(_defAddrs[1], _defVal)
-  WriteByte(_defAddrs[2], _defVal)
 
 end
 
@@ -387,26 +363,60 @@ end
 -- ######################  Commands  ##########################
 -- ############################################################
 function ItemHandler:GiveCommand(value)
-  local _cmdAddr = MemoryAddresses.commandStock[gameVer]
   local _cmd = getItemById(value)
 
   if _cmd.Type == "Consumable" then
     --Scan to see if consumable exists
     local _hasItem = self:FindExistingSlot(MemoryAddresses.consumableStart[gameVer], 500, _cmd.Bytes, 0x08, 0x00)
     if _hasItem == 0x00 or _hasItem == nil then
-      local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 500, 0x08, 0x00)
-      WriteByte(_emptySlotAddr, _cmd.Bytes[1])
-      WriteByte(_emptySlotAddr+0x05, 0x01)
+      local _emptySlotAddr = self:FindEmptyStockSlot()
+      if _emptySlotAddr then
+        WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00})
+        self:MarkConsumableObtained(_cmd.Bytes[1])
+      end
     else
       local _currStock = ReadByte(_hasItem+0x05)
       WriteByte(_hasItem+0x05, _currStock+0x01)
+      self:MarkConsumableObtained(_cmd.Bytes[1])
     end
 
   elseif _cmd.Type == "Command" then
-    local _emptySlotAddr = self:FindEmptySlot(_cmdAddr, 1000, 0x08, 0x00)
-
-    WriteByte(_emptySlotAddr, _cmd.Bytes[1])
+    local _emptySlotAddr = self:FindEmptyStockSlot()
+    if _emptySlotAddr then
+      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+    end
   end
+end
+
+--Thanks to Delilah
+--The game stacks a consumable only once its obtained flag (bits 0x300) is set; otherwise its own pickup makes a new entry.
+--Set it only with a stock entry present: with the flag and no entry, the game writes to entry -1.
+--Mirrors the game's first pickup (0x371650): flag bits, low-byte count and the item tally counters (consumables are category 2).
+function ItemHandler:MarkConsumableObtained(id)
+  local _base = MemoryAddresses.commandStockStart[gameVer]
+  local _flagAddr = _base+0x1024+(id*2)
+  local _flags = ReadShort(_flagAddr)
+  if _flags & 0x0300 ~= 0 then
+    return
+  end
+  WriteShort(_flagAddr, (_flags & 0xDD00) | 0x1100 | ((_flags+1) & 0xFF))
+  for _, _counter in ipairs({0x1012, 0x101E, 0x1022}) do
+    WriteShort(_base+_counter, ReadShort(_base+_counter)+1)
+  end
+end
+
+ItemHandler.StockEntries = 511 --Slots in the command stock
+
+function ItemHandler:FindEmptyStockSlot() --Returns address of first empty stock slot; write all 8 bytes
+  local _start = MemoryAddresses.commandStockStart[gameVer]
+  for i=(MemoryAddresses.commandStock[gameVer]-_start)//0x08, self.StockEntries-1 do
+    local _addr = _start+(i*0x08)
+    if ReadShort(_addr) == 0x00 and ReadShort(_addr+0x02) == 0x00 then
+      return _addr
+    end
+  end
+  ConsolePrint("Command stock is full")
+  return nil
 end
 
 --TODO: Designate first several command stock slots to action commands prone to glitching
@@ -502,6 +512,11 @@ function ItemHandler:RemoveFlowmotionItems()
     WriteArray(_soraDeck1[gameVer]+_slotEquipStart, _emptySlotCont)
     WriteArray(_soraDeck2[gameVer]+_slotEquipStart, _emptySlotCont)
     WriteArray(_soraDeck3[gameVer]+_slotEquipStart, _emptySlotCont)
+    --Riku requires more filler
+    table.insert(_emptySlotCont, 0xFF)
+    table.insert(_emptySlotCont, 0xFF)
+    table.insert(_emptySlotCont, 0xFF)
+    table.insert(_emptySlotCont, 0xFF)
     WriteArray(_rikuDeck1[gameVer]+_slotEquipStart, _emptySlotCont)
     WriteArray(_rikuDeck2[gameVer]+_slotEquipStart, _emptySlotCont)
     WriteArray(_rikuDeck3[gameVer]+_slotEquipStart, _emptySlotCont)
@@ -521,25 +536,8 @@ function ItemHandler:RemoveFlowmotionItems()
 end
 
 function ItemHandler:FlowmotionItem(flowmotion, isRestored)
-
-  if currentReceivedIndex < lastReceivedIndex then --Do not re-itemized obtained flowmotion
-    return
-  end
-
-  local _item = 0
-
-  --Translate Flowmotion ID to Item ID
-  if flowmotion == 2661001 then
-    _item = 2661010
-  elseif flowmotion == 2661002 then
-    _item = 2661007
-  elseif flowmotion == 2661003 then
-    _item = 2661008
-  elseif flowmotion == 2661004 then
-    _item = 2661011
-  elseif flowmotion == 2661005 then
-    _item = 2661009
-  end
+  --Get itemized flowmotion id
+  local _item = flowmotion + 6
 
   if isRestored then
     _item = flowmotion
@@ -552,17 +550,21 @@ function ItemHandler:FlowmotionItem(flowmotion, isRestored)
     end
 
     local _cmd = getItemById(_item)
-    local _emptySlotAddr = self:FindEmptySlot(MemoryAddresses.commandStock[gameVer], 1000, 0x08, 0x00)
+    local _emptySlotAddr = self:FindEmptyStockSlot()
 
-    WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07})
+    if _emptySlotAddr then
+      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07, 0x00, 0x00, 0x00, 0x00})
+    end
     RoomSaveTask:StoreItem(flowmotion)
 
   elseif flowmotion == 2661006 then --All flowmotion received
 
     for x=2661007, 2661011 do
       local _cmd = getItemById(x)
-      local _emptySlotAddr = self:FindEmptySlot(MemoryAddresses.commandStock[gameVer], 1000, 0x08, 0x00)
-      WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07})
+      local _emptySlotAddr = self:FindEmptyStockSlot()
+      if _emptySlotAddr then
+        WriteArray(_emptySlotAddr, {_cmd.Bytes[1], 0x00, 0x07, 0x07, 0x00, 0x00, 0x00, 0x00})
+      end
       if not isRestored then
         RoomSaveTask:StoreItem(x)
       end
@@ -592,10 +594,15 @@ end
 --Sliding Dive: 0x08
 
 
-function ItemHandler:GiveFlowmotion(value)
+function ItemHandler:GiveFlowmotion(value, itemize)
   --Add the flowmotion to the itemhandler state
+  if itemize == nil then
+    itemize = true
+  end
   local _flow = getItemById(value)
-  self:FlowmotionItem(value, false) --Add it to inventory
+  if itemize then
+    self:FlowmotionItem(value, false) --Add it to inventory
+  end
   ConsolePrint("Granting flowmotion ".._flow.Name.." inserting "..tostring(_flow.Bytes[1]))
   table.insert(self.State.Flowmotion, _flow.Bytes[1])
   --if value == 2661003 then --Need to grant shock dive with super jump
@@ -603,28 +610,21 @@ function ItemHandler:GiveFlowmotion(value)
   --end
   self.State.Flowmotion = removeDuplicates(self.State.Flowmotion)
 
+  --Set flowmotion val
+  local _newFlow = 0x80 --Init at 0x80 for instant access to shock dive
+  for i=1, #self.State.Flowmotion do
+    _newFlow = _newFlow + self.State.Flowmotion[i]
+  end
+  _newFlow = math.min(0xDE, _newFlow)
+  self.State.FlowmotionVal = _newFlow
+
   --table.insert(self.State.Flowmotion, 0x00)
 end
 
 function ItemHandler:RebuildFlowmotion()
-  local _flowAddr = MemoryAddresses.actionFlags[gameVer]
-  local intendedValue = 0
-
-  for i=1, #self.State.Flowmotion do
-    intendedValue = intendedValue + self.State.Flowmotion[i]
+  if ReadByte(MemoryAddresses.actionFlags[gameVer]) ~= self.State.FlowmotionVal then --Player has too much flowmotion; rebuild
+    WriteArray(MemoryAddresses.actionFlags[gameVer], {self.State.FlowmotionVal, 0xFF}) --Write 0xFF to always have access to attacks
   end
-  intendedValue = intendedValue + 0x80 --Include Shock Dive by default
-
-  if intendedValue > 0xDE then
-    intendedValue = 0xDE
-  end
-
-  if ReadByte(_flowAddr) ~= intendedValue then --Player has too much flowmotion; rebuild
-    WriteByte(_flowAddr, intendedValue)
-    WriteByte(_flowAddr+0x01, 0xFF) -- Always have access to attacks
-  end
-
-
 end
 
 -- ############################################################
@@ -635,61 +635,46 @@ end
 --Byte 1: Riku Count/Equip (Stat abilities only)
 --Byte 2: Visible (not sure what values greater than 5 mean)
 
-function ItemHandler:GiveAbility(value, addToTable)
+function ItemHandler:GiveAbility(value, addToTable, isAhead)
   local _ability = getAbilityById(value)
   local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
 
-  local _equipBytes = {0x08, 0x10, 0x20, 0x40, 0x80}
-  
+  local _currAbl = ReadByte(_addr)
+  local _amtBits = toBits(_currAbl) --First 3 bits is amt obtained; last 5 are equip status
+  local _amtHave = toByte({_amtBits[1], _amtBits[2], _amtBits[3]})
 
-  if _ability.Type == "Stat" then --Auto-equip
-    --Calculate expected value from item state
-    local _amtObtained = 0
-    local _equipVal = 0
-    for i=1, #self.State.Abilities.Shared do
-      if self.State.Abilities.Shared[i] == value then
-        _amtObtained = _amtObtained+1
-        if _amtObtained > #_equipBytes then
-          _equipVal = _equipBytes[#_equipBytes]
-        else
-          _equipVal = _equipVal+_equipBytes[_amtObtained]
-        end
-      end
+  if _amtHave < _ability.Stacks then --Another can be added
+      local _equipVal = 0x01 --Makes ability visible
+    if _ability.Type == "Stat" then --Needs to be autoequipped
+      local _equipBytes = {0x08, 0x10, 0x20, 0x40, 0x80}
+      _equipVal = _equipVal + _equipBytes[_amtHave+1]
+      WriteArray(_addr, {_currAbl+_equipVal, _currAbl+_equipVal}) --Equip for both Sora and Riku
+      WriteByte(_addr+0x02, 0x05)
+    elseif isAhead then
+      WriteByte(_addr, _currAbl+_equipVal)
+      WriteByte(_addr+0x02, 0x05)
     end
-    _equipVal = _equipVal + _amtObtained
-
-    local _isSoraOrRiku = getCharacter()
-    _addr = _addr+_isSoraOrRiku --Stat abilities for Riku are offset by 1
-    WriteByte(_addr, _equipVal)
-    WriteByte(_addr+1+math.abs(_isSoraOrRiku-1), 0x05)
-  else --Toggleable ability
-    local _currByte = ReadByte(_addr)
-    WriteByte(_addr, _currByte+1)
-    WriteByte(_addr+0x02, 0x05)
   end
 
-  --TODO: Write stat ups to sora/riku specific table
-  if addToTable then
+  if addToTable then --This might be deprecated
     table.insert(self.State.Abilities.Shared, value)
   end
+
 end
 
-function ItemHandler:RebuildAbilities()
-  --Reset status of all Stat abilities
-  for i=1, #self.State.Abilities.Shared do
-    local _ability = getAbilityById(self.State.Abilities.Shared[i])
-    local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
-    if _ability.Type == "Stat" then --Stat ups need to be re-equipped
-      WriteByte(_addr, 0x00)
-    end
-  end
+function ItemHandler:RemoveAbilityFromStock()
+  --Remove stat abilities added to command stock via chests
+  abilityBounds = {{0xEC, 0xFF}, {0x00, 0x16}}
 
-  --Re-equip all Stat abilities
-  for i=1, #self.State.Abilities.Shared do
-    local _ability = getAbilityById(self.State.Abilities.Shared[i])
-    local _addr = MemoryAddresses.supportAbilities[gameVer]+_ability.Offset
-    if _ability.Type == "Stat" then --Stat ups need to be re-equipped
-      self:GiveAbility(_ability.ID, false)
+  for i=0, 4000, 8 do
+    local _currAddr = MemoryAddresses.commandStockStart[gameVer]+i
+    local _currByte = ReadByte(_currAddr)
+    if _currByte >= abilityBounds[1][1] and _currByte <= abilityBounds[1][2] then
+      WriteArray(_currAddr, {0x00, 0x00})
+    elseif _currByte >= abilityBounds[2][1] and _currByte <= abilityBounds[2][2] then
+      if ReadByte(_currAddr+1) == 0x01 then
+        WriteArray(_currAddr, {0x00, 0x00})
+      end
     end
   end
 end
@@ -697,16 +682,23 @@ end
 -- ############################################################
 -- #######################  Recipes  ##########################
 -- ############################################################
-function ItemHandler:GiveRecipe(value)
+function ItemHandler:GiveRecipe(value, skipCraft, skipItem)
   local _item = getItemById(value)
   local _slotNo = value-2701001 --Base address for meow wow; recipes need to go in proper slot
   local _targetSlot = MemoryAddresses.recipes[gameVer]+(_slotNo*2)
+
+  --Scout board for received recipe
+  ConsolePrint("ATTEMPTING TO HINT BOARDS")
+  SendToApClient(MessageTypes.ScoutBoard, {tostring(_slotNo+1)})
+
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
-  WriteArray(_targetSlot, _item.Bytes)
+  if not skipItem then
+    WriteArray(_targetSlot, _item.Bytes)
+  end
   table.insert(self.State.Recipes, value)
   self.State.Recipes = removeDuplicates(self.State.Recipes)
   self:UpdateRecipeTotal()
-  if Configs.AutoCraftSpirits then
+  if Configs.AutoCraftSpirits and not skipCraft then
     self:CraftSpirits(value)
   end
 end
@@ -714,6 +706,10 @@ end
 function ItemHandler:RecipeToState(value)
   --This table only logs a recipe to the state table without adding to inventory or auto-crafting
   table.insert(self.State.Recipes, value)
+  local _slotNo = value-2701001
+  --Scout board for received recipe
+  ConsolePrint("ATTEMPTING TO HINT BOARDS")
+  SendToApClient(MessageTypes.ScoutBoard, {tostring(_slotNo+1)})
   self:UpdateRecipeTotal()
 end
 
@@ -722,6 +718,7 @@ function ItemHandler:RecipeToInv(value)
   local _item = getItemById(value)
   local _slotNo = value-2701001 --Base address for meow wow; recipes need to go in proper slot
   local _targetSlot = MemoryAddresses.recipes[gameVer]+(_slotNo*2)
+
   ConsolePrint("Target Slot: "..toHex(tostring(_targetSlot)))
   WriteArray(_targetSlot, _item.Bytes)
   self:UpdateRecipeTotal()
@@ -748,6 +745,7 @@ function ItemHandler:CheckMacguffins()
   local _hasCat = false
   local _hasBat = false
   local _hasRecusant = false
+  local _hasEmblem = false
 
   --Standard Goal
 
@@ -759,30 +757,36 @@ function ItemHandler:CheckMacguffins()
     if ReadByte(MemoryAddresses.recipes[gameVer]+0x06) > 0x00 then --Has bat
       _hasBat = true
     end
-    if ReadByte(MemoryAddresses.keyItems[gameVer]+28) > 0x00 then --Has recusant sigil
+    if ReadByte(MemoryAddresses.keyItems[gameVer]+58) > 0x00 then --Has recusant sigil
       _hasRecusant = true
     end
+    if ReadByte(MemoryAddresses.emblems[gameVer]+0x02) >= Configs.EmblemReqs then
+      _hasEmblem = true
+    end
 
-    if _hasCat and _hasBat and _hasRecusant and #self.State.Recipes >= Configs.RecipeReqs then
+    if _hasCat and _hasBat and _hasRecusant and _hasEmblem and #self.State.Recipes >= Configs.RecipeReqs then
       _hasMacguffin = true
 
       --Unlock fast go save points
-      local _fastGoSora = {0x1097913E, 0x109789BE}
-      WriteArray(_fastGoSora[gameVer], {0x0A, 0x03, 0x57})
+      if Configs.FastGoMode then
+        local _fastGoSora = {0x1097913E, 0x109789BE}
+        WriteArray(_fastGoSora[gameVer], {0x0A, 0x03, 0x57})
 
-      --Unlock for Riku
-      local _fastGoRiku = {0x109791AA, 0x10978A2A}
-      WriteArray(_fastGoRiku[gameVer], {0x0A, 0x0D})
+        --Unlock for Riku
+        local _fastGoRiku = {0x109791AA, 0x10978A2A}
+        WriteArray(_fastGoRiku[gameVer], {0x0A, 0x0D})
+      end
 
       --Set world status to reveal points
       local _statusS = ReadByte(MemoryAddresses.worldStatusS[gameVer]+0x02)
       if _statusS < 0x80 then
         WriteByte(MemoryAddresses.worldStatusS[gameVer]+0x02, _statusS+0x80)
       end
-      if ReadByte(MemoryAddresses.worldStatusR[gameVer]+0x03) == 0x00 then
+      if ReadByte(MemoryAddresses.worldStatusR[gameVer]+0x03) == 0x00 and Configs.FastGoMode then
         WriteByte(MemoryAddresses.worldStatusR[gameVer]+0x03, 0x01)
         --WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
       end
+
       if ReadInt(MemoryAddresses.worldStatusR[gameVer]+0xCC) > 0 then
         WriteInt(MemoryAddresses.worldStatusR[gameVer]+0xCC, 0)
       end
@@ -791,9 +795,14 @@ function ItemHandler:CheckMacguffins()
     self.State.HasCat = _hasCat
     self.State.HasBat = _hasBat
     self.State.Recusant = _hasRecusant
+    self.State.HasEmblems = _hasEmblem
   end
 
-  if Configs.Goal == 1 and #self.State.Recipes >= Configs.RecipeReqs then --Simplified goal for superbosses
+  if Configs.Goal == 1 and #self.State.Recipes >= Configs.RecipeReqs and self.State.Emblems >= Configs.EmblemReqs then --Simplified goal for superbosses
+    _hasMacguffin = true
+  end
+
+  if Configs.Goal == 2 and self.State.Emblems >= Configs.EmblemReqs then
     _hasMacguffin = true
   end
 
@@ -802,8 +811,6 @@ function ItemHandler:CheckMacguffins()
 end
 
 function ItemHandler:CraftSpirits(value)
-  math.randomseed(os.time()) --Set seed to ensure randomness
-
   local _baseRecipe = getItemById(value)
 
   local _spiritId = (value - 2701001)+1 --Get int value representing spirit
@@ -811,8 +818,16 @@ function ItemHandler:CraftSpirits(value)
   local _spiritInv = {0xA45A70, 0xA452F0}
   local _spiritOffset = 0x100 --Add this to base address for each spirit in inventory
 
-  --TODO: Make this account for local spirit crafting
-  local _spiritAddr = _spiritInv[gameVer] + (_spiritOffset * #self.State.Recipes)
+  
+  local _spiritAddr = 0
+  for x=0, 100 do --Scan for first empty slot
+    if _spiritAddr == 0 and ReadByte(_spiritInv[gameVer] + (_spiritOffset*x)) == 0 then
+      _spiritAddr = _spiritInv[gameVer] + (_spiritOffset*x)
+    end
+  end
+  if _spiritAddr == 0 then --Default to auto-calc'd slot
+    _spiritAddr = _spiritInv[gameVer] + (_spiritOffset * (#self.State.Recipes-1))
+  end
 
   --Write Spirit Type to inventory
   WriteInt(_spiritAddr, _spiritId)
@@ -828,35 +843,29 @@ function ItemHandler:CraftSpirits(value)
   local _nameOffset = 0x06 --Spirit Name
 
   local _maxHpOffset = 0x30
+  local _bonusOffset = 0x32 --Hp, stat, and resistance bonuses the game adds when it recalculates stats
   local _statOffset = 0x3D
+  local _growthOffset = 0x47
 
-  --Write Spirit Stats
+  local _level = math.max(ReadByte(levels.addr[gameVer]), 1)
+  local _growth = math.random(0, 2) | math.random(0, 2) << 2 | math.random(0, 2) << 4 | math.random(0, 2) << 6
   local _spiritStats = SpiritStats[_spiritId]
-  local _hpBonus = math.random()+math.random(0, 3)
-  local _strBonus = math.random()+math.random(0, 3)
-  local _magBonus = math.random()+math.random(0, 3)
-  local _defBonus = math.random()+math.random(0, 3)
-  WriteByte(_spiritAddr+_maxHpOffset, math.floor(_spiritStats.hp+_hpBonus))
-  WriteByte(_spiritAddr+_currHpOffset, math.floor(_spiritStats.hp+_hpBonus))
-  WriteByte(_spiritAddr+_statOffset, math.floor(_spiritStats.str+_strBonus))
-  WriteByte(_spiritAddr+_statOffset+1, math.floor(_spiritStats.mag+_magBonus))
-  WriteByte(_spiritAddr+_statOffset+2, math.floor(_spiritStats.def+_defBonus))
-  WriteByte(_spiritAddr+_statOffset+3, _spiritStats.fireRes)
-  WriteByte(_spiritAddr+_statOffset+4, _spiritStats.iceRes)
-  WriteByte(_spiritAddr+_statOffset+5, _spiritStats.elecRes)
-  WriteByte(_spiritAddr+_statOffset+6, _spiritStats.waterRes)
-  WriteByte(_spiritAddr+_statOffset+7, _spiritStats.darkRes)
-  WriteByte(_spiritAddr+_statOffset+8, _spiritStats.lightRes)
-
-  --Write level
-  local _levelToUse = levels.soraLevel-1
-  if getCharacter() == 1 then
-    _levelToUse = levels.rikuLevel-1
-  end
-  if _levelToUse < 1 then
-    _levelToUse = 1
-  end
-  WriteByte(_spiritAddr+_levelOffset, _levelToUse)
+  local _stats = Spirits:GetStats(_spiritId, _level, _rank, _growth)
+  WriteByte(_spiritAddr+_levelOffset, _level)
+  WriteByte(_spiritAddr+_growthOffset, _growth)
+  WriteArray(_spiritAddr+_bonusOffset, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
+  WriteShort(_spiritAddr+_maxHpOffset, _stats.hp)
+  WriteShort(_spiritAddr+_currHpOffset, _stats.hp)
+  WriteByte(_spiritAddr+_statOffset, _stats.str)
+  WriteByte(_spiritAddr+_statOffset+1, _stats.mag)
+  WriteByte(_spiritAddr+_statOffset+2, _stats.def)
+  WriteByte(_spiritAddr+_statOffset+3, 100) --Physical resistance, 100 for every spirit
+  WriteByte(_spiritAddr+_statOffset+4, _spiritStats.fireRes)
+  WriteByte(_spiritAddr+_statOffset+5, _spiritStats.iceRes)
+  WriteByte(_spiritAddr+_statOffset+6, _spiritStats.elecRes)
+  WriteByte(_spiritAddr+_statOffset+7, _spiritStats.waterRes)
+  WriteByte(_spiritAddr+_statOffset+8, _spiritStats.darkRes)
+  WriteByte(_spiritAddr+_statOffset+9, _spiritStats.lightRes)
 
   --Write Spirit Name
   local _spiritName = string.sub(_baseRecipe.Name, 1, #_baseRecipe.Name-7)
@@ -874,9 +883,28 @@ function ItemHandler:CraftSpirits(value)
   WriteInt(_spiritAddr+_colorOffset+0x02, math.random(0x00, 0xFF)) --B
   --WriteArray(_spiritAddr+_colorOffset, {0xFF, 0xFF, 0xFF}) --White Dream Eater
   local _expOffset = 0x24
-  WriteInt(_spiritAddr+_expOffset, ReadInt(MemoryAddresses.soraExp[gameVer]))
+  WriteInt(_spiritAddr+_expOffset, self:SpiritExp(_spiritId, _level))
+  if not self.State.ExpTableSet then
+    table.insert(self.State.PendingSpiritExp, _spiritAddr)
+  end
 
 
+end
+
+--Exp at the start of level, from the in-memory exp table that ConfigTask:WriteExpTable scales
+function ItemHandler:SpiritExp(id, level)
+  if level <= 1 then
+    return 0
+  end
+  return ReadInt(MemoryAddresses.expTable[gameVer]+(level-2)*4)*SpiritStats[id].exp // 100
+end
+
+function ItemHandler:SetPendingSpiritExp()
+  for _, _spiritAddr in ipairs(self.State.PendingSpiritExp) do
+    WriteInt(_spiritAddr+0x24, self:SpiritExp(ReadByte(_spiritAddr), ReadByte(_spiritAddr+0x03)))
+  end
+  self.State.PendingSpiritExp = {}
+  self.State.ExpTableSet = true
 end
 
 -- ############################################################
